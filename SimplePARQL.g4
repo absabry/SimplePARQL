@@ -26,7 +26,7 @@ URI
 NAMESPACE
     : PN_CHARS_BASE ((PN_CHARS|'.')* PN_CHARS)?
     ;
-
+                 
 // SELECT SECTION
 var
     : '?' VARNAME
