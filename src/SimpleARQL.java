@@ -18,7 +18,7 @@ public class SimpleARQL {
         MyVisitor visitor = new MyVisitor();
         visitor.visit(query);
 
-        // recuperer les elements de la requete
+        // get parts of the query
         PrologueClause prologue = visitor.getPrologue();
         logger.debug(prologue.toString());
 
