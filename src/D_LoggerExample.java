@@ -1,12 +1,12 @@
 import org.apache.log4j.Logger;
 
-public class LoggerExample {
+public class D_LoggerExample {
 
-    private final static Logger logger = Logger.getLogger(LoggerExample.class);
+    private final static Logger logger = Logger.getLogger(D_LoggerExample.class);
 
     public static void main(String[] args) {
 
-        LoggerExample obj = new LoggerExample();
+        D_LoggerExample obj = new D_LoggerExample();
         obj.runMe("mkyong");
     }
 

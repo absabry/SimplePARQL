@@ -1,6 +1,5 @@
 grammar SimplePARQL;
 
-
 query
     :  prologue selectQuery whereClause solutionModifier EOF
     ;

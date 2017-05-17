@@ -1,6 +1,6 @@
-public class SimpleARQLVariable {
+public class D_SimpleARQLVariable {
     private String variable;
-    public SimpleARQLVariable(String variable) {
+    public D_SimpleARQLVariable(String variable) {
         this.variable = variable;
     }
     public String getVariable(){
@@ -10,6 +10,6 @@ public class SimpleARQLVariable {
         return variable.substring(1);
     }
     public String toString(){
-        return getVarname();
+        return variable;
     }
 }

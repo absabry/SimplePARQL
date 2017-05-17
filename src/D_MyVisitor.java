@@ -1,40 +1,34 @@
 import javafx.util.Pair;
-import jdk.nashorn.internal.ir.Terminal;
-import org.antlr.v4.runtime.CommonToken;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.log4j.Logger;
 
-public class MyVisitor extends SimplePARQLBaseVisitor<String> {
-    private final static Logger logger = Logger.getLogger(MyVisitor.class);
-    private PrologueClause prologues;
-    private SelectClause selectClause;
-    private WhereClause whereClause;
+public class D_MyVisitor extends SimplePARQLBaseVisitor<String> {
+    private final static Logger logger = Logger.getLogger(D_MyVisitor.class);
+    private D_PrologueClause prologues;
+    private D_SelectClause selectClause;
+    private D_WhereClause whereClause;
 
-    MyVisitor() {
-        selectClause = new SelectClause();
-        prologues = new PrologueClause();
-        whereClause = new WhereClause();
+    D_MyVisitor() {
+        selectClause = new D_SelectClause();
+        prologues = new D_PrologueClause();
+        whereClause = new D_WhereClause();
     }
 
-    SelectClause getSelect() {
+    D_SelectClause getSelect() {
         return selectClause;
     }
 
-    PrologueClause getPrologue() {
+    D_PrologueClause getPrologue() {
         return prologues;
     }
 
-    WhereClause getWhereClause() {
+    D_WhereClause getWhereClause() {
         return whereClause;
     }
 
     @Override
     public String visitPrologue(SimplePARQLParser.PrologueContext ctx) {
-        prologues.clearPrefixes();
         for (int i = 0; i < ctx.getChildCount(); i++) {
             prologues.addPrefixe(ctx.getChild(i).getChild(1).getText(), ctx.getChild(i).getChild(2).getText());
         }

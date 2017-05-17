@@ -1,11 +1,11 @@
 import javafx.util.Pair;
 
-public class Triple {
+public class D_Triple {
     private Pair<String,String> subject;
     private Pair<String,String> predicate;
     private Pair<String,String> object;
 
-    public Triple(Pair<String,String> subject, Pair<String,String> predicate, Pair<String,String> object) {
+    public D_Triple(Pair<String,String> subject, Pair<String,String> predicate, Pair<String,String> object) {
         this.subject = subject;
         this.predicate = predicate;
         this.object = object;
@@ -23,11 +23,6 @@ public class Triple {
         return object;
     }
 
-    public String toString() {
-        return subject + " >> " + predicate + " >> " + object;
-    }
-
-
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;
@@ -35,13 +30,17 @@ public class Triple {
         if (obj == null) {
             return false;
         }
-        if (obj instanceof Triple) {
-            Triple other = (Triple) obj;
+        if (obj instanceof D_Triple) {
+            D_Triple other = (D_Triple) obj;
             return other.getSubject().equals(getSubject()) &&
                     other.getObject().equals(getObject()) &&
                     other.getPredicate().equals(getPredicate());
         } else {
             return false;
         }
+    }
+
+    public String toString() {
+        return subject.getKey() + "\t" + predicate.getKey() + "\t" + object.getKey();
     }
 }
