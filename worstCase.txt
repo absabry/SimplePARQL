@@ -4,8 +4,8 @@ PREFIX dbr: <http://dbpedia.org/resource/>
 SELECT *
 WHERE{
 ?x rdf:type dbo:Painter.
-?x dbo:birthDate ?birth. 
-?x dbo:birthPlace ?cityBirth.  
+?x dbo:birthDate ?birth.
+?x dbo:birthPlace ?cityBirth.
 sometruchereee #dieseitruc ici hehehe# "string hena hezfhdskb" .
 ?cityBirth dbo:country dbr:Germany.
 BIND(YEAR(?death)-YEAR(?birth) AS ?age)
