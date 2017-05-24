@@ -12,21 +12,27 @@ import java.util.ArrayList;
 
 class ParseTreeElements {
     private ArrayList<ParseTreeElement> parsedTree;
-    private ArrayList<Pair<String, String>> generatedStringForTree;
+    private ArrayList<ParserRuleContext> generatedTrees;
+    private ArrayList<Pair<String, String>> generatedStringForTree; // A SUPP
     private SimplePARQLParser parser;
     private ParserRuleContext query;
 
     ParseTreeElements(SimplePARQLParser parser) {
         parsedTree = new ArrayList<>();
         generatedStringForTree = new ArrayList<>();
+        generatedTrees = new ArrayList<>();
         this.parser = parser;
         query = this.parser.query();
     }
 
+    public ArrayList<ParserRuleContext> getGeneratedTrees() {
+        return generatedTrees;
+    }
+
     void add(ParseTreeElement parseTreeElement) {
         parsedTree.add(parseTreeElement);
-        generateCartesianProduct(parseTreeElement);
-        //anotherGenerateCartesianProduct(parseTreeElement);
+        generateCartesianProduct(parseTreeElement); // A SUPP
+        generateCartesianProductTrees(parseTreeElement);
     }
 
     private void generateCartesianProduct(ParseTreeElement parseTreeElement) {
@@ -44,7 +50,7 @@ class ParseTreeElements {
             generatedStringForTree.clear();
             generatedStringForTree.addAll(tempGenerated);
         }
-    }
+    } // A SUPP
 
     ArrayList<String> ConvertTree() {
         ArrayList<String> newQueries = new ArrayList<>();
@@ -56,7 +62,7 @@ class ParseTreeElements {
             newQueries.add(treeToString(parser, newOneQuery));
         }
         return newQueries;
-    }
+    } // A SUPP
 
     private void addFilterToTree(ParserRuleContext tree, String filterText) {
         ParserRuleContext whereclause = null;
@@ -67,9 +73,12 @@ class ParseTreeElements {
         }
         if (whereclause != null) {
             // ajouter le graphPatternnotTriples au mileu
+            SimplePARQLParser.GraphPatternNotTriplesContext graphPatternNotTriplesContext
+                    = new SimplePARQLParser.GraphPatternNotTriplesContext(whereclause, 1);
             ParseTree closedBrackets = whereclause.getChild(whereclause.getChildCount() - 1);
-            whereclause.children.set(whereclause.getChildCount() - 1, getComposantOfTree(filterText).filter());
+            whereclause.children.set(whereclause.getChildCount() - 1, graphPatternNotTriplesContext);
             whereclause.addChild((TerminalNodeImpl) closedBrackets);
+            graphPatternNotTriplesContext.addChild(getComposantOfTree(filterText).filter());
         }
     }
 
@@ -109,19 +118,15 @@ class ParseTreeElements {
     }
 
     private void generateCartesianProductTrees(ParseTreeElement parseTreeElement) {
-        if (generatedStringForTree.isEmpty()) {
-            generatedStringForTree.addAll(parseTreeElement.getGeneratedTriples());
-        } else {
-            ArrayList<Pair<String, String>> tempGenerated = new ArrayList<>();
-            for (Pair<String, String> oldGenerated : generatedStringForTree) {
-                for (Pair<String, String> tobeAdded : parseTreeElement.getGeneratedTriples()) {
-                    Pair<String, String> temp = new Pair<>(oldGenerated.getKey() + " . " + tobeAdded.getKey(),
-                            oldGenerated.getValue() + " " + tobeAdded.getValue());
-                    tempGenerated.add(temp);
-                }
+        if (generatedTrees.isEmpty()) {
+            for(Pair<String,String> element : parseTreeElement.getGeneratedTriples()){
+                SimplePARQLParser newOne = getComposantOfTree(treeToString(parser, query));
+                ParserRuleContext newOneQuery = newOne.query();
+                addTripleToTree(newOneQuery, element.getKey());
+                addFilterToTree(newOneQuery, element.getValue());
+                generatedTrees.add(newOneQuery);
             }
-            generatedStringForTree.clear();
-            generatedStringForTree.addAll(tempGenerated);
         }
+        // TODO HERE, when we have a product cartesian
     }
 }

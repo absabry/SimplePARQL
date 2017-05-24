@@ -4,5 +4,4 @@ PREFIX dbr: <http://dbpedia.org/resource/>
 SELECT ?x
 WHERE{
 "John Smith" ?pred ?obj.
-?x TRUC ?y.
 }
