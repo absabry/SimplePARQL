@@ -10,12 +10,18 @@ class ParseTreeElement {
     private ArrayList<Pair<ParserRuleContext, Integer>> parents;
     private POSITIONS position;
     private ArrayList<Pair<String, String>> generatedTriples;
+    private static int counter = 1;
 
     ParseTreeElement(ParseTree node) {
         parents = new ArrayList<>();
         generatedTriples = new ArrayList<>();
         createParentTree(node);
+        computePosition();
+        GenerateTriples(counter);
+        //detachFromTree();
+        counter++;
     }
+
 
     // create parent tree of the "truc"
     private void createParentTree(ParseTree node) {
@@ -28,6 +34,7 @@ class ParseTreeElement {
             node = node.getParent();
         }
     }
+
     private int getNodeIndex(ParseTree node) {
         if (node == null || node.getParent() == null) {
             return -1;
@@ -53,8 +60,8 @@ class ParseTreeElement {
         return generatedTriples;
     }
 
-    // compute the position of the "truc"
-    void computePosition() {
+    // compute the position of the "truc" directly after adding it
+    private void computePosition() {
         position = POSITIONS.SUBJECT;
         if (find(SimplePARQLParser.RULE_verb) != null) {
             position = POSITIONS.PREDICATE;
@@ -103,8 +110,8 @@ class ParseTreeElement {
         return null;
     }
 
-    // generate the triples for one "truc"
-    void GenerateTriples(int counter) {
+    // generate the triples for one "truc" directly after adding it
+    private void GenerateTriples(int counter) {
         String variable = Constants.VARIABLE + counter + " ";
         String label = Constants.VARIABLE_LABEL + counter + " ";
         String temp_var_1 = Constants.VARIABLE_TMP_1 + counter + " ";
@@ -120,8 +127,8 @@ class ParseTreeElement {
             generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . " + variable + temp_var_1 + temp_var_2, createSPARQLFilter(subject, temp_var_2)));
         } else if (position == POSITIONS.PREDICATE) {
             predicate = predicate.replace("\"", "").replace("#", "");
-            generatedTriples.add(new Pair<>(subject + variable + " " + object, createSPARQLFilter(predicate, variable)));
-            generatedTriples.add(new Pair<>(subject + variable + " " + object + " . " + variable + Constants.RDF + label, createSPARQLFilter(predicate, label)));
+            generatedTriples.add(new Pair<>(subject + variable + object, createSPARQLFilter(predicate, variable)));
+            generatedTriples.add(new Pair<>(subject + variable + object + " . " + variable + Constants.RDF + label, createSPARQLFilter(predicate, label)));
         } else if (position == POSITIONS.OBJECT) {
             object = object.replace("\"", "").replace("#", "");
             generatedTriples.add(new Pair<>(subject + " " + predicate + variable, createSPARQLFilter(object, variable)));
@@ -145,4 +152,10 @@ class ParseTreeElement {
         result += " )";
         return result;
     }
+
+    public String toString() {
+        return "Truc: " + parents.get(0).getKey().getText() + " Position: " + position;
+    }
+
+
 }
