@@ -3,5 +3,7 @@ PREFIX dbo: <http://dbpedia.org/ontology/>
 PREFIX dbr: <http://dbpedia.org/resource/>
 SELECT ?x
 WHERE{
-"John Smith" ?pred ?obj.
+?x ?y ?z.
+?sub ?pred "hellloooo".
+?sub ?pred "blabal?".
 }

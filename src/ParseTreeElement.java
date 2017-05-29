@@ -11,6 +11,7 @@ class ParseTreeElement {
     private POSITIONS position;
     private ArrayList<Pair<String, String>> generatedTriples;
     private static int counter = 1;
+    private boolean virtuoso;
 
     ParseTreeElement(ParseTree node) {
         parents = new ArrayList<>();
@@ -18,14 +19,13 @@ class ParseTreeElement {
         createParentTree(node);
         computePosition();
         GenerateTriples(counter);
-        //detachFromTree();
+        virtuoso=false; // aribtrairement maintenant
         counter++;
     }
 
-
     // create parent tree of the "truc"
     private void createParentTree(ParseTree node) {
-        int ruleTriplesBlock = SimplePARQLParser.RULE_triplesBlock;
+        int ruleTriplesBlock = SimplePARQLParser.RULE_query;
         int ruleIndex = -1;
         while (ruleIndex != ruleTriplesBlock) {
             ParserRuleContext elementNode = (ParserRuleContext) node;

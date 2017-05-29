@@ -25,15 +25,14 @@ public class Main {
 
         SimplePARQLParser parser = getTree(file);
         ParserRuleContext query = parser.query();
+        //printTree(parser, query);
         Collection<ParseTree> trucs = XPath.findAll(query, "//truc", parser);
         ParseTreeElements parsedTrucs = new ParseTreeElements(getTree(file));
         for (ParseTree node : trucs) {
             ParseTreeElement tree = new ParseTreeElement(node);
             parsedTrucs.add(tree);
         }
-        parsedTrucs.getGeneratedTrees().forEach(bla -> {
-            logger.debug(treeToString(parser, bla));
-        });
+        parsedTrucs.getGeneratedTrees().forEach(bla -> logger.debug(treeToString(parser, bla)));
     }
 
     // get tree or subtree of text
