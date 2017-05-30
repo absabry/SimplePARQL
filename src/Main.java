@@ -22,17 +22,17 @@ public class Main {
         logger.setLevel(Level.DEBUG);
         String file = "SimplePARQL.txt";
 
-
         SimplePARQLParser parser = getTree(file);
         ParserRuleContext query = parser.query();
-        //printTree(parser, query);
+        printTree(parser, query);
+
+        /*
         Collection<ParseTree> trucs = XPath.findAll(query, "//truc", parser);
         ParseTreeElements parsedTrucs = new ParseTreeElements(getTree(file));
-        for (ParseTree node : trucs) {
-            ParseTreeElement tree = new ParseTreeElement(node);
-            parsedTrucs.add(tree);
-        }
+        trucs.forEach(node -> parsedTrucs.add(new ParseTreeElement(node)));
         parsedTrucs.getGeneratedTrees().forEach(bla -> logger.debug(treeToString(parser, bla)));
+        logger.debug(parsedTrucs.getGeneratedTrees().size());
+        */
     }
 
     // get tree or subtree of text
@@ -87,6 +87,7 @@ public class Main {
         return parser.getRuleNames()[ruleIndex];
     }
 
+    // Debug ONLY
     private static void printParentPath(SimplePARQLParser parser, ArrayList<ParseTreeElement> trucPath) {
         for (ParseTreeElement tree : trucPath) {
             for (Pair<ParserRuleContext, Integer> rule : tree.getParents()) {

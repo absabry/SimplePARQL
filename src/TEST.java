@@ -1,3 +1,4 @@
+import javafx.util.Pair;
 import org.antlr.v4.gui.TreePostScriptGenerator;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.*;
@@ -8,10 +9,12 @@ import org.apache.log4j.Logger;
 
 import javax.print.PrintException;
 import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,8 +33,8 @@ public class TEST {
         org.apache.log4j.BasicConfigurator.configure();
         SimplePARQLParser parser = getTree("WithIt.txt");
         ParserRuleContext tree = parser.query();
-        addFilter(tree,"FILTER ( CONTAINS(UCASE(STR(?Ressource)),UCASE(\"Feodor\")))");
-        printTree(parser,tree);
+        addFilter(tree, "FILTER ( CONTAINS(UCASE(STR(?Ressource)),UCASE(\"Feodor\")))");
+        printTree(parser, tree);
     }
 
     private static void printTree(SimplePARQLParser parser, ParserRuleContext query) {
@@ -883,7 +886,7 @@ public class TEST {
 
     }
 
-    private static void addFilter(ParserRuleContext tree,String filterText) {
+    private static void addFilter(ParserRuleContext tree, String filterText) {
         ParserRuleContext whereclause = null;
         for (int i = 0; i < tree.children.size(); i++) {
             if (tree.children.get(i).getClass() == SimplePARQLParser.WhereClauseContext.class) {
@@ -938,5 +941,4 @@ public class TEST {
         logger.debug(LIMIT.getTokenSource());
         logger.debug(number.getTokenSource().getSourceName());
     */
-
 }

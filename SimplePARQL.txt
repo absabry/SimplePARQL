@@ -4,6 +4,5 @@ PREFIX dbr: <http://dbpedia.org/resource/>
 SELECT ?x
 WHERE{
 ?x ?y ?z.
-?sub ?pred "hellloooo".
-?sub ?pred "blabal?".
+?sub #birth date# "hellloooo".
 }

@@ -18,12 +18,13 @@ class ParseTreeElement {
         generatedTriples = new ArrayList<>();
         createParentTree(node);
         computePosition();
-        GenerateTriples(counter);
-        virtuoso=false; // aribtrairement maintenant
+        GenerateTriples();
+        virtuoso = false; // aribtrairement maintenant
         counter++;
     }
 
-    // create parent tree of the "truc"
+    // create parent tree of the "truc", used when we want to compute the position
+    // of the "Truc" in the tree subject, predicate or object
     private void createParentTree(ParseTree node) {
         int ruleTriplesBlock = SimplePARQLParser.RULE_query;
         int ruleIndex = -1;
@@ -50,11 +51,7 @@ class ParseTreeElement {
 
     ArrayList<Pair<ParserRuleContext, Integer>> getParents() {
         return parents;
-    }
-
-    POSITIONS getPosition() {
-        return position;
-    }
+    } // useful?
 
     ArrayList<Pair<String, String>> getGeneratedTriples() {
         return generatedTriples;
@@ -71,7 +68,7 @@ class ParseTreeElement {
     }
 
     // find in the parents of "truc" the ParseRuleContext when want
-    Pair<ParserRuleContext, Integer> find(int ruleIndex) {
+    private Pair<ParserRuleContext, Integer> find(int ruleIndex) {
         for (Pair<ParserRuleContext, Integer> pair : parents) {
             if (pair.getKey().getRuleIndex() == ruleIndex) {
                 return pair;
@@ -111,7 +108,7 @@ class ParseTreeElement {
     }
 
     // generate the triples for one "truc" directly after adding it
-    private void GenerateTriples(int counter) {
+    private void GenerateTriples() {
         String variable = Constants.VARIABLE + counter + " ";
         String label = Constants.VARIABLE_LABEL + counter + " ";
         String temp_var_1 = Constants.VARIABLE_TMP_1 + counter + " ";
@@ -122,18 +119,18 @@ class ParseTreeElement {
         String object = levels.get(POSITIONS.OBJECT);
         if (position == POSITIONS.SUBJECT) {
             subject = subject.replace("\"", "").replace("#", "");
-            generatedTriples.add(new Pair<>(variable + predicate + " " + object, createSPARQLFilter(subject, variable)));
-            generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . " + variable + Constants.RDF + label, createSPARQLFilter(subject, label)));
-            generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . " + variable + temp_var_1 + temp_var_2, createSPARQLFilter(subject, temp_var_2)));
+            generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . ", createSPARQLFilter(subject, variable)));
+            generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . " + variable + Constants.RDF + label + " . ", createSPARQLFilter(subject, label)));
+            generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . " + variable + temp_var_1 + temp_var_2 + " . ", createSPARQLFilter(subject, temp_var_2)));
         } else if (position == POSITIONS.PREDICATE) {
             predicate = predicate.replace("\"", "").replace("#", "");
-            generatedTriples.add(new Pair<>(subject + variable + object, createSPARQLFilter(predicate, variable)));
-            generatedTriples.add(new Pair<>(subject + variable + object + " . " + variable + Constants.RDF + label, createSPARQLFilter(predicate, label)));
+            generatedTriples.add(new Pair<>(subject + variable + object + " . ", createSPARQLFilter(predicate, variable)));
+            generatedTriples.add(new Pair<>(subject + variable + object + " . " + variable + Constants.RDF + label + " . ", createSPARQLFilter(predicate, label)));
         } else if (position == POSITIONS.OBJECT) {
             object = object.replace("\"", "").replace("#", "");
-            generatedTriples.add(new Pair<>(subject + " " + predicate + variable, createSPARQLFilter(object, variable)));
-            generatedTriples.add(new Pair<>(subject + " " + predicate + variable + " . " + variable + Constants.RDF + label, createSPARQLFilter(object, label)));
-            generatedTriples.add(new Pair<>(subject + " " + predicate + variable + " . " + variable + temp_var_1 + temp_var_2, createSPARQLFilter(object, temp_var_2)));
+            generatedTriples.add(new Pair<>(subject + " " + predicate + variable + " . ", createSPARQLFilter(object, variable)));
+            generatedTriples.add(new Pair<>(subject + " " + predicate + variable + " . " + variable + Constants.RDF + label + " . ", createSPARQLFilter(object, label)));
+            generatedTriples.add(new Pair<>(subject + " " + predicate + variable + " . " + variable + temp_var_1 + temp_var_2 + " . ", createSPARQLFilter(object, temp_var_2)));
         }
     }
 
@@ -143,7 +140,11 @@ class ParseTreeElement {
         String[] splitted = truc.split(" ");
         String result = "FILTER (";
         for (String wordOfTruc : splitted) {
-            result += "CONTAINS(STR(" + variable + "),UCASE(\"" + wordOfTruc + "\"))";
+            if (virtuoso) {
+                result += "bif:contains(STR(" + variable + "), UCASE(\"" + wordOfTruc + "\"))";
+            } else {
+                result += "CONTAINS(STR(" + variable + "),UCASE(\"" + wordOfTruc + "\"))";
+            }
             if (splitted.length != counter) {
                 result += " && ";
             }

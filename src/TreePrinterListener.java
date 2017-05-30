@@ -42,6 +42,7 @@ public class TreePrinterListener implements ParseTreeListener {
             breakLine=true;
         }
         else if (terminalText.equals("PREFIX") || terminalText.equals("SELECT") || terminalText.equals("WHERE") || terminalText.equals("FILTER")){
+
             builder.append("\n");
             builder.append(terminalText);
             breakLine=false;
