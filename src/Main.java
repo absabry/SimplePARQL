@@ -1,3 +1,4 @@
+import com.google.common.collect.Iterables;
 import javafx.util.Pair;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -22,25 +23,58 @@ public class Main {
         logger.setLevel(Level.DEBUG);
         String file = "SimplePARQL.txt";
 
+        // user
         SimplePARQLParser parser = getTree(file);
         ParserRuleContext query = parser.query();
-        printTree(parser, query);
 
+        // que des triples
+        SimplePARQLParser newParser = RearrangeQuery(getTree(file));
+        ParserRuleContext newQuery = newParser.query();
+        String treeString = treeToString(newParser, newQuery);
+
+        // generer les requetes version 30/05/2017, à midi
         /*
-        Collection<ParseTree> trucs = XPath.findAll(query, "//truc", parser);
-        ParseTreeElements parsedTrucs = new ParseTreeElements(getTree(file));
+        Collection<ParseTree> trucs = XPath.findAll(newQuery, "//truc", newParser);
+        ParseTreeElements parsedTrucs = new ParseTreeElements(getComposantOfTree(treeString));
         trucs.forEach(node -> parsedTrucs.add(new ParseTreeElement(node)));
-        parsedTrucs.getGeneratedTrees().forEach(bla -> logger.debug(treeToString(parser, bla)));
+        parsedTrucs.getGeneratedTrees().forEach(bla -> logger.debug(treeToString(newParser, bla)));
         logger.debug(parsedTrucs.getGeneratedTrees().size());
+        printTree(newParser, parsedTrucs.getGeneratedTrees().get(parsedTrucs.getGeneratedTrees().size() - 1));
         */
+        TestWithIndex test = new TestWithIndex(getComposantOfTree(treeString));
+
     }
 
-    // get tree or subtree of text
-    private static SimplePARQLParser getComposant(String text) throws IOException {
+    private static SimplePARQLParser getComposantOfTree(String text) {
         CharStream codeStream = CharStreams.fromString(text);
         SimplePARQLLexer lexer = new SimplePARQLLexer(codeStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         return new SimplePARQLParser(tokens);
+    }
+
+    private static SimplePARQLParser RearrangeQuery(SimplePARQLParser parser) {
+        ParserRuleContext query = parser.query();
+        ParserRuleContext groupGraphPattern = (ParserRuleContext) Iterables.get(XPath.findAll(query, "//whereClause//groupGraphPattern", parser), 0);
+        ArrayList<String> triples = new ArrayList<>();
+        Collection<ParseTree> triplesSameSubjects = XPath.findAll(query, "//triplesSameSubject", parser);
+        triplesSameSubjects.forEach(triplesSameSubject -> {
+            String subject = triplesSameSubject.getChild(0).getText();
+            ParseTree propretyListNotEmpty = triplesSameSubject.getChild(1);
+            for (int i = 0; i < propretyListNotEmpty.getChildCount(); i += 3) { // predicate,object utilisé, puis le ";" qui nous sert a rien
+                ParseTree predicate = propretyListNotEmpty.getChild(i);
+                ParseTree object = propretyListNotEmpty.getChild(i + 1);
+                for (int j = 0; j < object.getChildCount(); j += 2) { //puis le "," qui nous sert a rien
+                    triples.add(subject + " " + predicate.getText() + " " + object.getChild(j).getText() + " .");
+                }
+            }
+        });
+
+        SimplePARQLParser triplesTree = getComposantOfTree(String.join("\n", triples));
+        ParserRuleContext triplesBlockTree = triplesTree.triplesBlock();
+        Collection<ParseTree> otherTriplesBlocks = XPath.findAll(query, "//whereClause//groupGraphPattern//triplesBlock", parser);
+        groupGraphPattern.children.set(1, triplesBlockTree);
+        groupGraphPattern.children.removeAll(otherTriplesBlocks);
+        return getComposantOfTree(treeToString(parser, query));
     }
 
     // get tree of file

@@ -19,7 +19,7 @@ import java.util.List;
 public class TreePrinterListener implements ParseTreeListener {
     private final List<String> ruleNames;
     private final StringBuilder builder = new StringBuilder();
-    private static boolean breakLine=false;
+    private static boolean breakLine = false;
 
     public TreePrinterListener(Parser parser) {
         this.ruleNames = Arrays.asList(parser.getRuleNames());
@@ -35,26 +35,24 @@ public class TreePrinterListener implements ParseTreeListener {
             builder.append(' ');
         }
         String terminalText = Utils.escapeWhitespace(Trees.getNodeText(node, ruleNames), false);
-        if(terminalText.equals("{") || terminalText.equals("}")){
+        if (terminalText.equals("{") || terminalText.equals("}")) {
             builder.append("\n");
             builder.append(terminalText);
             builder.append("\n");
-            breakLine=true;
-        }
-        else if (terminalText.equals("PREFIX") || terminalText.equals("SELECT") || terminalText.equals("WHERE") || terminalText.equals("FILTER")){
-
+            breakLine = true;
+        } else if (terminalText.equals("PREFIX") || terminalText.equals("SELECT") || terminalText.equals("WHERE") || terminalText.equals("FILTER") || terminalText.equals("OPTIONAL")) {
+            if (!breakLine) {
+                builder.append("\n");
+            }
+            builder.append(terminalText);
+            breakLine = false;
+        } else if (terminalText.equals(".")) {
+            builder.append(terminalText);
             builder.append("\n");
+            breakLine = true;
+        } else if (!terminalText.equals("<EOF>")) {
             builder.append(terminalText);
-            breakLine=false;
-        }
-        else if(terminalText.equals(".")){
-            builder.append(terminalText);
-            builder.append("\n");
-            breakLine=true;
-        }
-        else if(!terminalText.equals("<EOF>")){
-            builder.append(terminalText);
-            breakLine=false;
+            breakLine = false;
         }
 
     }

@@ -34,7 +34,7 @@ class ParseTreeElements {
 
     void add(ParseTreeElement parseTreeElement) {
         trucs.add(parseTreeElement);
-        newGenerateCartesianProductTrees(parseTreeElement);
+        generateCartesianProductTrees(parseTreeElement);
     }
 
     private void addFilterToTree(ParserRuleContext tree, String filterText) {
@@ -75,7 +75,7 @@ class ParseTreeElements {
 
     }
 
-    private void newAddTripleToTree(ParserRuleContext tree, ParseTreeElement element, String triplesText) {
+    private void addTripleToTree(ParserRuleContext tree, String triplesText) {
         ParserRuleContext whereclause = null;
         for (int i = 0; i < tree.children.size(); i++) {
             if (tree.children.get(i).getClass() == SimplePARQLParser.WhereClauseContext.class) {
@@ -89,12 +89,12 @@ class ParseTreeElements {
         }
     }
 
-    private void newGenerateCartesianProductTrees(ParseTreeElement parseTreeElement) {
+    private void generateCartesianProductTrees(ParseTreeElement parseTreeElement) {
         if (generatedTrees.isEmpty()) {
             for (Pair<String, String> element : parseTreeElement.getGeneratedTriples()) {
                 SimplePARQLParser newOne = getComposantOfTree(treeToString(parser, query));
                 ParserRuleContext newOneQuery = newOne.query();
-                newAddTripleToTree(newOneQuery, parseTreeElement, element.getKey());
+                addTripleToTree(newOneQuery, element.getKey());
                 addFilterToTree(newOneQuery, element.getValue());
                 generatedTrees.add(newOneQuery);
             }
@@ -104,7 +104,7 @@ class ParseTreeElements {
                 for (ParserRuleContext alreadyIn : generatedTrees) {
                     SimplePARQLParser newOne = getComposantOfTree(treeToString(parser, alreadyIn));
                     ParserRuleContext newOneQuery = newOne.query();
-                    newAddTripleToTree(newOneQuery, parseTreeElement, element.getKey());
+                    addTripleToTree(newOneQuery, element.getKey());
                     addFilterToTree(newOneQuery, element.getValue());
                     temp.add(newOneQuery);
                 }
@@ -112,10 +112,10 @@ class ParseTreeElements {
             generatedTrees.clear();
             generatedTrees.addAll(temp);
         }
-        detachTrucs();
+        detachTrucsFromTree();
     }
 
-    private void detachTrucs() {
+    private void detachTrucsFromTree() {
         for (ParserRuleContext tree : generatedTrees) {
             Collection<ParseTree> trucs = XPath.findAll(tree, "//truc", parser);
             for (ParseTree node : trucs) {
@@ -158,7 +158,7 @@ class ParseTreeElements {
     // A SUPPRIMMER !!!!
 
     // complicated : quand on ajoute une leaf a la tree (on ajoute le premier choix) , ca modifie les parents des autres enfants trucs et donc ca tue presque tout
-    private void addTripleToTree(ParserRuleContext tree, ParseTreeElement element, String triplesText) {
+    private void DeprecatedAddTripleToTree(ParserRuleContext tree, ParseTreeElement element, String triplesText) {
         ParserRuleContext whereclause = null;
         for (int i = 0; i < tree.children.size(); i++) {
             if (tree.children.get(i).getClass() == SimplePARQLParser.WhereClauseContext.class) {
@@ -166,11 +166,11 @@ class ParseTreeElements {
             }
         }
         if (whereclause != null) {
-            Pair<ParserRuleContext, Integer> triplesBlocks = find(tree, element, SimplePARQLParser.RULE_triplesBlock);
+            Pair<ParserRuleContext, Integer> triplesBlocks = DeprecatedFind(tree, element, SimplePARQLParser.RULE_triplesBlock);
             if (triplesBlocks != null) {
                 ParseTree lastChild = triplesBlocks.getKey().getChild(triplesBlocks.getKey().getChildCount() - 1);
                 if (lastChild instanceof ParserRuleContext) {
-                    Pair<ParserRuleContext, Integer> tripleSameSubject = find(tree, element, SimplePARQLParser.RULE_triplesSameSubject);
+                    Pair<ParserRuleContext, Integer> tripleSameSubject = DeprecatedFind(tree, element, SimplePARQLParser.RULE_triplesSameSubject);
                     if (tripleSameSubject != null) {
                         triplesBlocks.getKey().children.set(tripleSameSubject.getValue(), getComposantOfTree(triplesText).triplesBlock());
                     }
@@ -182,7 +182,7 @@ class ParseTreeElements {
     }
 
     // complicated : quand on ajoute une leaf a la tree (on ajoute le premier choix) , ca modifie les parents des autres enfants trucs et donc ca tue presque tout
-    private void generateCartesianProductTrees(ParseTreeElement parseTreeElement) {
+    private void DeprecatedGenerateCartesianProductTrees(ParseTreeElement parseTreeElement) {
         if (generatedTrees.isEmpty()) {
             int counter = 0;
             for (Pair<String, String> element : parseTreeElement.getGeneratedTriples()) {
@@ -191,7 +191,7 @@ class ParseTreeElements {
                 if (counter == 1) {
                     printTree(getComposantOfTree(treeToString(parser, query)), getComposantOfTree(treeToString(parser, query)).query());
                 }
-                addTripleToTree(newOneQuery, parseTreeElement, element.getKey());
+                DeprecatedAddTripleToTree(newOneQuery, parseTreeElement, element.getKey());
                 addFilterToTree(newOneQuery, element.getValue());
                 generatedTrees.add(newOneQuery);
                 counter++;
@@ -209,7 +209,7 @@ class ParseTreeElements {
                     if (counter == 1) {
                         printTree(getComposantOfTree(treeToString(parser, alreadyIn)), (getComposantOfTree(treeToString(parser, alreadyIn))).query());
                     }
-                    addTripleToTree(newOneQuery, parseTreeElement, element.getKey());
+                    DeprecatedAddTripleToTree(newOneQuery, parseTreeElement, element.getKey());
                     addFilterToTree(newOneQuery, element.getValue());
                     logger.debug("TREE AFTER");
                     logger.debug(treeToString(newOne, newOneQuery));
@@ -248,21 +248,15 @@ class ParseTreeElements {
         frame.getContentPane().add(jScrollPane);
     }
 
-    private Pair<ParserRuleContext, Integer> find(ParserRuleContext tree, ParseTreeElement element, int ruleIndex) {
+    private Pair<ParserRuleContext, Integer> DeprecatedFind(ParserRuleContext tree, ParseTreeElement element, int ruleIndex) {
         ArrayList<Pair<ParserRuleContext, Integer>> tempList = new ArrayList<>();
         Pair<ParserRuleContext, Integer> truc = new Pair<>(tree, -1);
         tempList.add(truc);
 
         for (int i = element.getParents().size() - 1; i > 0; i--) {
             Pair<ParserRuleContext, Integer> next = element.getParents().get(i - 1);
-            if (!(truc.getKey().getChild(next.getValue()) instanceof ParserRuleContext)) {
-                logger.debug("HERE!!!!");
-                logger.debug(next.getKey().getClass() + " ///" + next.getValue());
-                logger.debug(next.getKey().getText());
-            } else {
-                truc = new Pair<>((ParserRuleContext) truc.getKey().getChild(next.getValue()), next.getValue());
-                tempList.add(truc);
-            }
+            truc = new Pair<>((ParserRuleContext) truc.getKey().getChild(next.getValue()), next.getValue());
+            tempList.add(truc);
         }
         for (int i = tempList.size() - 1; i >= 0; i--) {
             Pair<ParserRuleContext, Integer> temp = tempList.get(i);
