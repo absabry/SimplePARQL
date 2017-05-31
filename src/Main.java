@@ -26,6 +26,7 @@ public class Main {
         // user
         SimplePARQLParser parser = getTree(file);
         ParserRuleContext query = parser.query();
+        String oringianltreeString = treeToString(parser, query);
 
         // que des triples
         SimplePARQLParser newParser = RearrangeQuery(getTree(file));
@@ -41,6 +42,7 @@ public class Main {
         logger.debug(parsedTrucs.getGeneratedTrees().size());
         printTree(newParser, parsedTrucs.getGeneratedTrees().get(parsedTrucs.getGeneratedTrees().size() - 1));
         */
+
         TestWithIndex test = new TestWithIndex(getComposantOfTree(treeString));
 
     }
@@ -54,17 +56,21 @@ public class Main {
 
     private static SimplePARQLParser RearrangeQuery(SimplePARQLParser parser) {
         ParserRuleContext query = parser.query();
-        ParserRuleContext groupGraphPattern = (ParserRuleContext) Iterables.get(XPath.findAll(query, "//whereClause//groupGraphPattern", parser), 0);
+        ParserRuleContext groupGraphPattern = (ParserRuleContext) Iterables.get(XPath.findAll(query, "//whereClause//groupGraphPattern", parser), 0); // il n'existe qu'un seul
         ArrayList<String> triples = new ArrayList<>();
         Collection<ParseTree> triplesSameSubjects = XPath.findAll(query, "//triplesSameSubject", parser);
+        Collection<ParseTree> notGraphPattern = XPath.findAll(query, "//graphPatternNotTriples", parser);
+        triplesSameSubjects.removeAll(notGraphPattern);
         triplesSameSubjects.forEach(triplesSameSubject -> {
-            String subject = triplesSameSubject.getChild(0).getText();
-            ParseTree propretyListNotEmpty = triplesSameSubject.getChild(1);
-            for (int i = 0; i < propretyListNotEmpty.getChildCount(); i += 3) { // predicate,object utilisé, puis le ";" qui nous sert a rien
-                ParseTree predicate = propretyListNotEmpty.getChild(i);
-                ParseTree object = propretyListNotEmpty.getChild(i + 1);
-                for (int j = 0; j < object.getChildCount(); j += 2) { //puis le "," qui nous sert a rien
-                    triples.add(subject + " " + predicate.getText() + " " + object.getChild(j).getText() + " .");
+            if (!checkInParents(triplesSameSubject)) {
+                String subject = triplesSameSubject.getChild(0).getText();
+                ParseTree propretyListNotEmpty = triplesSameSubject.getChild(1);
+                for (int i = 0; i < propretyListNotEmpty.getChildCount(); i += 3) { // predicate,object utilisé, puis le ";" qui nous sert a rien
+                    ParseTree predicate = propretyListNotEmpty.getChild(i);
+                    ParseTree object = propretyListNotEmpty.getChild(i + 1);
+                    for (int j = 0; j < object.getChildCount(); j += 2) { //puis le "," qui nous sert a rien
+                        triples.add(subject + " " + predicate.getText() + " " + object.getChild(j).getText() + " .");
+                    }
                 }
             }
         });
@@ -75,6 +81,21 @@ public class Main {
         groupGraphPattern.children.set(1, triplesBlockTree);
         groupGraphPattern.children.removeAll(otherTriplesBlocks);
         return getComposantOfTree(treeToString(parser, query));
+    }
+
+    private static boolean checkInParents(ParseTree node) {
+        int ruleOptionalGraphPattern = SimplePARQLParser.RULE_optionalGraphPattern;
+        int ruleQuery = SimplePARQLParser.RULE_query;
+        int ruleIndex = -1;
+        while (ruleIndex != ruleQuery) {
+            ParserRuleContext elementNode = (ParserRuleContext) node;
+            ruleIndex = elementNode.getRuleIndex();
+            if (ruleIndex == ruleOptionalGraphPattern) {
+                return true;
+            }
+            node = node.getParent();
+        }
+        return false;
     }
 
     // get tree of file

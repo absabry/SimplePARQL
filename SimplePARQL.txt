@@ -3,10 +3,8 @@ PREFIX dbo: <http://dbpedia.org/ontology/>
 PREFIX dbr: <http://dbpedia.org/resource/>
 SELECT ?x
 WHERE{
-?a ?b ?c.
-?a ?b ?c.
-"obj" ?y ?z .
-?a ?b ?c.
-"sub" ?y ?z .
+?a ?b ?c;
+    ?d "sub".
+?x ?y "obj"
 FILTER (?x != ?y)
 }

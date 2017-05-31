@@ -28,8 +28,16 @@ class ParseTreeElement {
         counter++;
     }
 
-    // create parent tree of the "truc", used when we want to compute the position
-    // of the "Truc" in the tree subject, predicate or object
+
+    ArrayList<Pair<ParserRuleContext, Integer>> getParents() {
+        return parents;
+    } // useful?
+
+    ArrayList<Pair<String, String>> getGeneratedTriples() {
+        return generatedTriples;
+    }
+
+    // create parent tree of the "truc" (the path up to the root)
     private void createParentTree(ParseTree node) {
         int ruleTriplesBlock = SimplePARQLParser.RULE_query;
         int ruleIndex = -1;
@@ -52,14 +60,6 @@ class ParseTreeElement {
             }
         }
         return -1;
-    }
-
-    ArrayList<Pair<ParserRuleContext, Integer>> getParents() {
-        return parents;
-    } // useful?
-
-    ArrayList<Pair<String, String>> getGeneratedTriples() {
-        return generatedTriples;
     }
 
     // compute the position of the "truc" directly after adding it

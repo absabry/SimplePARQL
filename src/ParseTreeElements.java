@@ -14,6 +14,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+
+/**
+ *
+ *
+ * DEPERECATED
+ * Je n'utilise plus cette classe, les fonctions générés sont utilisé dans d'autres classes
+ * et sont plus précises que les méthodes de cette classe. Je la garde ici juste au cas ou.
+ */
 class ParseTreeElements {
     private final static Logger logger = Logger.getLogger(ParseTreeElements.class);
     private ArrayList<ParseTreeElement> trucs;

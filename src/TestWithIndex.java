@@ -10,7 +10,6 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.xpath.XPath;
 import org.apache.log4j.Logger;
-import sun.java2d.pipe.SpanShapeRenderer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,19 +23,55 @@ class TestWithIndex {
     private ArrayList<ParserRuleContext> generatedTrees;
     private SimplePARQLParser parser;
     private ParserRuleContext query;
+    private static int counter = 0;
 
     TestWithIndex(SimplePARQLParser parser) {
         generatedTrees = new ArrayList<>();
         this.parser = parser;
         query = this.parser.query();
-        generateCartesianProductTrees(new ParseTreeElement(Iterables.get(XPath.findAll(query, "//truc", parser), 0)));
+        generatedTrees.add(query);
+        //generateCartesianProductTrees(new ParseTreeElement(Iterables.get(XPath.findAll(query, "//truc", parser), 0)));
+        if (containsTruc()) {
+            mainGenerate();
+        }
+
+        for (ParserRuleContext generatedTree : generatedTrees) {
+            logger.debug(treeToString(parser, generatedTree));
+        }
+        logger.debug(generatedTrees.size() + " queries generated.");
 
     }
 
+    private void mainGenerate() {
+        ArrayList<ParserRuleContext> oldGeneratedTrees = new ArrayList<>();
+        oldGeneratedTrees.addAll(generatedTrees);
+        for (ParserRuleContext oldGenereatedTree : oldGeneratedTrees) {
+            Collection<ParseTree> trucs = XPath.findAll(oldGenereatedTree, "//truc", parser);
+            if (trucs.size() > 0) {
+                generateCartesianProductTrees(oldGenereatedTree, new ParseTreeElement(Iterables.get(trucs, 0)));
+            }
+        }
+        generatedTrees.removeAll(oldGeneratedTrees);
 
-    private void generateCartesianProductTrees(ParseTreeElement parseTreeElement) {
+        if (containsTruc()) {
+            mainGenerate();
+        }
+    }
+
+    private boolean containsTruc() {
+        ArrayList<ParserRuleContext> checkList = new ArrayList<>();
+        checkList.addAll(generatedTrees);
+        for (ParserRuleContext tree : checkList) {
+            if (XPath.findAll(tree, "//truc", parser).size() > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void generateCartesianProductTrees(ParserRuleContext tree, ParseTreeElement parseTreeElement) {
         for (Pair<String, String> element : parseTreeElement.getGeneratedTriples()) {
-            SimplePARQLParser newOne = getComposantOfTree(treeToString(parser, query));
+            SimplePARQLParser newOne = getComposantOfTree(treeToString(parser, tree));
             ParserRuleContext newOneQuery = newOne.query();
 
             Pair<ParserRuleContext, Integer> triplesBlocks = findInTree(newOneQuery, parseTreeElement, SimplePARQLParser.RULE_triplesBlock);
@@ -55,21 +90,7 @@ class TestWithIndex {
                 }
             }
             addFilterToTree(newOneQuery, element.getValue());
-            generatedTrees.add(newOneQuery);
-        }
-        int counter = 1;
-        for (ParserRuleContext parserRuleContext : generatedTrees) {
-            Collection<ParseTree> trucs = XPath.findAll(parserRuleContext, "//truc", parser);
-            logger.debug(trucs.size());
-
-            /*if (trucs.size() > 0) {
-                //generateCartesianProductTrees(new ParseTreeElement(Iterables.get(trucs, 0)));
-                logger.debug("-------------" + counter + "------");
-                printParentPath(parser, new ParseTreeElement(Iterables.get(trucs, 0)));
-                printTree(parser, parserRuleContext, counter + "");
-            }
-            counter++;
-            */
+            generatedTrees.add(getComposantOfTree(treeToString(parser, newOneQuery)).query());
         }
     }
 
