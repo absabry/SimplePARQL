@@ -1,4 +1,4 @@
- enum POSITIONS {
+ enum POSITION {
     SUBJECT,
     PREDICATE,
     OBJECT;

@@ -5,6 +5,10 @@ SELECT ?x
 WHERE{
 ?a ?b ?c;
     ?d "sub".
-?x ?y "obj"
+?x ?y "obj".
+OPTIONAL{
+?x ?y "obj1".
+}
+?after ?after ?after
 FILTER (?x != ?y)
 }

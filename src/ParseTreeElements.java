@@ -16,12 +16,20 @@ import java.util.Collection;
 
 
 /**
- *
- *
  * DEPERECATED
  * Je n'utilise plus cette classe, les fonctions générés sont utilisé dans d'autres classes
  * et sont plus précises que les méthodes de cette classe. Je la garde ici juste au cas ou.
+ *
+ * generer les requetes version 30/05/2017, à midi
+ *
+ * Collection<ParseTree> trucs = XPath.findAll(newQuery, "//truc", newParser);
+ * ParseTreeElements parsedTrucs = new ParseTreeElements(getTreeOfText(treeString));
+ * trucs.forEach(node -> parsedTrucs.add(new ParseTreeElement(node)));
+ * parsedTrucs.getGeneratedTrees().forEach(bla -> logger.debug(treeToString(newParser, bla)));
+ * logger.debug(parsedTrucs.getGeneratedTrees().size());
+ * printTree(newParser, parsedTrucs.getGeneratedTrees().get(parsedTrucs.getGeneratedTrees().size() - 1));
  */
+
 class ParseTreeElements {
     private final static Logger logger = Logger.getLogger(ParseTreeElements.class);
     private ArrayList<ParseTreeElement> trucs;

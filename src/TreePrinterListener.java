@@ -21,7 +21,7 @@ public class TreePrinterListener implements ParseTreeListener {
     private final StringBuilder builder = new StringBuilder();
     private static boolean breakLine = false;
 
-    public TreePrinterListener(Parser parser) {
+    TreePrinterListener(Parser parser) {
         this.ruleNames = Arrays.asList(parser.getRuleNames());
     }
 

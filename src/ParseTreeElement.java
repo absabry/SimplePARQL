@@ -1,40 +1,41 @@
 import javafx.util.Pair;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.xpath.XPath;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 class ParseTreeElement {
     private ArrayList<Pair<ParserRuleContext, Integer>> parents;
-    private POSITIONS position;
+    private POSITION position;
+    private LEVEL level;
     private ArrayList<Pair<String, String>> generatedTriples;
-    private static int counter = 1;
+    private int counter;
     private boolean virtuoso;
 
-    ParseTreeElement(ParseTree node) {
+    ParseTreeElement(ParseTree node, int counter) {
         parents = new ArrayList<>();
         generatedTriples = new ArrayList<>();
+        this.counter = counter;
         createParentTree(node);
         computePosition();
+        computeLevel();
         GenerateTriples();
         virtuoso = false; // aribtrairement maintenant
-        counter++;
     }
 
 
     ArrayList<Pair<ParserRuleContext, Integer>> getParents() {
         return parents;
-    } // useful?
+    }
 
     ArrayList<Pair<String, String>> getGeneratedTriples() {
         return generatedTriples;
+    }
+
+    public LEVEL getLevel() {
+        return level;
     }
 
     // create parent tree of the "truc" (the path up to the root)
@@ -44,31 +45,27 @@ class ParseTreeElement {
         while (ruleIndex != ruleTriplesBlock) {
             ParserRuleContext elementNode = (ParserRuleContext) node;
             ruleIndex = elementNode.getRuleIndex();
-            parents.add(new Pair<>(elementNode, getNodeIndex(node)));
+            parents.add(new Pair<>(elementNode, Functions.getNodeIndex(node)));
             node = node.getParent();
         }
     }
 
-    private int getNodeIndex(ParseTree node) {
-        if (node == null || node.getParent() == null) {
-            return -1;
-        }
-        ParseTree parent = node.getParent();
-        for (int i = 0; i < parent.getChildCount(); i++) {
-            if (parent.getChild(i) == node) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
     // compute the position of the "truc" directly after adding it
     private void computePosition() {
-        position = POSITIONS.SUBJECT;
+        position = POSITION.SUBJECT;
         if (find(SimplePARQLParser.RULE_verb) != null) {
-            position = POSITIONS.PREDICATE;
+            position = POSITION.PREDICATE;
         } else if (find(SimplePARQLParser.RULE_object) != null) {
-            position = POSITIONS.OBJECT;
+            position = POSITION.OBJECT;
+        }
+    }
+
+    private void computeLevel() {
+        level = LEVEL.WHERE;
+        if (find(SimplePARQLParser.RULE_optionalGraphPattern) != null) {
+            level = LEVEL.OPTIONAL;
+        } else if (find(SimplePARQLParser.RULE_groupOrUnionGraphPattern) != null) {
+            level = LEVEL.GRAPH;
         }
     }
 
@@ -83,27 +80,27 @@ class ParseTreeElement {
     }
 
     // get subject, pred and object
-    private Map<POSITIONS, String> getTriplesComposantes() {
+    private Map<POSITION, String> getTriplesComposantes() {
         if (parents.size() != 0) {
-            Map<POSITIONS, String> triplesComposantes = new HashMap<>();
+            Map<POSITION, String> triplesComposantes = new HashMap<>();
             Pair<ParserRuleContext, Integer> triplesSameSubject = find(SimplePARQLParser.RULE_triplesSameSubject);
             if (triplesSameSubject != null) {
-                triplesComposantes.put(POSITIONS.SUBJECT, triplesSameSubject.getKey().getChild(0).getText());
+                triplesComposantes.put(POSITION.SUBJECT, triplesSameSubject.getKey().getChild(0).getText());
                 ParserRuleContext propretyList = (ParserRuleContext) triplesSameSubject.getKey().getChild(1);
-                if (position == POSITIONS.SUBJECT) {
-                    triplesComposantes.put(POSITIONS.PREDICATE, propretyList.getChild(0).getText());
-                    triplesComposantes.put(POSITIONS.OBJECT, propretyList.getChild(1).getText()); // element juste après c'est son object
-                } else if (position == POSITIONS.PREDICATE) {
+                if (position == POSITION.SUBJECT) {
+                    triplesComposantes.put(POSITION.PREDICATE, propretyList.getChild(0).getText());
+                    triplesComposantes.put(POSITION.OBJECT, propretyList.getChild(1).getText()); // element juste après c'est son object
+                } else if (position == POSITION.PREDICATE) {
                     Pair<ParserRuleContext, Integer> verb = find(SimplePARQLParser.RULE_verb);
                     if (verb != null) {
-                        triplesComposantes.put(POSITIONS.PREDICATE, verb.getKey().getText());
-                        triplesComposantes.put(POSITIONS.OBJECT, propretyList.getChild(verb.getValue() + 1).getText()); // element juste après c'est son object
+                        triplesComposantes.put(POSITION.PREDICATE, verb.getKey().getText());
+                        triplesComposantes.put(POSITION.OBJECT, propretyList.getChild(verb.getValue() + 1).getText()); // element juste après c'est son object
                     }
-                } else if (position == POSITIONS.OBJECT) {
+                } else if (position == POSITION.OBJECT) {
                     Pair<ParserRuleContext, Integer> objectList = find(SimplePARQLParser.RULE_objectList);
                     if (objectList != null) {
-                        triplesComposantes.put(POSITIONS.PREDICATE, propretyList.getChild(objectList.getValue() - 1).getText());// element juste avant c'est son predicate
-                        triplesComposantes.put(POSITIONS.OBJECT, objectList.getKey().getText());
+                        triplesComposantes.put(POSITION.PREDICATE, propretyList.getChild(objectList.getValue() - 1).getText());// element juste avant c'est son predicate
+                        triplesComposantes.put(POSITION.OBJECT, objectList.getKey().getText());
                     }
                 }
                 return triplesComposantes;
@@ -118,20 +115,20 @@ class ParseTreeElement {
         String label = Constants.VARIABLE_LABEL + counter + " ";
         String temp_var_1 = Constants.VARIABLE_TMP_1 + counter + " ";
         String temp_var_2 = Constants.VARIABLE_TMP_2 + counter + " ";
-        Map<POSITIONS, String> levels = getTriplesComposantes();
-        String subject = levels.get(POSITIONS.SUBJECT);
-        String predicate = levels.get(POSITIONS.PREDICATE);
-        String object = levels.get(POSITIONS.OBJECT);
-        if (position == POSITIONS.SUBJECT) {
+        Map<POSITION, String> levels = getTriplesComposantes();
+        String subject = levels.get(POSITION.SUBJECT);
+        String predicate = levels.get(POSITION.PREDICATE);
+        String object = levels.get(POSITION.OBJECT);
+        if (position == POSITION.SUBJECT) {
             subject = subject.replace("\"", "").replace("#", "");
             generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . ", createSPARQLFilter(subject, variable)));
             generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . " + variable + Constants.RDF + label + " . ", createSPARQLFilter(subject, label)));
             generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . " + variable + temp_var_1 + temp_var_2 + " . ", createSPARQLFilter(subject, temp_var_2)));
-        } else if (position == POSITIONS.PREDICATE) {
+        } else if (position == POSITION.PREDICATE) {
             predicate = predicate.replace("\"", "").replace("#", "");
             generatedTriples.add(new Pair<>(subject + variable + object + " . ", createSPARQLFilter(predicate, variable)));
             generatedTriples.add(new Pair<>(subject + variable + object + " . " + variable + Constants.RDF + label + " . ", createSPARQLFilter(predicate, label)));
-        } else if (position == POSITIONS.OBJECT) {
+        } else if (position == POSITION.OBJECT) {
             object = object.replace("\"", "").replace("#", "");
             generatedTriples.add(new Pair<>(subject + " " + predicate + variable + " . ", createSPARQLFilter(object, variable)));
             generatedTriples.add(new Pair<>(subject + " " + predicate + variable + " . " + variable + Constants.RDF + label + " . ", createSPARQLFilter(object, label)));
@@ -159,9 +156,30 @@ class ParseTreeElement {
         return result;
     }
 
-    public String toString() {
-        return "Truc: " + parents.get(0).getKey().getText() + " Position: " + position;
+    private static String printParentPath(SimplePARQLParser parser, ParseTreeElement tree) {
+        String result = "";
+        for (Pair<ParserRuleContext, Integer> rule : tree.getParents()) {
+            result += getRuleName(rule.getKey(), parser) + " " + rule.getValue().toString();
+            result += "\n";
+        }
+        return result;
     }
 
+    private static String getRuleName(ParserRuleContext rule, SimplePARQLParser parser) {
+        int ruleIndex = rule.getRuleIndex();
+        return parser.getRuleNames()[ruleIndex];
+    }
+
+    public String toString() {
+        return "Truc: " + parents.get(0).getKey().getText() + " nommé : " + Constants.VARIABLE + counter + " Position: " + position;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) return false;
+        if (other == this) return true;
+        if (!(other instanceof ParseTreeElement)) return false;
+        return (parents.get(0).getKey().getText()).equals(((ParseTreeElement) other).getParents().get(0).getKey().getText());
+    }
 
 }
