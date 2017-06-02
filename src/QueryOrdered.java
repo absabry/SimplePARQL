@@ -50,7 +50,7 @@ class QueryOrdered {
         ParseTree lastChild = triplesBlocks.getChild(triplesBlocks.getChildCount() - 1);
         SimplePARQLParser triplesTree = Functions.getTreeOfText(String.join("\n", triples));
         ParserRuleContext newTriplesBlock = triplesTree.triplesBlock();
-        if (lastChild instanceof ParserRuleContext) {
+        if (lastChild.getClass() == SimplePARQLParser.TriplesBlockContext.class) {
             triplesBlocks.getParent().children.set(triplesBlocksIndex, newTriplesBlock);
             ParseTree child = newTriplesBlock;
             while (child.getChild(child.getChildCount() - 1) instanceof ParserRuleContext) {

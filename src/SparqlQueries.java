@@ -1,20 +1,12 @@
 import com.google.common.collect.Iterables;
 import javafx.util.Pair;
-import org.antlr.v4.gui.TreeViewer;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.xpath.XPath;
 import org.apache.log4j.Logger;
 
-import javax.swing.*;
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 class SparqlQueries {
@@ -31,28 +23,6 @@ class SparqlQueries {
         this.parser = parser;
         ParserRuleContext query = this.parser.query();
         generatedQueries.add(query);
-
-        if (containsTruc()) {
-            mainGenerate();
-        }
-    }
-
-    private void mainGenerate() {
-        ArrayList<ParserRuleContext> oldGeneratedTrees = new ArrayList<>();
-        oldGeneratedTrees.addAll(generatedQueries);
-        counter++; // obligé pour distinguer les trucs les uns des autres
-        for (ParserRuleContext oldGenereatedTree : oldGeneratedTrees) {
-            Collection<ParseTree> trucs = XPath.findAll(oldGenereatedTree, "//truc", parser);
-            ParseTreeElement trucFound = new ParseTreeElement(Iterables.get(trucs, 0), counter);
-            if (!simpleARQLTrucs.contains(trucFound)) {
-                simpleARQLTrucs.add(trucFound);
-            }
-            if (trucs.size() > 0) {
-                generateCartesianProductTrees(oldGenereatedTree, trucFound);
-            }
-        }
-        generatedQueries.removeAll(oldGeneratedTrees);
-
         if (containsTruc()) {
             mainGenerate();
         }
@@ -69,22 +39,56 @@ class SparqlQueries {
         return false;
     }
 
+    private void mainGenerate() {
+        ArrayList<ParserRuleContext> oldGeneratedTrees = new ArrayList<>();
+        oldGeneratedTrees.addAll(generatedQueries);
+        for (ParserRuleContext oldGenereatedTree : oldGeneratedTrees) {
+            Collection<ParseTree> trucs = XPath.findAll(oldGenereatedTree, "//truc", parser);
+            if (trucs.size() > 0) {
+                ParseTree firstTruc = Iterables.get(trucs, 0);
+                ParseTreeElement trucFound = null;
+                // if the truc already exists in the generated queries
+                for (ParseTreeElement simpleARQLTruc : simpleARQLTrucs) {
+                    if (simpleARQLTruc.getName().equals(firstTruc.getText())) {
+                        trucFound = new ParseTreeElement(firstTruc, simpleARQLTruc.getCounter());
+                    }
+                }
+                // if the truc never exists, we can create a new one
+                if (trucFound == null) {
+                    counter++;
+                    trucFound = new ParseTreeElement(firstTruc, counter);
+                    simpleARQLTrucs.add(trucFound);
+                }
+
+                generateCartesianProductTrees(oldGenereatedTree, trucFound);
+            }
+        }
+        generatedQueries.removeAll(oldGeneratedTrees);
+
+        if (containsTruc()) {
+            mainGenerate();
+        }
+    }
+
     private void generateCartesianProductTrees(ParserRuleContext tree, ParseTreeElement parseTreeElement) {
         for (Pair<String, String> element : parseTreeElement.getGeneratedTriples()) {
             SimplePARQLParser newOne = Functions.getTreeOfText(Functions.treeToString(parser, tree));
             ParserRuleContext newOneQuery = newOne.query();
-            addTripleToTree(newOneQuery, parseTreeElement, element);
-            addFilterToTree(newOneQuery, element.getValue());
+            Pair<ParserRuleContext, Integer> groupGraphPattern = findInTree(newOneQuery, parseTreeElement, SimplePARQLParser.RULE_groupGraphPattern);
+            Pair<ParserRuleContext, Integer> triplesBlocks = findInTree(newOneQuery, parseTreeElement, SimplePARQLParser.RULE_triplesBlock);
+            addTripleToTree(triplesBlocks, element.getKey());
+            if (!containsFilter(groupGraphPattern, element.getValue())) {
+                addFilter(groupGraphPattern, element.getValue());
+            }
             generatedQueries.add(Functions.getTreeOfText(Functions.treeToString(parser, newOneQuery)).query());
         }
     }
 
-    private void addTripleToTree(ParserRuleContext tree, ParseTreeElement parseTreeElement, Pair<String, String> element) {
-        Pair<ParserRuleContext, Integer> triplesBlocks = findInTree(tree, parseTreeElement, SimplePARQLParser.RULE_triplesBlock);
-        ParseTree newTriplesForTrucs = Functions.getTreeOfText(element.getKey()).triplesBlock();
+    private void addTripleToTree(Pair<ParserRuleContext, Integer> triplesBlocks, String triplesText) {
+        ParseTree newTriplesForTrucs = Functions.getTreeOfText(triplesText).triplesBlock();
         if (triplesBlocks != null) {
             ParseTree lastChild = triplesBlocks.getKey().getChild(triplesBlocks.getKey().getChildCount() - 1);
-            if (lastChild instanceof ParserRuleContext) {
+            if (lastChild.getClass() == SimplePARQLParser.TriplesBlockContext.class) {
                 triplesBlocks.getKey().getParent().children.set(triplesBlocks.getValue(), newTriplesForTrucs);
                 ParseTree child = newTriplesForTrucs;
                 while (child.getChild(child.getChildCount() - 1) instanceof ParserRuleContext) {
@@ -97,19 +101,13 @@ class SparqlQueries {
         }
     }
 
-    private void addFilterToTree(ParserRuleContext tree, String filterText) {
-        ParserRuleContext whereclause = null;
-        for (int i = 0; i < tree.children.size(); i++) {
-            if (tree.children.get(i).getClass() == SimplePARQLParser.WhereClauseContext.class) {
-                whereclause = (ParserRuleContext) tree.children.get(i).getChild(1);
-            }
-        }
-        if (whereclause != null) {
+    private void addFilter(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText) {
+        if (groupGraphPattern != null) {
             SimplePARQLParser.GraphPatternNotTriplesContext graphPatternNotTriplesContext
-                    = new SimplePARQLParser.GraphPatternNotTriplesContext(whereclause, 1);
-            ParseTree closedBrackets = whereclause.getChild(whereclause.getChildCount() - 1);
-            whereclause.children.set(whereclause.getChildCount() - 1, graphPatternNotTriplesContext);
-            whereclause.addChild((TerminalNodeImpl) closedBrackets);
+                    = new SimplePARQLParser.GraphPatternNotTriplesContext(groupGraphPattern.getKey(), 1);
+            ParseTree closedBrackets = groupGraphPattern.getKey().getChild(groupGraphPattern.getKey().getChildCount() - 1);
+            groupGraphPattern.getKey().children.set(groupGraphPattern.getKey().getChildCount() - 1, graphPatternNotTriplesContext);
+            groupGraphPattern.getKey().addChild((TerminalNodeImpl) closedBrackets);
             graphPatternNotTriplesContext.addChild(Functions.getTreeOfText(filterText).filter());
         }
     }
@@ -132,6 +130,17 @@ class SparqlQueries {
             }
         }
         return null;
+    }
+
+    private boolean containsFilter(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText) {
+        Collection<ParseTree> filters = XPath.findAll(groupGraphPattern.getKey(), "//filter", parser);
+        for (ParseTree filter : filters) {
+            filterText = filterText.replace(" ", ""); // ignore spaces in the comparaison, filter comming from the query is without any spaces
+            if (filter.getText().contains(filterText)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String toString() {

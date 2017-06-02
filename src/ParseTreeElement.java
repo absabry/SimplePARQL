@@ -9,7 +9,6 @@ import java.util.Map;
 class ParseTreeElement {
     private ArrayList<Pair<ParserRuleContext, Integer>> parents;
     private POSITION position;
-    private LEVEL level;
     private ArrayList<Pair<String, String>> generatedTriples;
     private int counter;
     private boolean virtuoso;
@@ -18,13 +17,19 @@ class ParseTreeElement {
         parents = new ArrayList<>();
         generatedTriples = new ArrayList<>();
         this.counter = counter;
+        virtuoso = false; // aribtrairement
         createParentTree(node);
         computePosition();
-        computeLevel();
         GenerateTriples();
-        virtuoso = false; // aribtrairement maintenant
     }
 
+    int getCounter() {
+        return counter;
+    }
+
+    String getName() {
+        return parents.get(0).getKey().getText();
+    }
 
     ArrayList<Pair<ParserRuleContext, Integer>> getParents() {
         return parents;
@@ -32,10 +37,6 @@ class ParseTreeElement {
 
     ArrayList<Pair<String, String>> getGeneratedTriples() {
         return generatedTriples;
-    }
-
-    public LEVEL getLevel() {
-        return level;
     }
 
     // create parent tree of the "truc" (the path up to the root)
@@ -57,15 +58,6 @@ class ParseTreeElement {
             position = POSITION.PREDICATE;
         } else if (find(SimplePARQLParser.RULE_object) != null) {
             position = POSITION.OBJECT;
-        }
-    }
-
-    private void computeLevel() {
-        level = LEVEL.WHERE;
-        if (find(SimplePARQLParser.RULE_optionalGraphPattern) != null) {
-            level = LEVEL.OPTIONAL;
-        } else if (find(SimplePARQLParser.RULE_groupOrUnionGraphPattern) != null) {
-            level = LEVEL.GRAPH;
         }
     }
 
@@ -140,15 +132,16 @@ class ParseTreeElement {
     private String createSPARQLFilter(String truc, String variable) {
         int counter = 1;
         String[] splitted = truc.split(" ");
-        String result = "FILTER (";
+        String result = Constants.FILTER + "(";
         for (String wordOfTruc : splitted) {
             if (virtuoso) {
-                result += "bif:contains(STR(" + variable + "), UCASE(\"" + wordOfTruc + "\"))";
+                result += Constants.CONTAINS_BIF;
             } else {
-                result += "CONTAINS(STR(" + variable + "),UCASE(\"" + wordOfTruc + "\"))";
+                result += Constants.CONTAINS;
             }
+            result += "(" + Constants.STR + "(" + variable + ")," + Constants.UCASE + "(\"" + wordOfTruc + "\"))";
             if (splitted.length != counter) {
-                result += " && ";
+                result += Constants.AND;
             }
             counter++;
         }
@@ -156,16 +149,16 @@ class ParseTreeElement {
         return result;
     }
 
-    private static String printParentPath(SimplePARQLParser parser, ParseTreeElement tree) {
+    String printParentPath(SimplePARQLParser parser) {
         String result = "";
-        for (Pair<ParserRuleContext, Integer> rule : tree.getParents()) {
+        for (Pair<ParserRuleContext, Integer> rule : this.getParents()) {
             result += getRuleName(rule.getKey(), parser) + " " + rule.getValue().toString();
             result += "\n";
         }
         return result;
     }
 
-    private static String getRuleName(ParserRuleContext rule, SimplePARQLParser parser) {
+    private String getRuleName(ParserRuleContext rule, SimplePARQLParser parser) {
         int ruleIndex = rule.getRuleIndex();
         return parser.getRuleNames()[ruleIndex];
     }

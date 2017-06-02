@@ -19,9 +19,9 @@ import java.util.Collection;
  * DEPERECATED
  * Je n'utilise plus cette classe, les fonctions générés sont utilisé dans d'autres classes
  * et sont plus précises que les méthodes de cette classe. Je la garde ici juste au cas ou.
- *
+ * <p>
  * generer les requetes version 30/05/2017, à midi
- *
+ * <p>
  * Collection<ParseTree> trucs = XPath.findAll(newQuery, "//truc", newParser);
  * ParseTreeElements parsedTrucs = new ParseTreeElements(getTreeOfText(treeString));
  * trucs.forEach(node -> parsedTrucs.add(new ParseTreeElement(node)));

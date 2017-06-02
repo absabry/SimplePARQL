@@ -12,7 +12,6 @@ import java.util.Arrays;
 
 public class Functions {
 
-    // get tree
     static SimplePARQLParser getTreeOfText(String text) {
         CharStream codeStream = CharStreams.fromString(text);
         SimplePARQLLexer lexer = new SimplePARQLLexer(codeStream);
@@ -43,7 +42,7 @@ public class Functions {
         frame.getContentPane().add(jScrollPane);
     }
 
-    // print the tree in logger ( not the default design)
+    // print the tree in logger ( personalizeddesign)
     static String treeToString(SimplePARQLParser parser, ParserRuleContext query) {
         TreePrinterListener listener = new TreePrinterListener(parser);
         ParseTreeWalker.DEFAULT.walk(listener, query);
