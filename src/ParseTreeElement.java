@@ -8,19 +8,16 @@ import java.util.Map;
 
 class ParseTreeElement {
     private ArrayList<Pair<ParserRuleContext, Integer>> parents;
-    private POSITION position;
-    private ArrayList<Pair<String, String>> generatedTriples;
-    private int counter;
-    private boolean virtuoso;
+    protected POSITION position;
+    protected ArrayList<Pair<String, String>> generatedTriples;
+    protected int counter;
 
     ParseTreeElement(ParseTree node, int counter) {
         parents = new ArrayList<>();
         generatedTriples = new ArrayList<>();
         this.counter = counter;
-        virtuoso = false; // aribtrairement
         createParentTree(node);
         computePosition();
-        GenerateTriples();
     }
 
     int getCounter() {
@@ -72,7 +69,7 @@ class ParseTreeElement {
     }
 
     // get subject, pred and object
-    private Map<POSITION, String> getTriplesComposantes() {
+    protected Map<POSITION, String> getTriplesComposantes() {
         if (parents.size() != 0) {
             Map<POSITION, String> triplesComposantes = new HashMap<>();
             Pair<ParserRuleContext, Integer> triplesSameSubject = find(SimplePARQLParser.RULE_triplesSameSubject);
@@ -99,54 +96,6 @@ class ParseTreeElement {
             }
         }
         return null;
-    }
-
-    // generate the triples for one "truc" directly after adding it
-    private void GenerateTriples() {
-        String variable = Constants.VARIABLE + counter + " ";
-        String label = Constants.VARIABLE_LABEL + counter + " ";
-        String temp_var_1 = Constants.VARIABLE_TMP_1 + counter + " ";
-        String temp_var_2 = Constants.VARIABLE_TMP_2 + counter + " ";
-        Map<POSITION, String> levels = getTriplesComposantes();
-        String subject = levels.get(POSITION.SUBJECT);
-        String predicate = levels.get(POSITION.PREDICATE);
-        String object = levels.get(POSITION.OBJECT);
-        if (position == POSITION.SUBJECT) {
-            subject = subject.replace("\"", "").replace("#", "");
-            generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . ", createSPARQLFilter(subject, variable)));
-            generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . " + variable + Constants.RDF + label + " . ", createSPARQLFilter(subject, label)));
-            generatedTriples.add(new Pair<>(variable + predicate + " " + object + " . " + variable + temp_var_1 + temp_var_2 + " . ", createSPARQLFilter(subject, temp_var_2)));
-        } else if (position == POSITION.PREDICATE) {
-            predicate = predicate.replace("\"", "").replace("#", "");
-            generatedTriples.add(new Pair<>(subject + variable + object + " . ", createSPARQLFilter(predicate, variable)));
-            generatedTriples.add(new Pair<>(subject + variable + object + " . " + variable + Constants.RDF + label + " . ", createSPARQLFilter(predicate, label)));
-        } else if (position == POSITION.OBJECT) {
-            object = object.replace("\"", "").replace("#", "");
-            generatedTriples.add(new Pair<>(subject + " " + predicate + variable + " . ", createSPARQLFilter(object, variable)));
-            generatedTriples.add(new Pair<>(subject + " " + predicate + variable + " . " + variable + Constants.RDF + label + " . ", createSPARQLFilter(object, label)));
-            generatedTriples.add(new Pair<>(subject + " " + predicate + variable + " . " + variable + temp_var_1 + temp_var_2 + " . ", createSPARQLFilter(object, temp_var_2)));
-        }
-    }
-
-    // Create the filter text of the SPARQL Filter
-    private String createSPARQLFilter(String truc, String variable) {
-        int counter = 1;
-        String[] splitted = truc.split(" ");
-        String result = Constants.FILTER + "(";
-        for (String wordOfTruc : splitted) {
-            if (virtuoso) {
-                result += Constants.CONTAINS_BIF;
-            } else {
-                result += Constants.CONTAINS;
-            }
-            result += "(" + Constants.STR + "(" + variable + ")," + Constants.UCASE + "(\"" + wordOfTruc + "\"))";
-            if (splitted.length != counter) {
-                result += Constants.AND;
-            }
-            counter++;
-        }
-        result += " )";
-        return result;
     }
 
     String printParentPath(SimplePARQLParser parser) {

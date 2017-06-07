@@ -12,7 +12,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         org.apache.log4j.BasicConfigurator.configure();
         logger.setLevel(Level.DEBUG);
-        String file = "worstCase.txt";
+        String file = "SimplePARQL.txt";
 
         // user
         CharStream codeStream = CharStreams.fromFileName(file);

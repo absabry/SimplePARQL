@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 
+// equals to Context
 class SparqlQueries {
 
     private final static Logger logger = Logger.getLogger(SparqlQueries.class);
@@ -16,8 +17,22 @@ class SparqlQueries {
     private ArrayList<ParserRuleContext> generatedQueries;
     private SimplePARQLParser parser;
     private int counter = 0;
+    private QUERYSERVICES strategy;
 
     SparqlQueries(SimplePARQLParser parser) {
+        this.strategy = QUERYSERVICES.NORMAL;
+        simpleARQLTrucs = new ArrayList<>();
+        generatedQueries = new ArrayList<>();
+        this.parser = parser;
+        ParserRuleContext query = this.parser.query();
+        generatedQueries.add(query);
+        if (containsTruc()) {
+            mainGenerate();
+        }
+    }
+
+    SparqlQueries(SimplePARQLParser parser, QUERYSERVICES strategy) {
+        this.strategy = strategy;
         simpleARQLTrucs = new ArrayList<>();
         generatedQueries = new ArrayList<>();
         this.parser = parser;
@@ -45,21 +60,21 @@ class SparqlQueries {
         for (ParserRuleContext oldGenereatedTree : oldGeneratedTrees) {
             Collection<ParseTree> trucs = XPath.findAll(oldGenereatedTree, "//truc", parser);
             if (trucs.size() > 0) {
-                ParseTree firstTruc = Iterables.get(trucs, 0);
+                ParseTree trucInTree = Iterables.get(trucs, 0);
                 ParseTreeElement trucFound = null;
                 // if the truc already exists in the generated queries
                 for (ParseTreeElement simpleARQLTruc : simpleARQLTrucs) {
-                    if (simpleARQLTruc.getName().equals(firstTruc.getText())) {
-                        trucFound = new ParseTreeElement(firstTruc, simpleARQLTruc.getCounter());
+                    if (simpleARQLTruc.getName().equals(trucInTree.getText())) {
+                        trucFound = parse(trucInTree, simpleARQLTruc.getCounter());
+                        break;
                     }
                 }
                 // if the truc never exists, we can create a new one
                 if (trucFound == null) {
                     counter++;
-                    trucFound = new ParseTreeElement(firstTruc, counter);
+                    trucFound = parse(trucInTree, counter);
                     simpleARQLTrucs.add(trucFound);
                 }
-
                 generateCartesianProductTrees(oldGenereatedTree, trucFound);
             }
         }
@@ -68,6 +83,19 @@ class SparqlQueries {
         if (containsTruc()) {
             mainGenerate();
         }
+    }
+
+    private ParseTreeElement parse(ParseTree TrucInTree, int counter) {
+        ParseTreeElement trucFound = null;
+        switch (strategy) {
+            case NORMAL:
+                trucFound = new Normal(TrucInTree, counter);
+                break;
+            case VIRTUOSO:
+                trucFound = new Virtuoso(TrucInTree, counter);
+                break;
+        }
+        return trucFound;
     }
 
     private void generateCartesianProductTrees(ParserRuleContext tree, ParseTreeElement parseTreeElement) {
