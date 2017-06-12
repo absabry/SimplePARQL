@@ -12,7 +12,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         org.apache.log4j.BasicConfigurator.configure();
         logger.setLevel(Level.DEBUG);
-        String file = "SimplePARQL.txt";
+        String file = "Test.txt";
 
         // user
         CharStream codeStream = CharStreams.fromFileName(file);
@@ -26,7 +26,7 @@ public class Main {
         String treeString = Functions.treeToString(newParser, newQuery);
 
         // générer des triples version 31/05/2017 à 11h30
-        SparqlQueries queries = new SparqlQueries(Functions.getTreeOfText(treeString));
+        SparqlQueries queries = new SparqlQueries(Functions.getTreeOfText(treeString), PAGE.THIRD);
         logger.debug(queries);
     }
 }
