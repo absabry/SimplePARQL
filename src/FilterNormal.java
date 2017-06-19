@@ -1,3 +1,6 @@
+/**
+ * Normal filter, no special case here
+ */
 class FilterNormal implements FilterGenerator {
 
     @Override

@@ -1,4 +1,7 @@
-
+/**
+ * Filter when the interface is virtuoso
+ * we use FILTER(bif:contains(..,..))
+ */
 
 public class FilterVirtuoso implements FilterGenerator {
     @Override

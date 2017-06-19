@@ -1,0 +1,185 @@
+@startuml
+enum POSITION {
+SUBJECT
+PREDICATE
+OBJECT
+}
+
+enum VARIABLES {
+ VARIABLE
+ LABEL
+ TMP1
+ TMP2
+}
+enum PAGE {
+FIRST
+SECOND
+THIRD
+}
+
+interface FilterGenerator {
+createSPARQLFilter(truc:String, variable:String ) : String
+}
+
+class FilterNormal{
++createSPARQLFilter(truc:String, variable:String ) : String
+}
+class FilterVirtuoso{
++createSPARQLFilter(truc:String, variable:String ) : String
+}
+class Truc{
+- parents : ArrayList<Pair<ParserRuleContext, Integer>>
+- name : String
+- position : POSITION
+- counter : int
+- currentTriple : Triple
+- variables : HashMap<VARIABLES, String>
++getCounter()
++getPosition()
++getCurrentTriple()
++getVariables()
++getName()
++getParents()
+-createParentTree(ParseTree node)
+-computePosition()
+-find(int ruleIndex)
+-generateTripleComposantes()
+-clean(String text)
+-generateVariables()
++isOptionnal()
++equals(Object other)
+}
+
+class Triple{
+- String subject
+- String predicate
+- String object
++getSubject()
++getPredicate()
++getObject()
++get(POSITION position)
+}
+
+class Constants{
++{static}  VARIABLE = " ?SimplePARQL_" : final String
++{static}  VARIABLE_LABEL = " ?label_" : final String
++{static}  VARIABLE_TMP_1 = " ?tmp_var1_" : final String
++{static}  VARIABLE_TMP_2 = " ?tmp_var2_" : final String
++{static}  RDF = " rdfs:label " : final String
++{static}  FILTER = "FILTER" : final String
++{static}  CONTAINS_BIF = "bif:contains" : final String
++{static}  CONTAINS = "CONTAINS" : final String
++{static}  UCASE = "UCASE" : final String
++{static}  STR = "STR" : final String
++{static}  AND = " && " : final String
++{static} treeToString(SimplePARQLParser parser, ParserRuleContext query)
++{static} getNodeIndex(ParseTree node)
++{static} printTree(SimplePARQLParser parser, ParserRuleContext query, String title)
++{static} getTreeOfText(String text)
+}
+class Composant{
+-  filter : String
+-  triple : String
+-  page : PAGE
++getFilter()
++getPage()
++getTriple()
++Composant(String triple, String filter, PAGE page)
+}
+
+class ParseElement{
+-  page : PAGE
+- query :ParserRuleContext
++ParseElement(ParserRuleContext query, PAGE page)
++getQuery()
++getPage()
+}
+
+class QueryOrdered{
+- parser : SimplePARQLParser
++QueryOrdered(SimplePARQLParser parser)
++getParser()
+-{static} RearrangeQuery(SimplePARQLParser parser)
+-{static} getComposantesOfTriples(ParseTree triplesSameSubject)
+-{static} createNewChildren(ParseTree triplesSameSubject, ArrayList<Triple> triples)
+-{static} join(ArrayList<Triple> list, String delimter)
+}
+class SparqlQueries{
+- parser : SimplePARQLParser
+- simpleARQLTrucs : ArrayList<Truc>
+-counter : int
+-filterGenerator : FilterGenerator
+-  page : PAGE
+-generatedQueries : ArrayList<ParseElement>
+-{static} logger : final Logger
+-optionnal : boolean
+SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, PAGE page, boolean optionnal)
+SparqlQueries(SimplePARQLParser parser)
+SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator)
+SparqlQueries(SimplePARQLParser parser, boolean optionnal)
+SparqlQueries(SimplePARQLParser parser, PAGE page)
+addFilterToTree(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText)
+addTripleToTree(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText)
+containsFilter(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText)
+containsTruc()
+createTruc(ParseTree trucInTree)
+findInTree(ParserRuleContext tree, Truc element, int ruleIndex)
+generateCartesianProductTrees(ParseElement tree, Truc truc)
+getGreaterPage(PAGE page1, PAGE page2)
+mainGenerate()
+removeOptionnalTrucFromTree(ParseElement tree, Truc truc)
+}
+
+class Composant{
+-String filter
+-String triple
+-PAGE page
++getTriple()
++getPage()
++getFilter()
+}
+class GenerateQuery{
+-truc:Truc
+-generatedComposants:ArrayList<Composant>
+-filterGenerator: FilterGenerator
+- page : PAGE
++GenerateQuery(Truc truc, FilterGenerator filterGenerator, PAGE page)
++PageThird()
++PageSecond()
++PageFirst()
++generateRessources(Truc truc, PAGE page)
++generateProprieties(Truc truc, PAGE page)
++generatelabels(Truc truc, PAGE page)
++createGeneratedTriples()
++getGeneratedComposants()
+}
+
+
+note top of Truc : SimpleARQL new structure.
+note top of ParseElement : Final SPARQL queries with page.
+note top of SparqlQueries : SimplePARQL SPARQL converter.
+note top of GenerateQuery : Generate composant for the truc.
+note top of QueryOrdered : Delete ; and  , from query.
+note top of Composant : Triple,filter and page
+note top of Triple : Subject,predicate,object.
+
+FilterGenerator <|.. FilterNormal
+FilterGenerator <|.. FilterVirtuoso
+
+Composant o-- GenerateQuery : use
+PAGE o-- GenerateQuery  : use
+Truc o-- GenerateQuery  : use
+FilterGenerator o-- GenerateQuery  : use
+
+PAGE o-- Composant : use
+
+PAGE o-- ParseElement : use
+
+PAGE o-- SparqlQueries : use
+FilterGenerator o-- SparqlQueries : use
+ParseElement o-- SparqlQueries : use
+FilterGenerator o-- SparqlQueries : use
+
+Triple o-- Truc : use
+
+@enduml

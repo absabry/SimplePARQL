@@ -14,19 +14,13 @@ public class Main {
         logger.setLevel(Level.DEBUG);
         String file = "Test.txt";
 
-        // user
         CharStream codeStream = CharStreams.fromFileName(file);
-        SimplePARQLParser parser = Functions.getTreeOfText(codeStream.toString());
+        SimplePARQLParser parser = new QueryOrdered(Constants.getTreeOfText(codeStream.toString())).getParser();
         ParserRuleContext query = parser.query();
-        String oringianltreeString = Functions.treeToString(parser, query);
-
-        // que des triples
-        SimplePARQLParser newParser = new QueryOrdered(Functions.getTreeOfText(codeStream.toString())).getParser();
-        ParserRuleContext newQuery = newParser.query();
-        String treeString = Functions.treeToString(newParser, newQuery);
+        String treeString = Constants.treeToString(parser, query);
 
         // générer des triples version 31/05/2017 à 11h30
-        SparqlQueries queries = new SparqlQueries(Functions.getTreeOfText(treeString), PAGE.THIRD);
+        SparqlQueries queries = new SparqlQueries(Constants.getTreeOfText(treeString), new FilterVirtuoso(), PAGE.THIRD, true);
         logger.debug(queries);
     }
 }

@@ -1,3 +1,3 @@
-public interface FilterGenerator {
+interface FilterGenerator {
     String createSPARQLFilter(String truc, String variable);
 }
