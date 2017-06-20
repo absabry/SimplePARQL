@@ -93,7 +93,7 @@ class Truc {
     /**
      * find in the parents of "truc" the ParseRuleContext when want
      *
-     * @param ruleIndex
+     * @param ruleIndex rule index you're searching for
      * @return FIRST node having the ruleIndex found in the tree
      */
     private Pair<ParserRuleContext, Integer> find(int ruleIndex) {

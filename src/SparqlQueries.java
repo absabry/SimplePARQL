@@ -142,7 +142,8 @@ class SparqlQueries {
     }
 
     /**
-     * third,second => return third
+     * if we have the choice between third and second
+     * it will return the third page
      *
      * @param page1 first page
      * @param page2 second page
@@ -156,7 +157,7 @@ class SparqlQueries {
     }
 
     /**
-     * Remove the optionnal node that contains truc
+     * Remove the TRIPLES node that contains truc IN AN OPTIONAL CONTEXT
      * When we set optinonal to false
      *
      * @param tree the tree which we'll delete the optionnal from it

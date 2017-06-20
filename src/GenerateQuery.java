@@ -30,18 +30,18 @@ class GenerateQuery {
     }
 
     /**
-     * This function never change, it generates the ressource
+     * This function never change, it generates the query that check the IRI of the ressource
      * SELECT *
      * WHERE {
      * ?SimplePARQL_1 ?b ?c .
      * FILTER ( CONTAINS ( STR ( ?SimplePARQL_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc
-     * @param page
-     * @return
+     * @param truc current Truc
+     * @param page page which the query belongs to
+     * @return generated item (triple, filter and page it belongs to)
      */
-    private Composant generateRessources(Truc truc, PAGE page) {
+    private Composant generateIRI(Truc truc, PAGE page) {
         String triples = null;
         if (truc.getPosition() == POSITION.SUBJECT) {
             triples = truc.getVariables().get(VARIABLES.VARIABLE)
@@ -61,7 +61,7 @@ class GenerateQuery {
     }
 
     /**
-     * This function never change, it generates the labels
+     * This function never change, it generates the query that check the rdfs:label of the ressource
      * SELECT *
      * WHERE {
      * ?SimplePARQL_1 ?b ?c .
@@ -69,12 +69,12 @@ class GenerateQuery {
      * FILTER ( CONTAINS ( STR ( ?label_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc
-     * @param page
+     * @param truc current Truc
+     * @param page page which the query belongs to
      * @return generated item (triple, filter and page it belongs to)
      */
     private Composant generatelabels(Truc truc, PAGE page) {
-        Composant result = generateRessources(truc, page);
+        Composant result = generateIRI(truc, page);
         if (result != null) {
             return new Composant(result.getTriple() + truc.getVariables().get(VARIABLES.VARIABLE)
                     + Constants.RDF + truc.getVariables().get(VARIABLES.LABEL) + " . ",
@@ -92,12 +92,12 @@ class GenerateQuery {
      * FILTER ( CONTAINS ( STR ( ?tmp_var2_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc
-     * @param page
-     * @return
+     * @param truc current Truc
+     * @param page page which the query belongs to
+     * @return generated item (triple, filter and page it belongs to)
      */
     private Composant generateProprieties(Truc truc, PAGE page) {
-        Composant result = generateRessources(truc, page);
+        Composant result = generateIRI(truc, page);
         if (result != null) {
             return new Composant(result.getTriple() + truc.getVariables().get(VARIABLES.VARIABLE)
                     + truc.getVariables().get(VARIABLES.TMP1) + truc.getVariables().get(VARIABLES.TMP2) + " . ",
@@ -121,26 +121,26 @@ class GenerateQuery {
 
     /**
      * First page generate :
-     * if subjet => generateLabels
-     * if predicate => generateLabels
-     * if object => generatePropreties and generateLabels
+     * if subjet then it willgenerateLabels
+     * if predicate then it will generateLabels
+     * if object then it will generatePropreties and generateLabels
      */
     private void PageFirst() {
         generatedComposants.add(generatelabels(truc, PAGE.FIRST));
         if (truc.getPosition() == POSITION.OBJECT) {
-            generatedComposants.add(generateRessources(truc, PAGE.FIRST));
+            generatedComposants.add(generateIRI(truc, PAGE.FIRST));
         }
     }
 
     /**
      * Second page generate :
-     * if subjet => generatePropreties
-     * if predicate => generateRessource
-     * if object => generatePropreties
+     * if subjet then it will generatePropreties
+     * if predicate then it will generateIRI
+     * if object then it will generatePropreties
      */
     private void PageSecond() {
         if (truc.getPosition() == POSITION.PREDICATE) {
-            generatedComposants.add(generateRessources(truc, PAGE.SECOND));
+            generatedComposants.add(generateIRI(truc, PAGE.SECOND));
         } else {
             generatedComposants.add(generateProprieties(truc, PAGE.SECOND));
         }
@@ -148,13 +148,13 @@ class GenerateQuery {
 
     /**
      * Third page generate :
-     * if subjet => ressource
-     * if predicate => do nothing
-     * if object => do nothing
+     * if subjet then it will generateIRI
+     * if predicate then it will do nothing
+     * if object then it willdo nothing
      */
     private void PageThird() {
         if (truc.getPosition() == POSITION.SUBJECT) {
-            generatedComposants.add(generateRessources(truc, PAGE.THIRD));
+            generatedComposants.add(generateIRI(truc, PAGE.THIRD));
         }
     }
 

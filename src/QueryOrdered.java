@@ -7,10 +7,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * BUG: TODO  Quand on a deux d'affilé, il ne prend pas le deuxième, il faut faire un appel récursive parce que le "truc" est déjà supprimé.
  * order the query to have triples only
  * ?a ?b ?c;?d ?e,?f
- * ==>
+ * the result will be:
  * ?a ?b ?c .
  * ?a ?d ?e .
  * ?a ?d ?e

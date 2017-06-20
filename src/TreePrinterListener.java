@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * override toString method for the semantic tree
- * to avoid the <EOF> and the attached text when displaying the tree
+ * to avoid the EOF and the attached text when displaying the tree
  */
 /*
         TreePrinterListener listener = new TreePrinterListener(parser);

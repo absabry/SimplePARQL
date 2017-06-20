@@ -11,5 +11,7 @@
     <orderEntry type="library" name="antlr-4.7-complete" level="project" />
     <orderEntry type="library" name="log4j-1.2.17" level="project" />
     <orderEntry type="library" name="google-collections-1.0" level="project" />
+    <orderEntry type="library" name="dom4j" level="project" />
+    <orderEntry type="library" name="javadoc-core" level="project" />
   </component>
 </module>
