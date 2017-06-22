@@ -1,3 +1,7 @@
+package fr.esilv.simpleparql.source.converter.filter;
+
+import fr.esilv.simpleparql.source.converter.model.Constants;
+
 /**
  * Filter when the interface is virtuoso
  * we use FILTER(bif:contains(..,..))
@@ -15,7 +19,7 @@ public class FilterVirtuoso implements FilterGenerator {
         String result = Constants.FILTER + "(";
         for (String wordOfTruc : splitted) {
             result += Constants.CONTAINS_BIF;
-            result += "(" + Constants.STR + "(" + variable + ")," + Constants.UCASE + "(\"" + wordOfTruc + "\"))";
+            result += "(" + Constants.UCASE + " ( " + Constants.STR + "(" + variable + "))," + Constants.UCASE + "(\"" + wordOfTruc + "\"))";
             if (splitted.length != counter) {
                 result += Constants.AND;
             }

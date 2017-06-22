@@ -1,3 +1,4 @@
+package fr.esilv.simpleparql.source.converter.model;
 
 public enum VARIABLES {
     VARIABLE,

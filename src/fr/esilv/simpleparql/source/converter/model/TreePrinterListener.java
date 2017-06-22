@@ -1,3 +1,5 @@
+package fr.esilv.simpleparql.source.converter.model;
+
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Utils;
@@ -11,10 +13,10 @@ import java.util.List;
 
 /**
  * override toString method for the semantic tree
- * to avoid the EOF and the attached text when displaying the tree
+ * to avoid the EOF and the joined text when displaying the tree
  */
 /*
-        TreePrinterListener listener = new TreePrinterListener(parser);
+        TreePrinterListener listener = new fr.esilv.simpleparql.source.converter.model.TreePrinterListener(parser);
         ParseTreeWalker.DEFAULT.walk(listener, tree);
         logger.info(listener.toString());
 */
@@ -22,9 +24,8 @@ import java.util.List;
 public class TreePrinterListener implements ParseTreeListener {
     private final List<String> ruleNames;
     private final StringBuilder builder = new StringBuilder();
-    private static boolean breakLine = false;
 
-    TreePrinterListener(Parser parser) {
+    public TreePrinterListener(Parser parser) {
         this.ruleNames = Arrays.asList(parser.getRuleNames());
     }
 
@@ -34,30 +35,13 @@ public class TreePrinterListener implements ParseTreeListener {
 
     @Override
     public void visitTerminal(TerminalNode node) {
-        if (builder.length() > 0 && !breakLine) {
+        if (builder.length() > 0) {
             builder.append(' ');
         }
         String terminalText = Utils.escapeWhitespace(Trees.getNodeText(node, ruleNames), false);
-        if (terminalText.equals("{") || terminalText.equals("}")) {
-            builder.append("\n");
+        if (!terminalText.equals("<EOF>")) {
             builder.append(terminalText);
-            builder.append("\n");
-            breakLine = true;
-        } else if (terminalText.equals("PREFIX") || terminalText.equals("SELECT") || terminalText.equals("WHERE") || terminalText.equals("FILTER") || terminalText.equals("OPTIONAL")) {
-            if (!breakLine) {
-                builder.append("\n");
-            }
-            builder.append(terminalText);
-            breakLine = false;
-        } else if (terminalText.equals(".")) {
-            builder.append(terminalText);
-            builder.append("\n");
-            breakLine = true;
-        } else if (!terminalText.equals("<EOF>")) {
-            builder.append(terminalText);
-            breakLine = false;
         }
-
     }
 
     @Override

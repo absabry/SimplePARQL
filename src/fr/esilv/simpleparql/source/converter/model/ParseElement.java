@@ -1,3 +1,5 @@
+package fr.esilv.simpleparql.source.converter.model;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
@@ -6,20 +8,20 @@ import org.antlr.v4.runtime.ParserRuleContext;
  * page (to handle th esplit between those queries if needed)
  * query (the main tree geenrated-
  */
-class ParseElement {
+public class ParseElement {
     private ParserRuleContext query;
     private PAGE page;
 
-    ParseElement(ParserRuleContext query, PAGE page) {
+    public ParseElement(ParserRuleContext query, PAGE page) {
         this.query = query;
         this.page = page;
     }
 
-    ParserRuleContext getQuery() {
+    public ParserRuleContext getQuery() {
         return query;
     }
 
-    PAGE getPage() {
+    public PAGE getPage() {
         return page;
     }
 

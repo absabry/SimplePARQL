@@ -1,8 +1,13 @@
-package fr.esilv.simpleparql.Response;
+package fr.esilv.simpleparql.source.response;
 
+import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.sparql.core.TriplePath;
 import com.hp.hpl.jena.sparql.resultset.RDFOutput;
+import com.hp.hpl.jena.sparql.syntax.ElementPathBlock;
+import com.hp.hpl.jena.sparql.syntax.ElementVisitorBase;
+import com.hp.hpl.jena.sparql.syntax.ElementWalker;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.util.FileManager;
 import org.apache.log4j.LogManager;
@@ -17,17 +22,19 @@ import org.dom4j.io.OutputFormat;
 import java.io.*;
 import java.util.*;
 
-public class Main {
-    private static final Logger logger = LogManager.getLogger(Main.class);
+public class MainResponse {
+    private static final Logger logger = LogManager.getLogger(MainResponse.class);
 
     public static void main(String[] args) throws IOException {
         org.apache.log4j.BasicConfigurator.configure(new NullAppender());
-        QueryFormatted("PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX dbo: <http://dbpedia.org/ontology/>PREFIX dbr: <http://dbpedia.org/resource/>select distinct ?x ?age ?cityBirth where { ?x rdf:type dbo:Painter. ?x dbo:birthDate ?birth. ?x dbo:birthPlace ?cityBirth.  ?x dbo:deathDate ?death .?cityBirth dbo:country dbr:Germany. BIND(year(?death)-year(?birth)as ?age)  FILTER(?age < 40)}LIMIT 100"
-                , "json", "blabla");
+        // PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX dbo: <http://dbpedia.org/ontology/>PREFIX dbr: <http://dbpedia.org/resource/>select distinct ?x ?age ?cityBirth where { ?x rdf:type dbo:Painter. ?x dbo:birthDate ?birth. ?x dbo:birthPlace ?cityBirth.  ?x dbo:deathDate ?death .?cityBirth dbo:country dbr:Germany. BIND(year(?death)-year(?birth)as ?age)  FILTER(?age < 40)}LIMIT 100
+
+        String query = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX dbo: <http://dbpedia.org/ontology/> SELECT * WHERE { ?SimplePARQL_1 dbo:birthPlace ?SimplePARQL_2 . ?SimplePARQL_2 rdfs:label ?label_2 . ?SimplePARQL_1 rdfs:label ?label_1 . FILTER ( REGEX ( ?label_1 , \"John\" , \"i\" ) && REGEX ( ?label_1 , \"Smith\" , \"i\" ) ) FILTER ( REGEX ( ?label_2 , \"London\" , \"i\" ) ) } ";
+        lauchSparql(query, "xml", "blabla");
     }
 
     // main function
-    private static void QueryFormatted(String sparqlQueryString, String format, String filename) throws IOException {
+    private static void lauchSparql(String sparqlQueryString, String format, String filename) throws IOException {
         Query query = QueryFactory.create(sparqlQueryString);
         QueryExecution qexec = QueryExecutionFactory.sparqlService("http://dbpedia.org/sparql", query);
         ResultSet results = qexec.execSelect();
@@ -230,6 +237,40 @@ public class Main {
             System.out.println("Failed to execute query \"" + sparqlQueryString + "\":" + e);
         }
         System.out.println(res);
+    }
+
+    // get all triples of the query
+    private static void getTriples(String sparqlQueryString) {
+
+        Query query = QueryFactory.create(sparqlQueryString);
+        final Set<Node> subjects = new HashSet<>();
+        final Set<Node> predictions = new HashSet<>();
+        final Set<Node> objects = new HashSet<>();
+        ElementWalker.walk(query.getQueryPattern(),
+                new ElementVisitorBase() {
+                    public void visit(ElementPathBlock el) {
+                        Iterator<TriplePath> triples = el.patternElts();
+                        while (triples.hasNext()) {
+                            TriplePath element = triples.next();
+                            System.out.println(
+                                    "Subject: " + element.getSubject()
+                                            + "  Predictions : " + element.getPredicate()
+                                            + "  Object : " + element.getObject()
+                            );
+                            subjects.add(element.getSubject());
+                            predictions.add(element.getPredicate());
+                            objects.add(element.getObject());
+                        }
+                    }
+                }
+        );
+        System.out.println("FIN");
+        System.out.println("Subjects");
+        System.out.println(subjects);
+        System.out.println("Predicates");
+        System.out.println(predictions);
+        System.out.println("Objects");
+        System.out.println(objects);
     }
 
 

@@ -1,4 +1,11 @@
+package fr.esilv.simpleparql.source.converter;
+
 import com.google.common.collect.Iterables;
+import fr.esilv.simpleparql.source.converter.filter.FilterGenerator;
+import fr.esilv.simpleparql.source.converter.filter.FilterNormal;
+import fr.esilv.simpleparql.source.converter.model.*;
+import fr.esilv.simpleparql.source.converter.query.GenerateQuery;
+import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import javafx.util.Pair;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -20,7 +27,7 @@ import java.util.Collection;
  * if he wants to keeps the trucs in the optional or not
  * the page he belong to
  */
-class SparqlQueries {
+public class SparqlQueries {
 
     private final static Logger logger = Logger.getLogger(SparqlQueries.class);
     private ArrayList<Truc> simpleARQLTrucs;
@@ -31,7 +38,7 @@ class SparqlQueries {
     private boolean optionnal;
     private PAGE page;
 
-    SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, PAGE page, boolean optionnal) {
+    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, PAGE page, boolean optionnal) {
         this.page = page;
         this.filterGenerator = filterGenerator;
         this.optionnal = optionnal;
@@ -45,28 +52,32 @@ class SparqlQueries {
         }
     }
 
-    SparqlQueries(SimplePARQLParser parser) {
+    public SparqlQueries(SimplePARQLParser parser) {
         this(parser, new FilterNormal(), PAGE.FIRST, true);
     }
 
-    SparqlQueries(SimplePARQLParser parser, boolean optionnal) {
+    public SparqlQueries(SimplePARQLParser parser, boolean optionnal) {
         this(parser, new FilterNormal(), PAGE.FIRST, optionnal);
     }
 
-    SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator) {
+    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator) {
         this(parser, filterGenerator, PAGE.FIRST, true);
     }
 
-    SparqlQueries(SimplePARQLParser parser, PAGE page) {
+    public SparqlQueries(SimplePARQLParser parser, PAGE page) {
         this(parser, new FilterNormal(), page, true);
     }
 
+
+    public ArrayList<ParseElement> getGeneratedQueries() {
+        return generatedQueries;
+    }
     /**
      * main function to generate the sparql queries from the simpleARQL queries
      * <p>
      * We clone the array og queries
      * Then we browse to find (in the old tree) all truc
-     * we create structure Truc
+     * we create structure fr.esilv.simpleparql.source.converter.model.Truc
      * Then we generate cartesian prodcut of the truc (that may contains multiple new Items)
      */
     private void mainGenerate() {
@@ -117,8 +128,8 @@ class SparqlQueries {
     }
 
     /**
-     * create a GenerateQuery element, that will create all of the filters, triples and PAGE of the truc
-     * foreach Composant item created (containg filter and triples)
+     * create a fr.esilv.simpleparql.source.converter.query.GenerateQuery element, that will create all of the filter, triples and fr.esilv.simpleparql.source.converter.model.PAGE of the truc
+     * foreach fr.esilv.simpleparql.source.converter.model.Composant item created (containg filter and triples)
      * we clone the tree, create a new one and attach the new filter and the new triple
      * and we add the result to the generatedQueries List
      *
@@ -325,10 +336,11 @@ class SparqlQueries {
         String result = "";
         for (ParseElement generatedTree : generatedQueries) {
             result += "Page: " + generatedTree.getPage() + "\n";
-            result += Constants.treeToString(parser, generatedTree.getQuery()) + "\n";
+            result += Constants.treeToStringFormatted(parser, generatedTree.getQuery()) + "\n";
         }
         result += generatedQueries.size() + " queries generated." + "\n";
-        result += simpleARQLTrucs.toString();
+        result += simpleARQLTrucs.toString() + "\n";
+        result += simpleARQLTrucs.size() + " truc in the query.";
         return result;
     }
 }

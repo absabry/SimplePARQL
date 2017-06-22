@@ -1,3 +1,6 @@
+package fr.esilv.simpleparql.source.converter.model;
+
+import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import javafx.util.Pair;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -20,7 +23,7 @@ import java.util.HashMap;
  * generate their new triples
  */
 
-class Truc {
+public class Truc {
     private ArrayList<Pair<ParserRuleContext, Integer>> parents;
     private String name;
     private POSITION position;
@@ -28,7 +31,7 @@ class Truc {
     private Triple currentTriple;
     private HashMap<VARIABLES, String> variables;
 
-    Truc(ParseTree node, int counter) {
+    public Truc(ParseTree node, int counter) {
         parents = new ArrayList<>();
         name = node.getText();
         this.counter = counter;
@@ -38,27 +41,27 @@ class Truc {
         generateTripleComposantes();
     }
 
-    int getCounter() {
+    public int getCounter() {
         return counter;
     }
 
-    POSITION getPosition() {
+    public POSITION getPosition() {
         return position;
     }
 
-    Triple getCurrentTriple() {
+    public Triple getCurrentTriple() {
         return currentTriple;
     }
 
-    HashMap<VARIABLES, String> getVariables() {
+    public HashMap<VARIABLES, String> getVariables() {
         return variables;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    ArrayList<Pair<ParserRuleContext, Integer>> getParents() {
+    public ArrayList<Pair<ParserRuleContext, Integer>> getParents() {
         return parents;
     }
 
@@ -124,8 +127,15 @@ class Truc {
         }
     }
 
+    /**
+     * Clean text we get from the triple, it may contains quotes or rafters
+     * This functions will clean it
+     *
+     * @param text text to be cleaned from the characteres representing truc
+     * @return same text cleaned up
+     */
     private String clean(String text) {
-        return text.replace("\"", "").replace("#", "");
+        return text.replace("\"", "").replace("<<", "").replace(">>", "");
     }
 
     /**
@@ -139,7 +149,7 @@ class Truc {
         variables.put(VARIABLES.TMP2, Constants.VARIABLE_TMP_2 + counter);
     }
 
-    boolean isOptionnal() {
+    public boolean isOptionnal() {
         return find(SimplePARQLParser.RULE_optionalGraphPattern) != null;
     }
 

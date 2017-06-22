@@ -1,39 +1,39 @@
 @startuml
-enum POSITION {
+enum fr.esilv.simpleparql.source.converter.model.POSITION {
 SUBJECT
 PREDICATE
 OBJECT
 }
 
-enum VARIABLES {
+enum fr.esilv.simpleparql.source.converter.model.VARIABLES {
  VARIABLE
  LABEL
  TMP1
  TMP2
 }
-enum PAGE {
+enum fr.esilv.simpleparql.source.converter.model.PAGE {
 FIRST
 SECOND
 THIRD
 }
 
-interface FilterGenerator {
+interface fr.esilv.simpleparql.source.converter.filter.FilterGenerator {
 createSPARQLFilter(truc:String, variable:String ) : String
 }
 
-class FilterNormal{
+class fr.esilv.simpleparql.source.converter.filter.FilterNormal{
 +createSPARQLFilter(truc:String, variable:String ) : String
 }
-class FilterVirtuoso{
+class fr.esilv.simpleparql.source.converter.filter.FilterVirtuoso{
 +createSPARQLFilter(truc:String, variable:String ) : String
 }
-class Truc{
+class fr.esilv.simpleparql.source.converter.model.Truc{
 - parents : ArrayList<Pair<ParserRuleContext, Integer>>
 - name : String
-- position : POSITION
+- position : fr.esilv.simpleparql.source.converter.model.POSITION
 - counter : int
-- currentTriple : Triple
-- variables : HashMap<VARIABLES, String>
+- currentTriple : fr.esilv.simpleparql.source.converter.model.Triple
+- variables : HashMap<fr.esilv.simpleparql.source.converter.model.VARIABLES, String>
 +getCounter()
 +getPosition()
 +getCurrentTriple()
@@ -50,17 +50,17 @@ class Truc{
 +equals(Object other)
 }
 
-class Triple{
+class fr.esilv.simpleparql.source.converter.model.Triple{
 - String subject
 - String predicate
 - String object
 +getSubject()
 +getPredicate()
 +getObject()
-+get(POSITION position)
++get(fr.esilv.simpleparql.source.converter.model.POSITION position)
 }
 
-class Constants{
+class fr.esilv.simpleparql.source.converter.model.Constants{
 +{static}  VARIABLE = " ?SimplePARQL_" : final String
 +{static}  VARIABLE_LABEL = " ?label_" : final String
 +{static}  VARIABLE_TMP_1 = " ?tmp_var1_" : final String
@@ -77,109 +77,109 @@ class Constants{
 +{static} printTree(SimplePARQLParser parser, ParserRuleContext query, String title)
 +{static} getTreeOfText(String text)
 }
-class Composant{
+class fr.esilv.simpleparql.source.converter.model.Composant{
 -  filter : String
 -  triple : String
--  page : PAGE
+-  page : fr.esilv.simpleparql.source.converter.model.PAGE
 +getFilter()
 +getPage()
 +getTriple()
-+Composant(String triple, String filter, PAGE page)
++fr.esilv.simpleparql.source.converter.model.Composant(String triple, String filter, fr.esilv.simpleparql.source.converter.model.PAGE page)
 }
 
-class ParseElement{
--  page : PAGE
+class fr.esilv.simpleparql.source.converter.model.ParseElement{
+-  page : fr.esilv.simpleparql.source.converter.model.PAGE
 - query :ParserRuleContext
-+ParseElement(ParserRuleContext query, PAGE page)
++fr.esilv.simpleparql.source.converter.model.ParseElement(ParserRuleContext query, fr.esilv.simpleparql.source.converter.model.PAGE page)
 +getQuery()
 +getPage()
 }
 
-class QueryOrdered{
+class fr.esilv.simpleparql.source.converter.order.QueryOrdered{
 - parser : SimplePARQLParser
-+QueryOrdered(SimplePARQLParser parser)
++fr.esilv.simpleparql.source.converter.order.QueryOrdered(SimplePARQLParser parser)
 +getParser()
 -{static} RearrangeQuery(SimplePARQLParser parser)
 -{static} getComposantesOfTriples(ParseTree triplesSameSubject)
--{static} createNewChildren(ParseTree triplesSameSubject, ArrayList<Triple> triples)
--{static} join(ArrayList<Triple> list, String delimter)
+-{static} createNewChildren(ParseTree triplesSameSubject, ArrayList<fr.esilv.simpleparql.source.converter.model.Triple> triples)
+-{static} join(ArrayList<fr.esilv.simpleparql.source.converter.model.Triple> list, String delimter)
 }
-class SparqlQueries{
+class fr.esilv.simpleparql.source.converter.SparqlQueries{
 - parser : SimplePARQLParser
-- simpleARQLTrucs : ArrayList<Truc>
+- simpleARQLTrucs : ArrayList<fr.esilv.simpleparql.source.converter.model.Truc>
 -counter : int
--filterGenerator : FilterGenerator
--  page : PAGE
--generatedQueries : ArrayList<ParseElement>
+-filterGenerator : fr.esilv.simpleparql.source.converter.filter.FilterGenerator
+-  page : fr.esilv.simpleparql.source.converter.model.PAGE
+-generatedQueries : ArrayList<fr.esilv.simpleparql.source.converter.model.ParseElement>
 -{static} logger : final Logger
 -optionnal : boolean
-SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, PAGE page, boolean optionnal)
-SparqlQueries(SimplePARQLParser parser)
-SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator)
-SparqlQueries(SimplePARQLParser parser, boolean optionnal)
-SparqlQueries(SimplePARQLParser parser, PAGE page)
+fr.esilv.simpleparql.source.converter.SparqlQueries(SimplePARQLParser parser, fr.esilv.simpleparql.source.converter.filter.FilterGenerator filterGenerator, fr.esilv.simpleparql.source.converter.model.PAGE page, boolean optionnal)
+fr.esilv.simpleparql.source.converter.SparqlQueries(SimplePARQLParser parser)
+fr.esilv.simpleparql.source.converter.SparqlQueries(SimplePARQLParser parser, fr.esilv.simpleparql.source.converter.filter.FilterGenerator filterGenerator)
+fr.esilv.simpleparql.source.converter.SparqlQueries(SimplePARQLParser parser, boolean optionnal)
+fr.esilv.simpleparql.source.converter.SparqlQueries(SimplePARQLParser parser, fr.esilv.simpleparql.source.converter.model.PAGE page)
 addFilterToTree(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText)
 addTripleToTree(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText)
 containsFilter(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText)
 containsTruc()
 createTruc(ParseTree trucInTree)
-findInTree(ParserRuleContext tree, Truc element, int ruleIndex)
-generateCartesianProductTrees(ParseElement tree, Truc truc)
-getGreaterPage(PAGE page1, PAGE page2)
+findInTree(ParserRuleContext tree, fr.esilv.simpleparql.source.converter.model.Truc element, int ruleIndex)
+generateCartesianProductTrees(fr.esilv.simpleparql.source.converter.model.ParseElement tree, fr.esilv.simpleparql.source.converter.model.Truc truc)
+getGreaterPage(fr.esilv.simpleparql.source.converter.model.PAGE page1, fr.esilv.simpleparql.source.converter.model.PAGE page2)
 mainGenerate()
-removeOptionnalTrucFromTree(ParseElement tree, Truc truc)
+removeOptionnalTrucFromTree(fr.esilv.simpleparql.source.converter.model.ParseElement tree, fr.esilv.simpleparql.source.converter.model.Truc truc)
 }
 
-class Composant{
+class fr.esilv.simpleparql.source.converter.model.Composant{
 -String filter
 -String triple
--PAGE page
+-fr.esilv.simpleparql.source.converter.model.PAGE page
 +getTriple()
 +getPage()
 +getFilter()
 }
-class GenerateQuery{
--truc:Truc
--generatedComposants:ArrayList<Composant>
--filterGenerator: FilterGenerator
-- page : PAGE
-+GenerateQuery(Truc truc, FilterGenerator filterGenerator, PAGE page)
+class fr.esilv.simpleparql.source.converter.query.GenerateQuery{
+-truc:fr.esilv.simpleparql.source.converter.model.Truc
+-generatedComposants:ArrayList<fr.esilv.simpleparql.source.converter.model.Composant>
+-filterGenerator: fr.esilv.simpleparql.source.converter.filter.FilterGenerator
+- page : fr.esilv.simpleparql.source.converter.model.PAGE
++fr.esilv.simpleparql.source.converter.query.GenerateQuery(fr.esilv.simpleparql.source.converter.model.Truc truc, fr.esilv.simpleparql.source.converter.filter.FilterGenerator filterGenerator, fr.esilv.simpleparql.source.converter.model.PAGE page)
 +PageThird()
 +PageSecond()
 +PageFirst()
-+generateRessources(Truc truc, PAGE page)
-+generateProprieties(Truc truc, PAGE page)
-+generatelabels(Truc truc, PAGE page)
++generateRessources(fr.esilv.simpleparql.source.converter.model.Truc truc, fr.esilv.simpleparql.source.converter.model.PAGE page)
++generateProprieties(fr.esilv.simpleparql.source.converter.model.Truc truc, fr.esilv.simpleparql.source.converter.model.PAGE page)
++generatelabels(fr.esilv.simpleparql.source.converter.model.Truc truc, fr.esilv.simpleparql.source.converter.model.PAGE page)
 +createGeneratedTriples()
 +getGeneratedComposants()
 }
 
 
-note top of Truc : SimpleARQL new structure.
-note top of ParseElement : Final SPARQL queries with page.
-note top of SparqlQueries : SimplePARQL SPARQL converter.
-note top of GenerateQuery : Generate composant for the truc.
-note top of QueryOrdered : Delete ; and  , from query.
-note top of Composant : Triple,filter and page
-note top of Triple : Subject,predicate,object.
+note top of fr.esilv.simpleparql.source.converter.model.Truc : SimpleARQL new structure.
+note top of fr.esilv.simpleparql.source.converter.model.ParseElement : Final SPARQL queries with page.
+note top of fr.esilv.simpleparql.source.converter.SparqlQueries : SimplePARQL SPARQL converter.
+note top of fr.esilv.simpleparql.source.converter.query.GenerateQuery : Generate composant for the truc.
+note top of fr.esilv.simpleparql.source.converter.order.QueryOrdered : Delete ; and  , from query.
+note top of fr.esilv.simpleparql.source.converter.model.Composant : fr.esilv.simpleparql.source.converter.model.Triple,filter and page
+note top of fr.esilv.simpleparql.source.converter.model.Triple : Subject,predicate,object.
 
-FilterGenerator <|.. FilterNormal
-FilterGenerator <|.. FilterVirtuoso
+fr.esilv.simpleparql.source.converter.filter.FilterGenerator <|.. fr.esilv.simpleparql.source.converter.filter.FilterNormal
+fr.esilv.simpleparql.source.converter.filter.FilterGenerator <|.. fr.esilv.simpleparql.source.converter.filter.FilterVirtuoso
 
-Composant o-- GenerateQuery : use
-PAGE o-- GenerateQuery  : use
-Truc o-- GenerateQuery  : use
-FilterGenerator o-- GenerateQuery  : use
+fr.esilv.simpleparql.source.converter.model.Composant o-- fr.esilv.simpleparql.source.converter.query.GenerateQuery : use
+fr.esilv.simpleparql.source.converter.model.PAGE o-- fr.esilv.simpleparql.source.converter.query.GenerateQuery  : use
+fr.esilv.simpleparql.source.converter.model.Truc o-- fr.esilv.simpleparql.source.converter.query.GenerateQuery  : use
+fr.esilv.simpleparql.source.converter.filter.FilterGenerator o-- fr.esilv.simpleparql.source.converter.query.GenerateQuery  : use
 
-PAGE o-- Composant : use
+fr.esilv.simpleparql.source.converter.model.PAGE o-- fr.esilv.simpleparql.source.converter.model.Composant : use
 
-PAGE o-- ParseElement : use
+fr.esilv.simpleparql.source.converter.model.PAGE o-- fr.esilv.simpleparql.source.converter.model.ParseElement : use
 
-PAGE o-- SparqlQueries : use
-FilterGenerator o-- SparqlQueries : use
-ParseElement o-- SparqlQueries : use
-FilterGenerator o-- SparqlQueries : use
+fr.esilv.simpleparql.source.converter.model.PAGE o-- fr.esilv.simpleparql.source.converter.SparqlQueries : use
+fr.esilv.simpleparql.source.converter.filter.FilterGenerator o-- fr.esilv.simpleparql.source.converter.SparqlQueries : use
+fr.esilv.simpleparql.source.converter.model.ParseElement o-- fr.esilv.simpleparql.source.converter.SparqlQueries : use
+fr.esilv.simpleparql.source.converter.filter.FilterGenerator o-- fr.esilv.simpleparql.source.converter.SparqlQueries : use
 
-Triple o-- Truc : use
+fr.esilv.simpleparql.source.converter.model.Triple o-- fr.esilv.simpleparql.source.converter.model.Truc : use
 
 @enduml

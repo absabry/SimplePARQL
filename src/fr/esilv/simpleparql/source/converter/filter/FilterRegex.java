@@ -1,7 +1,12 @@
+package fr.esilv.simpleparql.source.converter.filter;
+
+import fr.esilv.simpleparql.source.converter.model.Constants;
+
 /**
- * Normal filter, no special case here
+ * Filter when we prefer to use regex
+ * we use FILTER regex(?name, "text", "i")
  */
-class FilterNormal implements FilterGenerator {
+public class FilterRegex implements FilterGenerator {
 
     @Override
     public String createSPARQLFilter(String truc, String variable) {
@@ -9,8 +14,8 @@ class FilterNormal implements FilterGenerator {
         String[] splitted = truc.split(" ");
         String result = Constants.FILTER + "(";
         for (String wordOfTruc : splitted) {
-            result += Constants.CONTAINS;
-            result += "(" + Constants.STR + "(" + variable + ")," + Constants.UCASE + "(\"" + wordOfTruc + "\"))";
+            result += Constants.REGEX;
+            result += "(" + variable + ",\"" + wordOfTruc + "\",\"i\")";
             if (splitted.length != counter) {
                 result += Constants.AND;
             }

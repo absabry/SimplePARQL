@@ -1,3 +1,5 @@
+package fr.esilv.simpleparql.source.converter.model;
+
 /**
  * Item generated for each "truc" found in the SimpleARQL query
  */
@@ -16,16 +18,16 @@ public class Composant {
         return filter;
     }
 
-    String getTriple() {
+    public String getTriple() {
         return triple;
     }
 
-    PAGE getPage() {
+    public PAGE getPage() {
         return page;
     }
 
     public String toString() {
-        return "Triple: " + triple + "\n" +
+        return "fr.esilv.simpleparql.source.converter.Request.Triple: " + triple + "\n" +
                 "Filter: " + filter + "\n" +
                 "Page: " + page + "\n";
     }

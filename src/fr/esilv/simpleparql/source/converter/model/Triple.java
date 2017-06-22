@@ -1,3 +1,5 @@
+package fr.esilv.simpleparql.source.converter.model;
+
 /**
  * repesent the triple structure (subject, predicate object)
  */

@@ -10,7 +10,7 @@ OPTIONAL{
 ?x ?y "obj1"
 }
 {
-sometruchere ?hehehe "sub".
+<<sometruchere>> ?hehehe "sub".
 }
 ?after ?after ?after
 FILTER (?x != ?y)

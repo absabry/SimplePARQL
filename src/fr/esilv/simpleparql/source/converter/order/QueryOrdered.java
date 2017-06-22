@@ -1,4 +1,8 @@
-import org.antlr.runtime.tree.CommonErrorNode;
+package fr.esilv.simpleparql.source.converter.order;
+
+import fr.esilv.simpleparql.source.converter.model.Constants;
+import fr.esilv.simpleparql.source.converter.model.Triple;
+import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.xpath.XPath;
@@ -14,10 +18,10 @@ import java.util.Collection;
  * ?a ?d ?e .
  * ?a ?d ?e
  */
-class QueryOrdered {
+public class QueryOrdered {
     private SimplePARQLParser parser;
 
-    QueryOrdered(SimplePARQLParser parser) {
+    public QueryOrdered(SimplePARQLParser parser) {
         this.parser = RearrangeQuery(parser);
     }
 
@@ -26,7 +30,7 @@ class QueryOrdered {
     }
 
     /**
-     * Main function to re order the query
+     * fr.esilv.simpleparql.source.converter.MainConverter function to re order the query
      *
      * @param parser parser of the SimpleARQL query we get from the user
      * @return new SimplePARQLParser with the new triples instead of the triples "," and ";"
