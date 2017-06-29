@@ -1,0 +1,53 @@
+package fr.esilv.simpleparql.source.response;
+
+import com.sun.org.apache.regexp.internal.RE;
+import fr.esilv.simpleparql.source.model.Truc;
+
+import java.util.ArrayList;
+
+/**
+ * Strcuture of the response we get from JENA server.
+ * We keep variables and all stuff we need to handle the result of the sparql query
+ * and give it to the user in the best readble way
+ */
+public class Result {
+    private ArrayList<String> variables;
+    private ArrayList<ArrayList<String>> responses;
+    private ArrayList<Truc> responsesTruc;
+
+    public Result() {
+        variables = new ArrayList<>();
+        responsesTruc = new ArrayList<>();
+        responses = new ArrayList<>();
+    }
+
+    public ArrayList<String> getVariables() {
+        return variables;
+    }
+
+    public ArrayList<ArrayList<String>> getResponses() {
+        return responses;
+    }
+
+    public ArrayList<Truc> getResponsesTruc() {
+        return responsesTruc;
+    }
+
+    public void setVariables(ArrayList<String> variables) {
+        this.variables = variables;
+    }
+
+    public void addToResponse(ArrayList<String> response) {
+        responses.add(response);
+    }
+
+    public String toString() {
+        String result = "";
+        result += "Variables: " + variables + "\n";
+        result += responses.size() + " responses generated";
+        for (int i = 0; i < responses.size(); i++) {
+            result += responses.get(i) + "\n";
+        }
+        return result;
+    }
+}

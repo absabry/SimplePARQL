@@ -10,7 +10,7 @@ prefixDecl
     : 'PREFIX' PNAME_NS /* prefixname:*/ URI
     ;
 selectQuery
-    : 'SELECT' 'DISTINCT'? ( VAR+ | '*' )
+    : 'SELECT' 'DISTINCT'? ( VAR+ | '*' | truc )
     ;
 whereClause
     : 'WHERE' groupGraphPattern

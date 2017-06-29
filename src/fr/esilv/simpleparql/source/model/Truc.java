@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.source.converter.model;
+package fr.esilv.simpleparql.source.model;
 
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import javafx.util.Pair;
@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Strcutre truc, contains:
@@ -59,6 +60,10 @@ public class Truc {
 
     public String getName() {
         return name;
+    }
+
+    public String getCleanedName() {
+        return clean(name);
     }
 
     public ArrayList<Pair<ParserRuleContext, Integer>> getParents() {
@@ -151,6 +156,15 @@ public class Truc {
 
     public boolean isOptionnal() {
         return find(SimplePARQLParser.RULE_optionalGraphPattern) != null;
+    }
+
+    public String getVariablePosition(String variable) {
+        for (Map.Entry mapentry : variables.entrySet()) {
+            if (mapentry.getValue().toString().trim().equals("?" + variable.trim())) {
+                return mapentry.getKey().toString();
+            }
+        }
+        return null;
     }
 
     /**

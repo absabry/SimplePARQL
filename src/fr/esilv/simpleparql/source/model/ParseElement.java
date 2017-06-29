@@ -1,12 +1,12 @@
-package fr.esilv.simpleparql.source.converter.model;
+package fr.esilv.simpleparql.source.model;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
  * Element of the generatedQueries
  * We keep :
- * page (to handle th esplit between those queries if needed)
- * query (the main tree geenrated-
+ * page (to handle the split between those queries if needed)
+ * query (the main tree geenrated)
  */
 public class ParseElement {
     private ParserRuleContext query;

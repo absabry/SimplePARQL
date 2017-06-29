@@ -1,7 +1,9 @@
-package fr.esilv.simpleparql.source.webservice;
+package fr.esilv.simpleparql.webservice;
 
+import fr.esilv.simpleparql.configuration.ServerConfig;
 import org.apache.log4j.Logger;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,20 +13,26 @@ import java.net.Socket;
  */
 public class Server {
     private final static Logger logger = Logger.getLogger(Server.class);
-    private static final int PORT = 1234;
     private static int clientID = 0;
+    private static ServerConfig serverConfig;
 
     public static void main(String[] args) throws IOException {
         org.apache.log4j.BasicConfigurator.configure();
+
+        if (args.length != 0) {
+            serverConfig = new ServerConfig(new FileInputStream(args[0]));
+        } else {
+            serverConfig = new ServerConfig(Server.class.getResourceAsStream("Server.config"));
+        }
         runServer();
     }
 
     private static void runServer() throws IOException {
-        ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("Server up & ready for connections...");
+        ServerSocket serverSocket = new ServerSocket(serverConfig.getPort());
+        logger.debug("Server up & ready for connections...");
         while (true) {
             Socket client = serverSocket.accept();
-            new ServerThread(clientID, client).start();
+            new ServerThread(clientID, client, serverConfig.getBasesConfig(), serverConfig.getIgnored()).start();
             logger.debug("#" + clientID + " just connected from " + client.getRemoteSocketAddress().toString());
             clientID++;
         }

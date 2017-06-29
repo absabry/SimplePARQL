@@ -1,7 +1,6 @@
-package fr.esilv.simpleparql.source.converter.order;
+package fr.esilv.simpleparql.source.model;
 
-import fr.esilv.simpleparql.source.converter.model.Constants;
-import fr.esilv.simpleparql.source.converter.model.Triple;
+import com.google.common.collect.Iterables;
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -17,12 +16,18 @@ import java.util.Collection;
  * ?a ?b ?c .
  * ?a ?d ?e .
  * ?a ?d ?e
+ * <p>
+ * It will also replace the select clause with the select all clause.
+ * The results will be filtred after treatement to return what the user wish.
  */
 public class QueryOrdered {
     private SimplePARQLParser parser;
+    private ArrayList<String> selectedVariables;
+    private boolean selectAll;
 
     public QueryOrdered(SimplePARQLParser parser) {
-        this.parser = RearrangeQuery(parser);
+        this.parser = RearrangeQuery(computeAndReplaceSelectedVariables(parser));
+        selectAll = false;
     }
 
     public SimplePARQLParser getParser() {
@@ -30,9 +35,9 @@ public class QueryOrdered {
     }
 
     /**
-     * fr.esilv.simpleparql.source.converter.MainConverter function to re order the query
+     * function to re order the query
      *
-     * @param parser parser of the SimpleARQL query we get from the user
+     * @param parser parser of the SimpleARQL query we get from the user's query
      * @return new SimplePARQLParser with the new triples instead of the triples "," and ";"
      */
     private static SimplePARQLParser RearrangeQuery(SimplePARQLParser parser) {
@@ -105,6 +110,42 @@ public class QueryOrdered {
             result += object.toString() + delimter;
         }
         return result;
+    }
+
+    /**
+     * @return selected variables from the original query
+     */
+    public ArrayList<String> getSelectedVariables() {
+        return selectedVariables;
+    }
+
+    public boolean isSelectAll() {
+        return selectAll;
+    }
+
+    /**
+     * compute the selected variables from the original SimplePAEQL query
+     * and replace the select clause of the query with the "Select * ".
+     *
+     * @param parser parser of the SimpleARQL query we get from the user's query
+     */
+    private SimplePARQLParser computeAndReplaceSelectedVariables(SimplePARQLParser parser) {
+        selectedVariables = new ArrayList<>();
+        ParserRuleContext newSelectQuery = Constants.getTreeOfText("SELECT * ").selectQuery(); // new select query
+        ParserRuleContext query = parser.query();
+        ParserRuleContext selectQuery = (ParserRuleContext) Iterables.get(XPath.findAll(query, "//selectQuery", parser), 0); // there are just one leaf of selectQuery in the query
+        for (ParseTree variable : selectQuery.children) {
+            if (!variable.getText().equals("SELECT") && !variable.getText().equals("DISTINCT")) {
+                if (variable.getText().trim().equals("*")) {
+                    selectAll = true;
+                    break;
+                }
+                selectedVariables.add(variable.getText());
+            }
+        }
+        int indexOfSelectQuery = Constants.getNodeIndex(selectQuery);// index of the select query in his parent
+        selectQuery.getParent().children.set(indexOfSelectQuery, newSelectQuery);
+        return Constants.getTreeOfText(Constants.treeToString(parser, query));
     }
 
 }

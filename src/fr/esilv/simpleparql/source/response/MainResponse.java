@@ -29,14 +29,54 @@ public class MainResponse {
         org.apache.log4j.BasicConfigurator.configure(new NullAppender());
         // PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX dbo: <http://dbpedia.org/ontology/>PREFIX dbr: <http://dbpedia.org/resource/>select distinct ?x ?age ?cityBirth where { ?x rdf:type dbo:Painter. ?x dbo:birthDate ?birth. ?x dbo:birthPlace ?cityBirth.  ?x dbo:deathDate ?death .?cityBirth dbo:country dbr:Germany. BIND(year(?death)-year(?birth)as ?age)  FILTER(?age < 40)}LIMIT 100
 
+        String oldQuery = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX dbo: <http://dbpedia.org/ontology/>PREFIX dbr: <http://dbpedia.org/resource/>select distinct ?x ?age ?cityBirth where { ?x rdf:type dbo:Painter. ?x dbo:birthDate ?birth. ?x dbo:birthPlace ?cityBirth.  ?x dbo:deathDate ?death .?cityBirth dbo:country dbr:Germany. BIND(year(?death)-year(?birth)as ?age)  FILTER(?age < 40)}LIMIT 100";
         String query = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX dbo: <http://dbpedia.org/ontology/> SELECT * WHERE { ?SimplePARQL_1 dbo:birthPlace ?SimplePARQL_2 . ?SimplePARQL_2 rdfs:label ?label_2 . ?SimplePARQL_1 rdfs:label ?label_1 . FILTER ( REGEX ( ?label_1 , \"John\" , \"i\" ) && REGEX ( ?label_1 , \"Smith\" , \"i\" ) ) FILTER ( REGEX ( ?label_2 , \"London\" , \"i\" ) ) } ";
-        lauchSparql(query, "xml", "blabla");
+        Result result = new MainResponse().executeSparql("http://dbpedia.org/sparql", query);
+        System.out.println(result);
     }
 
-    // main function
-    private static void lauchSparql(String sparqlQueryString, String format, String filename) throws IOException {
+
+    // new main function
+    public Result executeSparql(String base, String sparqlQueryString) {
+        Result result = new Result();
+
+        try {
+            Query query = QueryFactory.create(sparqlQueryString);
+            QueryExecution qexec = QueryExecutionFactory.sparqlService(base, query);
+            ResultSet results = qexec.execSelect();
+            result.setVariables(new ArrayList<>(results.getResultVars())); // get variables of the query
+            for (; results.hasNext(); ) {
+                QuerySolution sol = results.nextSolution();
+                ArrayList<String> solution = new ArrayList<>();
+                for (String ittVar : result.getVariables()) {
+                    String val;
+                    RDFNode var = sol.get(ittVar);
+                    if (var.isLiteral()) {
+                        Literal l = (Literal) var;
+                        val = l.getValue().toString();
+                    } else {
+                        Resource r = (Resource) var;
+                        val = r.getURI();
+                    }
+                    solution.add(val);
+                }
+                result.addToResponse(solution);
+            }
+            qexec.close();
+        } catch (Exception e) {
+            System.out.println("Failed to execute query \"" + sparqlQueryString + "\":" + e);
+        }
+        return result;
+    }
+
+
+    //---------------------------------------OLD STUFF---------------------------------------------------
+
+
+    // old main function
+    private static void saveSparql(String base, String sparqlQueryString, String format, String filename) throws IOException {
         Query query = QueryFactory.create(sparqlQueryString);
-        QueryExecution qexec = QueryExecutionFactory.sparqlService("http://dbpedia.org/sparql", query);
+        QueryExecution qexec = QueryExecutionFactory.sparqlService(base, query);
         ResultSet results = qexec.execSelect();
         ResultSet resultsClone = ResultSetFactory.copyResults(results);
         Model model = new RDFOutput().toModel(ResultSetFactory.copyResults(resultsClone));
@@ -203,40 +243,6 @@ public class MainResponse {
         ResultSetFormatter.outputAsRDF(System.out, "RDF/XML", results);
         qexec.close();
         tdb.close();
-    }
-
-    // get values of variables
-    private static void getValues(String sparqlQueryString) {
-        List<ArrayList<String>> res = new ArrayList<>();
-
-        try {
-            Query query = QueryFactory.create(sparqlQueryString);
-            QueryExecution qexec = QueryExecutionFactory.sparqlService("http://dbpedia.org/sparql", query);
-            ResultSet results = qexec.execSelect();
-            ArrayList<String> varNames = new ArrayList<>(results.getResultVars());
-            res.add(varNames);
-            for (; results.hasNext(); ) {
-                QuerySolution sol = results.nextSolution();
-                for (String ittVar : varNames) {
-                    ArrayList<String> solution = new ArrayList<>();
-                    String val;
-                    RDFNode var = sol.get(ittVar);
-                    if (var.isLiteral()) {
-                        Literal l = (Literal) var;
-                        val = l.getValue().toString();
-                    } else {
-                        Resource r = (Resource) var;
-                        val = r.getURI();
-                    }
-                    solution.add(val);
-                    res.add(solution);
-                }
-            }
-            qexec.close();
-        } catch (Exception e) {
-            System.out.println("Failed to execute query \"" + sparqlQueryString + "\":" + e);
-        }
-        System.out.println(res);
     }
 
     // get all triples of the query

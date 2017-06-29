@@ -3,9 +3,10 @@ package fr.esilv.simpleparql.source.converter;
 import com.google.common.collect.Iterables;
 import fr.esilv.simpleparql.source.converter.filter.FilterGenerator;
 import fr.esilv.simpleparql.source.converter.filter.FilterNormal;
-import fr.esilv.simpleparql.source.converter.model.*;
+import fr.esilv.simpleparql.source.model.*;
 import fr.esilv.simpleparql.source.converter.query.GenerateQuery;
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
+import fr.esilv.simpleparql.configuration.IgnoredConfig;
 import javafx.util.Pair;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -13,8 +14,11 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.xpath.XPath;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * main class to get the SPARQL queries from SimpleARQL queries
@@ -34,53 +38,58 @@ public class SparqlQueries {
     private ArrayList<ParseElement> generatedQueries;
     private SimplePARQLParser parser;
     private int counter = 0; // counter of Variables created
-    private FilterGenerator filterGenerator; // normal or virtuoso or other
+    private FilterGenerator filterGenerator; // normal,virtuoso or even regex
     private boolean optionnal;
     private PAGE page;
+    private ArrayList<String> ignoredConfig;
 
-    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, PAGE page, boolean optionnal) {
+    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, PAGE page, boolean optionnal, IgnoredConfig ignoredConfig) throws IOException {
         this.page = page;
         this.filterGenerator = filterGenerator;
         this.optionnal = optionnal;
         simpleARQLTrucs = new ArrayList<>();
         generatedQueries = new ArrayList<>();
         this.parser = parser;
+        this.ignoredConfig = ignoredConfig.getIgnoredProprieties();
         ParserRuleContext query = this.parser.query();
+        addRDFandRDFSPrefixesToTree(query);
         generatedQueries.add(new ParseElement(query, PAGE.FIRST));
         if (containsTruc()) {
             mainGenerate();
         }
+
     }
 
-    public SparqlQueries(SimplePARQLParser parser) {
-        this(parser, new FilterNormal(), PAGE.FIRST, true);
+    public SparqlQueries(SimplePARQLParser parser, IgnoredConfig ignoredConfig) throws IOException {
+        this(parser, new FilterNormal(), PAGE.FIRST, true, ignoredConfig);
     }
 
-    public SparqlQueries(SimplePARQLParser parser, boolean optionnal) {
-        this(parser, new FilterNormal(), PAGE.FIRST, optionnal);
+    public SparqlQueries(SimplePARQLParser parser, boolean optionnal, IgnoredConfig ignoredConfig) throws IOException {
+        this(parser, new FilterNormal(), PAGE.FIRST, optionnal, ignoredConfig);
     }
 
-    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator) {
-        this(parser, filterGenerator, PAGE.FIRST, true);
+    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, IgnoredConfig ignoredConfig) throws IOException {
+        this(parser, filterGenerator, PAGE.FIRST, true, ignoredConfig);
     }
 
-    public SparqlQueries(SimplePARQLParser parser, PAGE page) {
-        this(parser, new FilterNormal(), page, true);
+    public SparqlQueries(SimplePARQLParser parser, PAGE page, IgnoredConfig ignoredConfig) throws IOException {
+        this(parser, new FilterNormal(), page, true, ignoredConfig);
     }
 
 
     public ArrayList<ParseElement> getGeneratedQueries() {
         return generatedQueries;
     }
+
     /**
      * main function to generate the sparql queries from the simpleARQL queries
      * <p>
      * We clone the array og queries
      * Then we browse to find (in the old tree) all truc
-     * we create structure fr.esilv.simpleparql.source.converter.model.Truc
+     * we create structure fr.esilv.simpleparql.source.model.Truc
      * Then we generate cartesian prodcut of the truc (that may contains multiple new Items)
      */
-    private void mainGenerate() {
+    private void mainGenerate() throws IOException {
         ArrayList<ParseElement> oldGeneratedTrees = new ArrayList<>();
         oldGeneratedTrees.addAll(generatedQueries);
         for (ParseElement oldGenereatedTree : oldGeneratedTrees) {
@@ -128,8 +137,8 @@ public class SparqlQueries {
     }
 
     /**
-     * create a fr.esilv.simpleparql.source.converter.query.GenerateQuery element, that will create all of the filter, triples and fr.esilv.simpleparql.source.converter.model.PAGE of the truc
-     * foreach fr.esilv.simpleparql.source.converter.model.Composant item created (containg filter and triples)
+     * create a fr.esilv.simpleparql.source.converter.query.GenerateQuery element, that will create all of the filter, triples and fr.esilv.simpleparql.source.model.PAGE of the truc
+     * foreach fr.esilv.simpleparql.source.model.Composant item created (containg filter and triples)
      * we clone the tree, create a new one and attach the new filter and the new triple
      * and we add the result to the generatedQueries List
      *
@@ -137,8 +146,10 @@ public class SparqlQueries {
      * @param truc truc which we add it's triples and filter to the new query
      */
     // Generate tree with cartesian product directly
-    private void generateCartesianProductTrees(ParseElement tree, Truc truc) {
-        GenerateQuery generateQuery = new GenerateQuery(truc, filterGenerator, page);
+    private void generateCartesianProductTrees(ParseElement tree, Truc truc) throws IOException {
+        // we create the IgnoredConfig here to handle the closed stream after each using, and so,
+        // we create a IgnoredConfig object foreach GenerateQuery
+        GenerateQuery generateQuery = new GenerateQuery(truc, filterGenerator, page, ignoredConfig);
         for (Composant element : generateQuery.getGeneratedComposants()) {
             SimplePARQLParser newOne = Constants.getTreeOfText(Constants.treeToString(parser, tree.getQuery()));
             ParserRuleContext newOneQuery = newOne.query();
@@ -146,6 +157,10 @@ public class SparqlQueries {
             Pair<ParserRuleContext, Integer> triplesBlocks = findInTree(newOneQuery, truc, SimplePARQLParser.RULE_triplesBlock);
             addTripleToTree(triplesBlocks, element.getTriple());
             addFilterToTree(groupGraphPattern, element.getFilter());
+            if (element.getIgnoredFilter() != null) {
+                addFilterToTree(groupGraphPattern, element.getIgnoredFilter());
+            }
+
             ParserRuleContext newQuery = Constants.getTreeOfText(Constants.treeToString(parser, newOneQuery)).query();
             PAGE greater = getGreaterPage(element.getPage(), tree.getPage());
             generatedQueries.add(new ParseElement(newQuery, greater));
@@ -268,6 +283,32 @@ public class SparqlQueries {
         }
     }
 
+    /**
+     * Adding the prefixes rdf and rdfs in the begining of the query
+     * Those prefixes are mandatory for the Jena API, that's why we add it if the user
+     * forgot about them.
+     *
+     * @param query root of the query, we kept the query and not the prologue for handling the case where the user not mention any prefixe
+     */
+    private void addRDFandRDFSPrefixesToTree(ParserRuleContext query) {
+        ArrayList<String> prefixes = new ArrayList<>();
+        prefixes.add("PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>");
+        prefixes.add("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>");
+
+        Collection<ParseTree> prologues = XPath.findAll(query, "//prologue", parser);
+        if (prologues.size() == 0) {
+            query.addChild(Constants.getTreeOfText(String.join("\n", prefixes)).prologue());
+        } else {
+            ParserRuleContext prologue = (ParserRuleContext) Iterables.get(prologues, 0);
+            for (String prefixe : prefixes) {
+                if (!containsPrefix(prologue, prefixe)) {
+                    prologue.addChild(Constants.getTreeOfText(prefixe).prefixDecl());
+                }
+            }
+        }
+
+
+    }
 
     /**
      * Find in the NEW tree the first element using the find() function of the truc structure
@@ -315,11 +356,12 @@ public class SparqlQueries {
     }
 
     /**
-     * check if the generatedTree containing this filter
+     * check if the generatedTree containing this filter in order to remove redudant filter when there
+     * are multiple trucs in the same triple
      *
      * @param groupGraphPattern the groupGraphPattern root of the truc
      * @param filterText        filter string
-     * @return boolean containing the truc
+     * @return boolean indicating if the query contains this filter or not
      */
     private boolean containsFilter(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText) {
         Collection<ParseTree> filters = XPath.findAll(groupGraphPattern.getKey(), "//filter", parser);
@@ -330,6 +372,35 @@ public class SparqlQueries {
             }
         }
         return false;
+    }
+
+    /**
+     * check if the generatedTree containing this prefix, in order to add rdf and rdfs to the query if it's not already added
+     *
+     * @param prologue the prefixes root of the query
+     * @param prefix   prefix string
+     * @return boolean indicating if the query contains this prefix or not
+     */
+    private boolean containsPrefix(ParserRuleContext prologue, String prefix) {
+        Collection<ParseTree> prefixDecls = XPath.findAll(prologue, "//prefixDecl", parser);
+        for (ParseTree prefixDecl : prefixDecls) {
+            prefix = prefix.replace(" ", ""); // ignore spaces in the comparaison, filter comming from the query is without any spaces
+            if (prefixDecl.getText().contains(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Truc find(String variable) {
+        for (Truc truc : simpleARQLTrucs) {
+            for (Map.Entry mapentry : truc.getVariables().entrySet()) {
+                if (mapentry.getValue().toString().trim().equals("?" + variable.trim())) {
+                    return truc;
+                }
+            }
+        }
+        return null;
     }
 
     public String toString() {

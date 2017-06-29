@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.source.converter.model;
+package fr.esilv.simpleparql.source.model;
 
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -16,7 +16,7 @@ import java.util.List;
  * to avoid the EOF and the joined text when displaying the tree
  */
 /*
-        TreePrinterListener listener = new fr.esilv.simpleparql.source.converter.model.TreePrinterListener(parser);
+        TreePrinterListener listener = new fr.esilv.simpleparql.source.model.TreePrinterListener(parser);
         ParseTreeWalker.DEFAULT.walk(listener, tree);
         logger.info(listener.toString());
 */

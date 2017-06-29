@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.source.converter.model;
+package fr.esilv.simpleparql.source.model;
 
 /**
  * Split the resutlt to three pages

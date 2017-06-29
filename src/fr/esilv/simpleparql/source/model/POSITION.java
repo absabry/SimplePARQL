@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.source.converter.model;
+package fr.esilv.simpleparql.source.model;
 
 public enum POSITION {
     SUBJECT,

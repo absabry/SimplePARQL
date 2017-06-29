@@ -1,17 +1,19 @@
-package fr.esilv.simpleparql.source.converter.model;
+package fr.esilv.simpleparql.source.model;
 
 /**
  * Item generated for each "truc" found in the SimpleARQL query
  */
 public class Composant {
     private String filter;
+    private String ignoredFilter;
     private String triple;
     private PAGE page;
 
-    public Composant(String triple, String filter, PAGE page) {
+    public Composant(String triple, String filter, String ignoredFilter, PAGE page) {
         this.triple = triple;
         this.filter = filter;
         this.page = page;
+        this.ignoredFilter = ignoredFilter;
     }
 
     public String getFilter() {
@@ -26,8 +28,12 @@ public class Composant {
         return page;
     }
 
+    public String getIgnoredFilter() {
+        return ignoredFilter;
+    }
+
     public String toString() {
-        return "fr.esilv.simpleparql.source.converter.Request.Triple: " + triple + "\n" +
+        return "Triple: " + triple + "\n" +
                 "Filter: " + filter + "\n" +
                 "Page: " + page + "\n";
     }

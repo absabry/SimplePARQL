@@ -2,10 +2,11 @@ package fr.esilv.simpleparql.source.converter.query;
 
 
 import fr.esilv.simpleparql.source.converter.filter.FilterGenerator;
-import fr.esilv.simpleparql.source.converter.model.Truc;
-import fr.esilv.simpleparql.source.converter.model.*;
+import fr.esilv.simpleparql.source.model.Truc;
+import fr.esilv.simpleparql.source.model.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Methodes to generate the query
@@ -23,12 +24,16 @@ public class GenerateQuery {
     private ArrayList<Composant> generatedComposants;
     private FilterGenerator filterGenerator;
     private PAGE page;
+    private List<String> ignoredProprieties;
 
-    public GenerateQuery(Truc truc, FilterGenerator filterGenerator, PAGE page) {
+
+    public GenerateQuery(Truc truc, FilterGenerator filterGenerator, PAGE page, List<String> ignoredConfig) {
         this.filterGenerator = filterGenerator;
         this.truc = truc;
         generatedComposants = new ArrayList<>();
         this.page = page;
+        ignoredProprieties = ignoredConfig;
+
         createGeneratedTriples();
     }
 
@@ -44,7 +49,7 @@ public class GenerateQuery {
      * FILTER ( CONTAINS ( STR ( ?SimplePARQL_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc current fr.esilv.simpleparql.source.converter.model.Truc
+     * @param truc current fr.esilv.simpleparql.source.model.Truc
      * @param page page which the query belongs to
      * @return generated item (triple, filter and page it belongs to)
      */
@@ -54,15 +59,15 @@ public class GenerateQuery {
             triples = truc.getVariables().get(VARIABLES.VARIABLE) + " "
                     + truc.getCurrentTriple().getPredicate() + " " + truc.getCurrentTriple().getObject() + " . ";
         } else if (truc.getPosition() == POSITION.PREDICATE) {
-            triples = truc.getCurrentTriple().getSubject()+ " " + truc.getVariables().get(VARIABLES.VARIABLE)+ " "
+            triples = truc.getCurrentTriple().getSubject() + " " + truc.getVariables().get(VARIABLES.VARIABLE) + " "
                     + truc.getCurrentTriple().getObject() + " . ";
         } else if (truc.getPosition() == POSITION.OBJECT) {
-            triples = truc.getCurrentTriple().getSubject() + " " + truc.getCurrentTriple().getPredicate()+ " "
+            triples = truc.getCurrentTriple().getSubject() + " " + truc.getCurrentTriple().getPredicate() + " "
                     + truc.getVariables().get(VARIABLES.VARIABLE) + " . ";
         }
         if (triples != null) {
             String filter = filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
-            return new Composant(triples, filter, page);
+            return new Composant(triples, filter, null, page);
         }
         return null;
     }
@@ -76,16 +81,16 @@ public class GenerateQuery {
      * FILTER ( CONTAINS ( STR ( ?label_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc current fr.esilv.simpleparql.source.converter.model.Truc
+     * @param truc current fr.esilv.simpleparql.source.model.Truc
      * @param page page which the query belongs to
      * @return generated item (triple, filter and page it belongs to)
      */
     private Composant generatelabels(Truc truc, PAGE page) {
         Composant result = generateIRI(truc, page);
         if (result != null) {
-            return new Composant(result.getTriple()+ " " + truc.getVariables().get(VARIABLES.VARIABLE)+ " "
+            return new Composant(result.getTriple() + " " + truc.getVariables().get(VARIABLES.VARIABLE) + " "
                     + Constants.RDF + truc.getVariables().get(VARIABLES.LABEL) + " . ",
-                    filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.LABEL)), page);
+                    filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.LABEL)), null, page);
         }
         return null;
     }
@@ -99,7 +104,7 @@ public class GenerateQuery {
      * FILTER ( CONTAINS ( STR ( ?tmp_var2_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc current fr.esilv.simpleparql.source.converter.model.Truc
+     * @param truc current fr.esilv.simpleparql.source.model.Truc
      * @param page page which the query belongs to
      * @return generated item (triple, filter and page it belongs to)
      */
@@ -108,8 +113,9 @@ public class GenerateQuery {
         if (result != null) {
             return new Composant(result.getTriple() + truc.getVariables().get(VARIABLES.VARIABLE)
                     + truc.getVariables().get(VARIABLES.TMP1) + truc.getVariables().get(VARIABLES.TMP2) + " . ",
-                    filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.TMP2)), page);
-
+                    filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.TMP2)),
+                    filterGenerator.removeIgnoredPropreties(truc.getVariables().get(VARIABLES.TMP1), ignoredProprieties),
+                    page);
         }
         return null;
     }

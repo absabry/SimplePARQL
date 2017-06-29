@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.source.converter.model;
+package fr.esilv.simpleparql.source.model;
 
 ;
 import fr.esilv.simpleparql.grammar.SimplePARQLLexer;
@@ -25,7 +25,7 @@ public class Constants {
     public static final String VARIABLE_TMP_2 = " ?tmp_var2_";
     public static final String RDF = " rdfs:label ";
     public static final String FILTER = "FILTER";
-    public static final String CONTAINS_BIF = "bif:contains";
+    public static final String CONTAINS_BIF = "<bif:contains>";
     public static final String CONTAINS = "CONTAINS";
     public static final String REGEX = "REGEX";
     public static final String UCASE = "UCASE";
@@ -48,7 +48,6 @@ public class Constants {
     /**
      * Draw the syntaxic tree in a Jframe
      *
-     * @param parser teh current parser in the text form
      * @param title  title of the Jframe to be displayed
      */
     public static void printTree(String tree, String title) {
