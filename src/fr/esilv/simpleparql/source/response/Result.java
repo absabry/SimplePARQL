@@ -1,6 +1,5 @@
 package fr.esilv.simpleparql.source.response;
 
-import com.sun.org.apache.regexp.internal.RE;
 import fr.esilv.simpleparql.source.model.Truc;
 
 import java.util.ArrayList;
@@ -14,6 +13,7 @@ public class Result {
     private ArrayList<String> variables;
     private ArrayList<ArrayList<String>> responses;
     private ArrayList<Truc> responsesTruc;
+    private String error;
 
     public Result() {
         variables = new ArrayList<>();
@@ -33,6 +33,18 @@ public class Result {
         return responsesTruc;
     }
 
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    /**
+     * All the variables of the query
+     * @param variables the arrayList variables
+     */
     public void setVariables(ArrayList<String> variables) {
         this.variables = variables;
     }

@@ -25,12 +25,17 @@ public class Constants {
     public static final String VARIABLE_TMP_2 = " ?tmp_var2_";
     public static final String RDF = " rdfs:label ";
     public static final String FILTER = "FILTER";
-    public static final String CONTAINS_BIF = "<bif:contains>";
+    public static final String CONTAINS_BIF = "bif:contains";
+    public static final String JENA_BIF = "<bif:contains>"; // jena accept this form ,not the CONTAINS_BIF form
     public static final String CONTAINS = "CONTAINS";
     public static final String REGEX = "REGEX";
     public static final String UCASE = "UCASE";
     public static final String STR = "STR";
     public static final String AND = " && ";
+    public static final String AND_VIRTUOSO = " AND ";
+    public static final String SUCCES = "Succes";
+    public static String ERROR = "ERROR ";
+
 
     /**
      * Create parser from text
@@ -48,7 +53,7 @@ public class Constants {
     /**
      * Draw the syntaxic tree in a Jframe
      *
-     * @param title  title of the Jframe to be displayed
+     * @param title title of the Jframe to be displayed
      */
     public static void printTree(String tree, String title) {
         SimplePARQLParser cloned = Constants.getTreeOfText(tree);

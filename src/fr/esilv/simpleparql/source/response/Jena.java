@@ -1,5 +1,7 @@
 package fr.esilv.simpleparql.source.response;
 
+import fr.esilv.simpleparql.source.model.Constants;
+
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
@@ -10,9 +12,6 @@ import com.hp.hpl.jena.sparql.syntax.ElementVisitorBase;
 import com.hp.hpl.jena.sparql.syntax.ElementWalker;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.util.FileManager;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.varia.NullAppender;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -22,19 +21,7 @@ import org.dom4j.io.OutputFormat;
 import java.io.*;
 import java.util.*;
 
-public class MainResponse {
-    private static final Logger logger = LogManager.getLogger(MainResponse.class);
-
-    public static void main(String[] args) throws IOException {
-        org.apache.log4j.BasicConfigurator.configure(new NullAppender());
-        // PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX dbo: <http://dbpedia.org/ontology/>PREFIX dbr: <http://dbpedia.org/resource/>select distinct ?x ?age ?cityBirth where { ?x rdf:type dbo:Painter. ?x dbo:birthDate ?birth. ?x dbo:birthPlace ?cityBirth.  ?x dbo:deathDate ?death .?cityBirth dbo:country dbr:Germany. BIND(year(?death)-year(?birth)as ?age)  FILTER(?age < 40)}LIMIT 100
-
-        String oldQuery = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX dbo: <http://dbpedia.org/ontology/>PREFIX dbr: <http://dbpedia.org/resource/>select distinct ?x ?age ?cityBirth where { ?x rdf:type dbo:Painter. ?x dbo:birthDate ?birth. ?x dbo:birthPlace ?cityBirth.  ?x dbo:deathDate ?death .?cityBirth dbo:country dbr:Germany. BIND(year(?death)-year(?birth)as ?age)  FILTER(?age < 40)}LIMIT 100";
-        String query = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX dbo: <http://dbpedia.org/ontology/> SELECT * WHERE { ?SimplePARQL_1 dbo:birthPlace ?SimplePARQL_2 . ?SimplePARQL_2 rdfs:label ?label_2 . ?SimplePARQL_1 rdfs:label ?label_1 . FILTER ( REGEX ( ?label_1 , \"John\" , \"i\" ) && REGEX ( ?label_1 , \"Smith\" , \"i\" ) ) FILTER ( REGEX ( ?label_2 , \"London\" , \"i\" ) ) } ";
-        Result result = new MainResponse().executeSparql("http://dbpedia.org/sparql", query);
-        System.out.println(result);
-    }
-
+public class Jena {
 
     // new main function
     public Result executeSparql(String base, String sparqlQueryString) {
@@ -64,7 +51,7 @@ public class MainResponse {
             }
             qexec.close();
         } catch (Exception e) {
-            System.out.println("Failed to execute query \"" + sparqlQueryString + "\":" + e);
+            result.setError(e.getMessage().substring(e.getMessage().indexOf(":") + 1));
         }
         return result;
     }

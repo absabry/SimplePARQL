@@ -2,6 +2,7 @@ package fr.esilv.simpleparql.source.converter.query;
 
 
 import fr.esilv.simpleparql.source.converter.filter.FilterGenerator;
+import fr.esilv.simpleparql.source.converter.filter.FilterNormal;
 import fr.esilv.simpleparql.source.model.Truc;
 import fr.esilv.simpleparql.source.model.*;
 
@@ -66,7 +67,8 @@ public class GenerateQuery {
                     + truc.getVariables().get(VARIABLES.VARIABLE) + " . ";
         }
         if (triples != null) {
-            String filter = filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
+            // TODO filtre normal parce que les bif:contains ne fonctionnent pas sur les URI?
+            String filter = new FilterNormal().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
             return new Composant(triples, filter, null, page);
         }
         return null;

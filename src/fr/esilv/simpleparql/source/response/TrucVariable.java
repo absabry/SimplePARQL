@@ -1,19 +1,20 @@
 package fr.esilv.simpleparql.source.response;
 
-import fr.esilv.simpleparql.source.model.Triple;
+import fr.esilv.simpleparql.source.model.POSITION;
 import fr.esilv.simpleparql.source.model.Truc;
+import fr.esilv.simpleparql.source.model.VARIABLES;
 
 /**
  * Created to handle the response
  */
-public class Triplet {
+public class TrucVariable {
 
     private Truc truc;
     private int indexInVariables;
-    private String position;
+    private VARIABLES position;
     private int indexOfFirstInVariables;
 
-    public Triplet(Truc truc, int index, String position) {
+    public TrucVariable(Truc truc, int index, VARIABLES position) {
         this.truc = truc;
         this.indexInVariables = index;
         this.position = position;
@@ -36,7 +37,7 @@ public class Triplet {
     }
 
     public String getPosition() {
-        return position;
+        return position.toString();
     }
 
     public boolean isMajor() {
@@ -45,12 +46,12 @@ public class Triplet {
 
     @Override
     public boolean equals(Object object) {
-        return object != null && object instanceof Triplet
-                && ((Triplet) object).getTruc().getCleanedName().equals(this.getTruc().getCleanedName());
+        return object != null && object instanceof TrucVariable
+                && ((TrucVariable) object).getTruc().getCleanedName().equals(this.getTruc().getCleanedName());
     }
 
     public String toString() {
-        return truc.getCleanedName() + "," + position + "," + indexOfFirstInVariables+" and my index is "+indexInVariables;
+        return truc.getCleanedName() + "," + position + "," + indexOfFirstInVariables + " and my index is " + indexInVariables;
     }
 
 }

@@ -7,13 +7,14 @@ prologue
     : prefixDecl*
     ;
 prefixDecl
-    : 'PREFIX' PNAME_NS /* prefixname:*/ URI
+    : Prefix PNAME_NS /* prefixname:*/ URI
     ;
 selectQuery
-    : 'SELECT' 'DISTINCT'? ( VAR+ | '*' | truc )
+    : Select Distinct? ( VAR+ | '*' | truc )
     ;
+
 whereClause
-    : 'WHERE' groupGraphPattern
+    : Where groupGraphPattern
     ;
 groupGraphPattern
     :
@@ -22,7 +23,7 @@ groupGraphPattern
     '}'
     ;
 filter
-    : 'FILTER' constraint
+    : Filter constraint
     ;
 constraint
     : '(' expression ')' // (expression)
@@ -73,37 +74,37 @@ primaryExpression
      | VAR
     ;
 builtInCall
-    : 'STR' '(' expression ')'
-    | 'LANG' '(' expression ')'
-    | 'LANGMATCHES' '(' expression ',' expression ')'
-    | 'DATATYPE' '(' expression ')'
-    |'CONTAINS' '(' expression ',' expression ')'
-    | 'UCASE' '(' expression ')'
-    | 'LCASE' '(' expression ')'
-    | 'BOUND' '(' VAR ')'
-    | 'sameTerm' '(' expression ',' expression ')'
-    | 'isIRI' '(' expression ')'
-    | 'isURI' '(' expression ')'
-    | 'isBLANK' '(' expression ')'
-    | 'isLITERAL' '(' expression ')'
-    | 'YEAR' '(' expression ')'
-    | 'MONTH' '(' expression ')'
-    | 'DAY' '(' expression ')'
-    | 'HOURS' '(' expression ')'
-    | 'MINUTES' '(' expression ')'
-    | 'SECONDS' '(' expression ')'
-    | 'TIMEZONE' '(' expression ')'
-    | 'TZ' '(' expression ')'
+    : Str '(' expression ')'
+    | Lang '(' expression ')'
+    | Langmatches '(' expression ',' expression ')'
+    | Datatype '(' expression ')'
+    | Contains '(' expression ',' expression ')'
+    | Ucase '(' expression ')'
+    | Lcase'(' expression ')'
+    | Bound '(' VAR ')'
+    | Sameterm '(' expression ',' expression ')'
+    | Isiri '(' expression ')'
+    | Isuri '(' expression ')'
+    | Isblank '(' expression ')'
+    | Isliteral '(' expression ')'
+    | Year'(' expression ')'
+    | Month '(' expression ')'
+    | Day '(' expression ')'
+    | Hours '(' expression ')'
+    | Minutes '(' expression ')'
+    | Seconds '(' expression ')'
+    | Timezone '(' expression ')'
+    | Tz '(' expression ')'
     | regexExpression
     ;
 regexExpression
-    : 'REGEX' '(' expression ',' expression ( ',' expression )? ')'
+    : Regex '(' expression ',' expression ( ',' expression )? ')'
     ;
 iriRefOrFunction
     : iriRef argList?
     ;
 argList
-    : ( NIL | '(' 'DISTINCT'? expression ( ',' expression )* ')' ) // ??? NIL == (empty); (expression,expression,...)
+    : ( NIL | '(' Distinct ? expression ( ',' expression )* ')' ) // ??? NIL == (empty); (expression,expression,...)
     ;
 iriRef
     : URI
@@ -124,10 +125,10 @@ graphPatternNotTriples
     ;
 bind
     :
-     'BIND' '(' expression 'AS' VAR ')'
+     Bind '(' expression 'AS' VAR ')'
     ;
 optionalGraphPattern
-    : 'OPTIONAL' groupGraphPattern
+    : Optional groupGraphPattern
     ;
 triplesNode
     : collection
@@ -188,7 +189,7 @@ string
     | STRING_LITERAL2
     ;
 groupOrUnionGraphPattern
-    : groupGraphPattern ( 'UNION' groupGraphPattern )*
+    : groupGraphPattern ( Union groupGraphPattern )*
     ;
 truc
     : (TRUC_WORD | TRUC_DIESE | string)
@@ -203,20 +204,56 @@ limitOffsetClauses
     ;
 
 orderClause
-    : 'ORDER BY' orderCondition+
+    : Order By orderCondition+
     ;
 
 orderCondition
-    : ( ( 'ASC' | 'DESC' ) brackettedExpression )
+    : ( ( Asc | Desc ) brackettedExpression )
     | ( constraint | VAR )
     ;
 limitClause
-    : 'LIMIT' INTEGER
+    : Limit INTEGER
     ;
 
 offsetClause
-    : 'OFFSET' INTEGER
+    : Offset INTEGER
     ;
+Select: S E L E C T;
+Prefix : P R E F I X;
+Where : W H E R E;
+Distinct : D I S T I N C T;
+Filter : F I L T E R;
+Str : S T R;
+Lang : L A N G;
+Langmatches : L A N G M A T C H E S;
+Datatype : D A T A T Y P E;
+Contains :  C O N T A I N S;
+Ucase : U C A S E;
+Lcase : L  C A S E;
+Bound : B O U N D;
+Sameterm : S A M E T E R M ;
+Isiri : I S I R I;
+Isuri : I S U R I ;
+Isblank : I S B L A N K ;
+Isliteral : I S L I T E R A L;
+Year : Y E A R;
+Month : M O N T H ;
+Day :  D A Y;
+Hours : H O U R S;
+Minutes :  M I N U T E S;
+Seconds :  S E C O N D S;
+Timezone :  T I M E Z O N E;
+Tz : T Z;
+Regex : R E G E X;
+Bind : B I N D;
+Optional: O P T I O N A L;
+Union : U N I O N;
+Asc : A S C;
+Desc :  D E S C;
+Limit : L I M I T;
+Offset : O F F S E T;
+Order : O R D E R;
+By : B Y;
 numericLiteral
     : numericLiteralUnsigned | numericLiteralPositive | numericLiteralNegative
     ;
@@ -351,6 +388,34 @@ PN_CHARS_BASE
 HTTP
     :('http'|'HTTP') ':'
     ;
+
+fragment A: [aA];
+fragment B: [bB];
+fragment C: [cC];
+fragment D: [dD];
+fragment E: [eE];
+fragment F: [fF];
+fragment G: [gG];
+fragment H: [hH];
+fragment I: [iI];
+fragment J: [jJ];
+fragment K: [kK];
+fragment L: [lL];
+fragment M: [mM];
+fragment N: [nN];
+fragment O: [oO];
+fragment P: [pP];
+fragment Q: [qQ];
+fragment R: [rR];
+fragment S: [sS];
+fragment T: [tT];
+fragment U: [uU];
+fragment V: [vV];
+fragment W: [wW];
+fragment X: [xX];
+fragment Y: [yY];
+fragment Z: [zZ];
+
 WS
     : (' '
     | '\t'

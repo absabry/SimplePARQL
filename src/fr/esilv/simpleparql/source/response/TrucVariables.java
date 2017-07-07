@@ -7,22 +7,22 @@ import java.util.ArrayList;
 /**
  * List of responses triplets structure
  */
-public class Triplets {
-    private ArrayList<Triplet> triplets;
+public class TrucVariables {
+    private ArrayList<TrucVariable> triplets;
     private ArrayList<Integer> indexKept;
 
 
-    public Triplets() {
+    public TrucVariables() {
         triplets = new ArrayList<>();
         indexKept = new ArrayList<>();
     }
 
-    public void add(Triplet triplet) {
+    public void add(TrucVariable triplet) {
         if (triplets.contains(triplet)) {
             // if the truc exists already in the triplets list
             // that means it's not the first variable type of truc to be added here
-            Triplet original = triplets.get(triplets.indexOf(triplet));
-            triplet.setIndexOfFirstInVariables(original.getIndexOfFirstInVariables());
+            TrucVariable original = triplets.get(triplets.indexOf(triplet));
+            triplet.setIndexOfFirstInVariables(original.getIndexInVariables());
         } else {
             triplet.setIndexOfFirstInVariables(triplet.getIndexInVariables());
         }
@@ -31,7 +31,7 @@ public class Triplets {
     }
 
     public boolean contains(Truc truc) {
-        for (Triplet triplet : triplets) {
+        for (TrucVariable triplet : triplets) {
             if (truc.getCleanedName().equals(triplet.getTruc().getCleanedName())) {
                 return true;
             }
@@ -40,7 +40,7 @@ public class Triplets {
     }
 
     public boolean contains(Integer index) {
-        for (Triplet triplet : triplets) {
+        for (TrucVariable triplet : triplets) {
             if (triplet.getIndexInVariables() == index) {
                 return true;
             }
@@ -48,9 +48,18 @@ public class Triplets {
         return false;
     }
 
-    public Triplet getTriplet(int index) {
-        for (Triplet triplet : triplets) {
+    public TrucVariable getTriplet(int index) {
+        for (TrucVariable triplet : triplets) {
             if (triplet.getIndexInVariables() == index) {
+                return triplet;
+            }
+        }
+        return null;
+    }
+
+    public TrucVariable getOriginalTriplet(int index) {
+        for (TrucVariable triplet : triplets) {
+            if (triplet.getIndexOfFirstInVariables() == index) {
                 return triplet;
             }
         }
@@ -61,7 +70,7 @@ public class Triplets {
         return indexKept;
     }
 
-    public ArrayList<Triplet> getTriplets() {
+    public ArrayList<TrucVariable> getTriplets() {
         return triplets;
     }
 }

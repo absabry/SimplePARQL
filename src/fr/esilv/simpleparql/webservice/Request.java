@@ -8,17 +8,12 @@ import java.util.Objects;
  */
 public class Request {
     private String query;
-    private String plateform;
     private ArrayList<String> bases;
     private ArrayList<String> prefixes;
     private String resultedQuery;
 
     public String getQuery() {
         return query;
-    }
-
-    public String getPlateform() {
-        return plateform;
     }
 
     /**
@@ -47,8 +42,7 @@ public class Request {
     }
 
     public String toString() {
-        return "platform : " + plateform + "\n" +
-                "base : " + bases + "\n" +
+        return "base : " + bases + "\n" +
                 "prefixes : " + prefixes + "\n" +
                 "query : " + query;
     }

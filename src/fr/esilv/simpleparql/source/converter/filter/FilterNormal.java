@@ -40,10 +40,11 @@ public class FilterNormal implements FilterGenerator {
      */
     @Override
     public String removeIgnoredPropreties(String variable, List<String> ignored) {
+        //FILTER ( ! CONTAINS ( STR ( ?tmp_var1_2 ) , \"http://dbpedia.org/ontology/abstract\" ) && ! CONTAINS ( STR ( ?tmp_var1_2 ) , \"http://www.w3.org/2000/01/rdf-schema#comment\" ) && ! CONTAINS ( STR ( ?tmp_var1_2 ) , \"http://www.w3.org/2000/01/rdf-schema#label\" ) )
+        //FILTER ( ?tmp_var1_2  != "http://dbpedia.org/ontology/abstract" ) && ?tmp_var1_2 !=  "http://www.w3.org/2000/01/rdf-schema#comment"  && ?tmp_var1_2  !=  "http://www.w3.org/2000/01/rdf-schema#label" )
         String result = Constants.FILTER + "(";
         for (int i = 0; i < ignored.size(); i++) {
-            result += "!" + Constants.CONTAINS;
-            result += "(" + Constants.STR + "(" + variable + "),\"" + ignored.get(i) + "\")";
+            result += variable + " != \"" + ignored.get(i) + "\")";
             if (i != ignored.size() - 1) {
                 result += Constants.AND;
             }

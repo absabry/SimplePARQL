@@ -17,7 +17,6 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -74,6 +73,10 @@ public class SparqlQueries {
 
     public SparqlQueries(SimplePARQLParser parser, PAGE page, IgnoredConfig ignoredConfig) throws IOException {
         this(parser, new FilterNormal(), page, true, ignoredConfig);
+    }
+
+    public ArrayList<Truc> getSimpleARQLTrucs() {
+        return simpleARQLTrucs;
     }
 
 
@@ -392,6 +395,13 @@ public class SparqlQueries {
         return false;
     }
 
+
+    /**
+     * check if the variable is contained in the trucs' variables. If it's like ?SimplePARQL_1 or label_2 or etc...
+     *
+     * @param variable the variable in string format
+     * @return boolean indicating if the query's truc contains this variable or not
+     */
     public Truc find(String variable) {
         for (Truc truc : simpleARQLTrucs) {
             for (Map.Entry mapentry : truc.getVariables().entrySet()) {

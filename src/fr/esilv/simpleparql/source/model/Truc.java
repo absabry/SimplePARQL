@@ -158,10 +158,10 @@ public class Truc {
         return find(SimplePARQLParser.RULE_optionalGraphPattern) != null;
     }
 
-    public String getVariablePosition(String variable) {
+    public VARIABLES getVariablePosition(String variable) {
         for (Map.Entry mapentry : variables.entrySet()) {
             if (mapentry.getValue().toString().trim().equals("?" + variable.trim())) {
-                return mapentry.getKey().toString();
+                return (VARIABLES) mapentry.getKey();
             }
         }
         return null;
