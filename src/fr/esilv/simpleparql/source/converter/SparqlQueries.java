@@ -6,7 +6,7 @@ import fr.esilv.simpleparql.source.converter.filter.FilterNormal;
 import fr.esilv.simpleparql.source.model.*;
 import fr.esilv.simpleparql.source.converter.query.GenerateQuery;
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
-import fr.esilv.simpleparql.configuration.IgnoredConfig;
+import fr.esilv.simpleparql.configuration.QueryConfig;
 import javafx.util.Pair;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -42,7 +42,7 @@ public class SparqlQueries {
     private PAGE page;
     private ArrayList<String> ignoredConfig;
 
-    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, PAGE page, boolean optionnal, IgnoredConfig ignoredConfig) throws IOException {
+    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, PAGE page, boolean optionnal, QueryConfig ignoredConfig) throws IOException {
         this.page = page;
         this.filterGenerator = filterGenerator;
         this.optionnal = optionnal;
@@ -51,7 +51,6 @@ public class SparqlQueries {
         this.parser = parser;
         this.ignoredConfig = ignoredConfig.getIgnoredProprieties();
         ParserRuleContext query = this.parser.query();
-        addRDFandRDFSPrefixesToTree(query);
         generatedQueries.add(new ParseElement(query, PAGE.FIRST));
         if (containsTruc()) {
             mainGenerate();
@@ -59,19 +58,19 @@ public class SparqlQueries {
 
     }
 
-    public SparqlQueries(SimplePARQLParser parser, IgnoredConfig ignoredConfig) throws IOException {
+    public SparqlQueries(SimplePARQLParser parser, QueryConfig ignoredConfig) throws IOException {
         this(parser, new FilterNormal(), PAGE.FIRST, true, ignoredConfig);
     }
 
-    public SparqlQueries(SimplePARQLParser parser, boolean optionnal, IgnoredConfig ignoredConfig) throws IOException {
+    public SparqlQueries(SimplePARQLParser parser, boolean optionnal, QueryConfig ignoredConfig) throws IOException {
         this(parser, new FilterNormal(), PAGE.FIRST, optionnal, ignoredConfig);
     }
 
-    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, IgnoredConfig ignoredConfig) throws IOException {
+    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, QueryConfig ignoredConfig) throws IOException {
         this(parser, filterGenerator, PAGE.FIRST, true, ignoredConfig);
     }
 
-    public SparqlQueries(SimplePARQLParser parser, PAGE page, IgnoredConfig ignoredConfig) throws IOException {
+    public SparqlQueries(SimplePARQLParser parser, PAGE page, QueryConfig ignoredConfig) throws IOException {
         this(parser, new FilterNormal(), page, true, ignoredConfig);
     }
 
@@ -150,8 +149,8 @@ public class SparqlQueries {
      */
     // Generate tree with cartesian product directly
     private void generateCartesianProductTrees(ParseElement tree, Truc truc) throws IOException {
-        // we create the IgnoredConfig here to handle the closed stream after each using, and so,
-        // we create a IgnoredConfig object foreach GenerateQuery
+        // we create the QueryConfig here to handle the closed stream after each using, and so,
+        // we create a QueryConfig object foreach GenerateQuery
         GenerateQuery generateQuery = new GenerateQuery(truc, filterGenerator, page, ignoredConfig);
         for (Composant element : generateQuery.getGeneratedComposants()) {
             SimplePARQLParser newOne = Constants.getTreeOfText(Constants.treeToString(parser, tree.getQuery()));
@@ -286,32 +285,7 @@ public class SparqlQueries {
         }
     }
 
-    /**
-     * Adding the prefixes rdf and rdfs in the begining of the query
-     * Those prefixes are mandatory for the Jena API, that's why we add it if the user
-     * forgot about them.
-     *
-     * @param query root of the query, we kept the query and not the prologue for handling the case where the user not mention any prefixe
-     */
-    private void addRDFandRDFSPrefixesToTree(ParserRuleContext query) {
-        ArrayList<String> prefixes = new ArrayList<>();
-        prefixes.add("PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>");
-        prefixes.add("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>");
 
-        Collection<ParseTree> prologues = XPath.findAll(query, "//prologue", parser);
-        if (prologues.size() == 0) {
-            query.addChild(Constants.getTreeOfText(String.join("\n", prefixes)).prologue());
-        } else {
-            ParserRuleContext prologue = (ParserRuleContext) Iterables.get(prologues, 0);
-            for (String prefixe : prefixes) {
-                if (!containsPrefix(prologue, prefixe)) {
-                    prologue.addChild(Constants.getTreeOfText(prefixe).prefixDecl());
-                }
-            }
-        }
-
-
-    }
 
     /**
      * Find in the NEW tree the first element using the find() function of the truc structure
@@ -371,24 +345,6 @@ public class SparqlQueries {
         for (ParseTree filter : filters) {
             filterText = filterText.replace(" ", ""); // ignore spaces in the comparaison, filter comming from the query is without any spaces
             if (filter.getText().contains(filterText)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * check if the generatedTree containing this prefix, in order to add rdf and rdfs to the query if it's not already added
-     *
-     * @param prologue the prefixes root of the query
-     * @param prefix   prefix string
-     * @return boolean indicating if the query contains this prefix or not
-     */
-    private boolean containsPrefix(ParserRuleContext prologue, String prefix) {
-        Collection<ParseTree> prefixDecls = XPath.findAll(prologue, "//prefixDecl", parser);
-        for (ParseTree prefixDecl : prefixDecls) {
-            prefix = prefix.replace(" ", ""); // ignore spaces in the comparaison, filter comming from the query is without any spaces
-            if (prefixDecl.getText().contains(prefix)) {
                 return true;
             }
         }

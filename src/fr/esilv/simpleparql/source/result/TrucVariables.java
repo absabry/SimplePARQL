@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.source.response;
+package fr.esilv.simpleparql.source.result;
 
 import fr.esilv.simpleparql.source.model.Truc;
 

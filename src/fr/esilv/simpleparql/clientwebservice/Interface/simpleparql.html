@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.2.624/styles/kendo.common.min.css"/>
     <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.2.624/styles/kendo.default.min.css"/>
 
-
     <script type="application/javascript" src="css_js/jquery.min.js"></script>
     <script type="application/javascript" src="http://cdn.kendostatic.com/2015.2.624/js/kendo.all.min.js"></script>
 
@@ -95,14 +94,13 @@
                 <div class="not_assisted_form">
                     <label class="query_element"> Your SimplePARQL query: </label>
                     <br/>
-                    <textarea id="query" name="query" rows="10" class="element">SELECT ?place WHERE { "John Smith" dbo:birthPlace London.}</textarea>
+                    <textarea id="query" name="query" rows="10" class="element">SELECT * WHERE { "John Smith" dbo:birthPlace London.} LIMIT 20</textarea>
                 </div>
-                <br/>
-                <br/>
                 <div class="center">
-                    <button id="send" type="submit" onclick="waitFunction();" class="pointer"/>
-                    Query </button>
+                    <button id="send" type="submit" onclick="waitFunction();" class="pointer"> Query</button>
                     <button id="clear" type="button" onclick="clearFunction();" class="pointer"> Clear</button>
+                    <button id="download" type="button" class="pointer"> Download</button>
+                    <button id="download-XML" type="button" class="pointer"> Download XML</button>
                 </div>
                 <br/>
             </form>
@@ -134,7 +132,7 @@
                     <b>WHERE:</b> Your query, as either (A) a set of triples or (B) a single element to describe.
                     <br/>
                     <br/>
-                    Case (A): One triple per ligne.
+                    Case (A):
                     A triple consists of three parts (subject, property, and value), where each part can be either:
                     <ol>
                         <li> a term as an inaccurate field, i.e. just a (key)word, or several words in parentheses, simply such as you speak...
@@ -146,7 +144,10 @@
                         <li> a blank node (i.e. [ ] that means anonymous identifier)</li>
                         <li> a literal (in double quotes) only available for the third part of a triple.</li>
                     </ol>
-                        Case (B): The element can be either an inaccurate field or an IRI.
+                        Case (B):
+                                The element can be either an inaccurate field or an IRI.
+                    The variables can be declared exactly like the SPARQL syntax with the ";" or the "," symbols.
+                    <b> You cannot use any of those strings for your variables ["SimplePARQL_","tmp_var1_","tmp_var2_","label_"]</b>
             </p>
             <p>
                     <b>FILTER:</b> Some filters on variables that are literals. For instance: ?x > 10.
@@ -170,74 +171,82 @@
     </footer>
 </div>
 </body>
-<script type="text/javascript" src="myJquery.js"></script>
+<script type="text/javascript" src="css_js/my_jquery.js"></script>
 <script type="text/javascript" src="css_js/script_css.js"></script>
 <script>
-                    $("#list_bases").kendoMultiSelect({
-                        autoClose: false,
-                        dataSource: {
-                        data: [
-                            {value: "Dbpedia", Name:"DBpedia (v)"},
-                            {value: "Utpl_Linked_Open_Data", Name:"UTPL Linked Open Data (v)"},
-                            {value: "National_Library_of_Francel", Name:"National Library of France (v)"},
-                            {value: "Linked_Stat", Name:"Linked Stat (v)"},
-                            {value: "European_Council_Council_of_the_European_Union", Name:"European Council Council of the European Union"},
-                            {value: "oxford", Name:"Oxford"},
-                            {value: "European_Central_Bank", Name:"European Central Bank"},
-                            {value: "DisGeNet", Name:"DisGeNet (v)" },
-                            {value: "HDP", Name:"HealthData.gov Platform - HDP"}
-                        ]
-                      },
-                      dataTextField: "Name",
-                      dataValueField: "value"
-                    });
+        $("#list_bases").kendoMultiSelect({
+            autoClose: false,
+            dataSource: {
+            data: [
+                {value: "Dbpedia", Name:"DBpedia (v)"},
+                {value: "Utpl_Linked_Open_Data", Name:"UTPL Linked Open Data (v)"},
+                {value: "National_Library_of_Francel", Name:"National Library of France (v)"},
+                {value: "Linked_Stat", Name:"Linked Stat (v)"},
+                {value: "European_Council_Council_of_the_European_Union", Name:"European Council Council of the European Union"},
+                {value: "oxford", Name:"Oxford"},
+                {value: "European_Central_Bank", Name:"European Central Bank"},
+                {value: "DisGeNet", Name:"DisGeNet (v)" },
+                {value: "HDP", Name:"HealthData.gov Platform - HDP"}
+            ]
+          },
+          dataTextField: "Name",
+          dataValueField: "value"
+        });
 
-                    $("#list_prefixes").kendoMultiSelect({
-                        autoClose: false,
-                        dataSource: {
-                            data: [
-                                {value: "rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"},
-                                {value: "rdfs:<http://www.w3.org/2000/01/rdf-schema#>"},
-                                {value: "foaf:<http://xmlns.com/foaf/0.1/>"},
-                                {value: "dbo:<http://dbpedia.org/ontology/>"},
-                                {value: "dbp:<http://dbpedia.org/property/>"},
-                                {value: "dc:<http://purl.org/dc/elements/1.1/>"},
-                                {value: "owl:<http://www.w3.org/2002/07/owl#>"},
+        $("#list_prefixes").kendoMultiSelect({
+            autoClose: false,
+            dataSource: {
+                data: [
+                    {value: "xhv:<http://www.w3.org/1999/xhtml/vocab#>"},
+                    {value: "xhtml:<http://www.w3.org/1999/xhtml#>"},
+                    {value: "xhtmlvocab:<http://www.w3.org/1999/xhtml/vocab/>"},
+                    {value: "log:<http://www.w3.org/2000/10/swap/log#>"},
+                    {value: "math:<http://www.w3.org/2000/10/swap/math#>"},
+                    {value: "con:<http://www.w3.org/2000/10/swap/pim/contact#>"},
+                    {value: "contact:<http://www.w3.org/2000/10/swap/pim/contact#>"},
+                    {value: "list:<http://www.w3.org/2000/10/swap/list#>"},
+                    {value: "string:<http://www.w3.org/2000/10/swap/string#>"},
+                    {value: "crypto:<http://www.w3.org/2000/10/swap/crypto#>"},
+                    {value: "mf:<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#>"},
+                    {value: "xsd:<http://www.w3.org/2001/XMLSchema#>"},
+                    {value: "xs:<http://www.w3.org/2001/XMLSchema#>"},
+                    {value: "ical:<http://www.w3.org/2002/12/cal/ical#>"},
+                    {value: "cal:<http://www.w3.org/2002/12/cal/ical#>"},
+                    {value: "xf:<http://www.w3.org/2002/xforms/>"},
+                    {value: "p3p:<http://www.w3.org/2002/01/p3prdfv1#>"},
+                    {value: "xforms:<http://www.w3.org/2002/xforms/>"},
+                    {value: "bookmark:<http://www.w3.org/2002/01/bookmark#>"},
+                    {value: "geo:<http://www.w3.org/2003/01/geo/wgs84_pos#>"},
+                    {value: "vs:<http://www.w3.org/2003/06/sw-vocab-error/ns#>"},
+                    {value: "swrl:<http://www.w3.org/2003/11/swrl#>"},
+                    {value: "swrlb:<http://www.w3.org/2003/11/swrlb#>"},
+                    {value: "exif:<http://www.w3.org/2003/12/exif/ns#>"},
+                    {value: "grddl:<http://www.w3.org/2003/g/data-view#>"},
+                    {value: "wgs:<http://www.w3.org/2003/01/geo/wgs84_pos#>"}
+                ]
+              },
+              dataTextField: "value",
+              dataValueField: "value"
+            });
 
-                                {value: "xhv:<http://www.w3.org/1999/xhtml/vocab#>"},
-                                {value: "xhtml:<http://www.w3.org/1999/xhtml#>"},
-                                {value: "xhtmlvocab:<http://www.w3.org/1999/xhtml/vocab/>"},
-                                {value: "log:<http://www.w3.org/2000/10/swap/log#>"},
-                                {value: "math:<http://www.w3.org/2000/10/swap/math#>"},
-                                {value: "con:<http://www.w3.org/2000/10/swap/pim/contact#>"},
-                                {value: "contact:<http://www.w3.org/2000/10/swap/pim/contact#>"},
-                                {value: "list:<http://www.w3.org/2000/10/swap/list#>"},
-                                {value: "string:<http://www.w3.org/2000/10/swap/string#>"},
-                                {value: "crypto:<http://www.w3.org/2000/10/swap/crypto#>"},
-                                {value: "mf:<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#>"},
-                                {value: "xsd:<http://www.w3.org/2001/XMLSchema#>"},
-                                {value: "xs:<http://www.w3.org/2001/XMLSchema#>"},
-                                {value: "ical:<http://www.w3.org/2002/12/cal/ical#>"},
-                                {value: "cal:<http://www.w3.org/2002/12/cal/ical#>"},
-                                {value: "xf:<http://www.w3.org/2002/xforms/>"},
-                                {value: "p3p:<http://www.w3.org/2002/01/p3prdfv1#>"},
-                                {value: "xforms:<http://www.w3.org/2002/xforms/>"},
-                                {value: "bookmark:<http://www.w3.org/2002/01/bookmark#>"},
-                                {value: "geo:<http://www.w3.org/2003/01/geo/wgs84_pos#>"},
-                                {value: "vs:<http://www.w3.org/2003/06/sw-vocab-error/ns#>"},
-                                {value: "swrl:<http://www.w3.org/2003/11/swrl#>"},
-                                {value: "swrlb:<http://www.w3.org/2003/11/swrlb#>"},
-                                {value: "exif:<http://www.w3.org/2003/12/exif/ns#>"},
-                                {value: "grddl:<http://www.w3.org/2003/g/data-view#>"},
-                                {value: "wgs:<http://www.w3.org/2003/01/geo/wgs84_pos#>"}
-                            ]
-                          },
-                          dataTextField: "value",
-                          dataValueField: "value"
-                        });
+/*
+        $("#list_download").kendoMultiSelect({
+            autoClose: false,
+            dataSource: {
+            data: [
+                {value:"None"},
+                {value:"JSON"},
+                {value:"XML"},
+                {value: "HTML"}
+            ]
+          },
+          dataTextField: "value",
+          dataValueField: "value"
+        });
+        $("#list_download").getKendoMultiSelect().value(["None"]);
+*/
+        $("#list_bases").getKendoMultiSelect().value(["Dbpedia"]);
 
-                    $("#list_bases").getKendoMultiSelect().value(["Dbpedia"]);
-                    $("#list_prefixes").getKendoMultiSelect().value(["rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"]);
 </script>
 
 </html>

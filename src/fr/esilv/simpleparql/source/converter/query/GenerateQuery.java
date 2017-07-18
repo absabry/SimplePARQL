@@ -28,12 +28,12 @@ public class GenerateQuery {
     private List<String> ignoredProprieties;
 
 
-    public GenerateQuery(Truc truc, FilterGenerator filterGenerator, PAGE page, List<String> ignoredConfig) {
+    public GenerateQuery(Truc truc, FilterGenerator filterGenerator, PAGE page, List<String> ignoredProprieties) {
         this.filterGenerator = filterGenerator;
         this.truc = truc;
         generatedComposants = new ArrayList<>();
         this.page = page;
-        ignoredProprieties = ignoredConfig;
+        this.ignoredProprieties = ignoredProprieties;
 
         createGeneratedTriples();
     }
@@ -54,7 +54,7 @@ public class GenerateQuery {
      * @param page page which the query belongs to
      * @return generated item (triple, filter and page it belongs to)
      */
-    private Composant generateIRI(Truc truc, PAGE page) {
+    private Composant generateURI(Truc truc, PAGE page) {
         String triples = null;
         if (truc.getPosition() == POSITION.SUBJECT) {
             triples = truc.getVariables().get(VARIABLES.VARIABLE) + " "
@@ -67,7 +67,7 @@ public class GenerateQuery {
                     + truc.getVariables().get(VARIABLES.VARIABLE) + " . ";
         }
         if (triples != null) {
-            // TODO filtre normal parce que les bif:contains ne fonctionnent pas sur les URI?
+
             String filter = new FilterNormal().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
             return new Composant(triples, filter, null, page);
         }
@@ -88,7 +88,7 @@ public class GenerateQuery {
      * @return generated item (triple, filter and page it belongs to)
      */
     private Composant generatelabels(Truc truc, PAGE page) {
-        Composant result = generateIRI(truc, page);
+        Composant result = generateURI(truc, page);
         if (result != null) {
             return new Composant(result.getTriple() + " " + truc.getVariables().get(VARIABLES.VARIABLE) + " "
                     + Constants.RDF + truc.getVariables().get(VARIABLES.LABEL) + " . ",
@@ -111,7 +111,7 @@ public class GenerateQuery {
      * @return generated item (triple, filter and page it belongs to)
      */
     private Composant generateProprieties(Truc truc, PAGE page) {
-        Composant result = generateIRI(truc, page);
+        Composant result = generateURI(truc, page);
         if (result != null) {
             return new Composant(result.getTriple() + truc.getVariables().get(VARIABLES.VARIABLE)
                     + truc.getVariables().get(VARIABLES.TMP1) + truc.getVariables().get(VARIABLES.TMP2) + " . ",
@@ -143,19 +143,19 @@ public class GenerateQuery {
     private void PageFirst() {
         generatedComposants.add(generatelabels(truc, PAGE.FIRST));
         if (truc.getPosition() == POSITION.OBJECT) {
-            generatedComposants.add(generateIRI(truc, PAGE.FIRST));
+            generatedComposants.add(generateURI(truc, PAGE.FIRST));
         }
     }
 
     /**
      * Second page generate :
      * if subjet then it will generatePropreties
-     * if predicate then it will generateIRI
+     * if predicate then it will generateURI
      * if object then it will generatePropreties
      */
     private void PageSecond() {
         if (truc.getPosition() == POSITION.PREDICATE) {
-            generatedComposants.add(generateIRI(truc, PAGE.SECOND));
+            generatedComposants.add(generateURI(truc, PAGE.SECOND));
         } else {
             generatedComposants.add(generateProprieties(truc, PAGE.SECOND));
         }
@@ -163,13 +163,13 @@ public class GenerateQuery {
 
     /**
      * Third page generate :
-     * if subjet then it will generateIRI
+     * if subjet then it will generateURI
      * if predicate then it will do nothing
      * if object then it willdo nothing
      */
     private void PageThird() {
         if (truc.getPosition() == POSITION.SUBJECT) {
-            generatedComposants.add(generateIRI(truc, PAGE.THIRD));
+            generatedComposants.add(generateURI(truc, PAGE.THIRD));
         }
     }
 

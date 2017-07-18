@@ -5,14 +5,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import fr.esilv.simpleparql.configuration.BaseConfig;
-import fr.esilv.simpleparql.configuration.IgnoredConfig;
+import fr.esilv.simpleparql.configuration.QueryConfig;
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import fr.esilv.simpleparql.source.converter.SparqlQueries;
 import fr.esilv.simpleparql.source.model.*;
-import fr.esilv.simpleparql.source.response.Jena;
-import fr.esilv.simpleparql.source.response.Result;
-import fr.esilv.simpleparql.source.response.TrucVariable;
-import fr.esilv.simpleparql.source.response.TrucVariables;
+import fr.esilv.simpleparql.source.result.Jena;
+import fr.esilv.simpleparql.source.result.Result;
+import fr.esilv.simpleparql.source.result.TrucVariable;
+import fr.esilv.simpleparql.source.result.TrucVariables;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.apache.log4j.Logger;
@@ -33,13 +33,13 @@ public class ServerThread extends Thread {
     private String address;
 
     private String baseConfig;
-    private IgnoredConfig ignoredConfig;
+    private QueryConfig queryConfig;
 
-    ServerThread(int client, Socket socket, String baseConfig, IgnoredConfig ignoredConfig) {
+    ServerThread(int client, Socket socket, String baseConfig, QueryConfig queryConfig) {
         this.socket = socket;
         this.client = client;
         this.baseConfig = baseConfig;
-        this.ignoredConfig = ignoredConfig;
+        this.queryConfig = queryConfig;
         address = socket.getInetAddress().getHostAddress();
     }
 
@@ -48,14 +48,11 @@ public class ServerThread extends Thread {
         try {
             PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            String message;
-            while ((message = bufferedReader.readLine()) != null) {;
-                Request request = new Gson().fromJson(message, Request.class);
-                output.flush();
-                launch(request, output);
-                output.flush();
-
-            }
+            String message = bufferedReader.readLine();
+            Request request = new Gson().fromJson(message, Request.class);
+            output.flush();
+            launch(request, output);
+            output.flush();
             output.close();
             // detect when the client disconnect from the server
             if (bufferedReader.read() == -1) {
@@ -72,8 +69,8 @@ public class ServerThread extends Thread {
     }
 
     private void launch(Request request, PrintWriter output) throws IOException {
-        CharStream codeStream = CharStreams.fromString(request.getResultedQuery());
-        QueryOrdered queryOrdered = new QueryOrdered(Constants.getTreeOfText(codeStream.toString()));
+        CharStream codeStream = CharStreams.fromString(request.getQuery());
+        QueryOrdered queryOrdered = new QueryOrdered(Constants.getTreeOfText(codeStream.toString()), queryConfig.getPredifinedPrefixes());
         SimplePARQLParser parser = queryOrdered.getParser();
         String treeString = Constants.treeToString(parser, parser.query());
 
@@ -81,12 +78,12 @@ public class ServerThread extends Thread {
         for (String base : request.getBases()) {
             // TODO créer un thread pour chaque base
             BaseConfig config = getFile(base);
-            //json.add("Base", new JsonPrimitive(config.getName()));
             JsonArray jsonElementBase = new JsonArray();
-            SparqlQueries generatedQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), PAGE.THIRD, config.getOptionnal(), ignoredConfig);
+            SparqlQueries generatedQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), PAGE.THIRD, config.getOptionnal(), queryConfig);
             for (ParseElement generatedElement : generatedQueries.getGeneratedQueries()) {
                 JsonObject jsonElementgeneratedElement = new JsonObject();
                 String query = Constants.treeToString(parser, generatedElement.getQuery());
+                //logger.debug(Constants.treeToStringFormatted(parser,generatedElement.getQuery())); /*
                 jsonElementgeneratedElement.addProperty("query", query);
                 Result result = new Jena().executeSparql(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF));
                 if (result.getError() != null) {
@@ -102,8 +99,11 @@ public class ServerThread extends Thread {
                     jsonElementgeneratedElement.add("results", results);
                     jsonElementBase.add(jsonElementgeneratedElement);
                 }
-                json.add("base", new JsonPrimitive(config.getName()));
-                json.add("response", jsonElementBase);
+                JsonObject baseInformations = new JsonObject();
+                baseInformations.addProperty("name", config.getName());
+                baseInformations.addProperty("link", config.getLink());
+                json.add("base", baseInformations);
+                json.add("result", jsonElementBase);
             }
         }
         output.write(json.toString() + null);
@@ -150,18 +150,6 @@ public class ServerThread extends Thread {
         for (int i = 0; i < generatedQueries.getSimpleARQLTrucs().size(); i++) {
             theSelectedVariables.add(new JsonPrimitive(generatedQueries.getSimpleARQLTrucs().get(i).getCleanedName()));
         }
-
-        /*
-            logger.debug(variable);
-            Truc found = generatedQueries.find(variable);
-            if (found != null) {
-                logger.debug(1);
-                if (!trucVariables.contains(found)) {
-                    logger.debug(2);
-                    theSelectedVariables.add(new JsonPrimitive(found.getCleanedName()));
-                }
-            }
-         */
         return theSelectedVariables;
     }
 

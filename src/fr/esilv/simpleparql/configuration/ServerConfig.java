@@ -8,7 +8,7 @@ import java.io.*;
 public class ServerConfig {
     private int port;
     private String basesConfig;
-    private IgnoredConfig ignored;
+    private QueryConfig queryConfig;
 
     public ServerConfig(InputStream file) throws IOException {
         readFile(file);
@@ -22,8 +22,8 @@ public class ServerConfig {
         return basesConfig;
     }
 
-    public IgnoredConfig getIgnored() {
-        return ignored;
+    public QueryConfig getQueryConfig() {
+        return queryConfig;
     }
 
     private void readFile(InputStream file) throws IOException {
@@ -43,8 +43,8 @@ public class ServerConfig {
                 case "port":
                     port = Integer.parseInt(line[1]);
                     break;
-                case "ignored":
-                    ignored = new IgnoredConfig(new FileInputStream(line[1]));
+                case "queryconfig":
+                    queryConfig = new QueryConfig(new FileInputStream(line[1]));
                     break;
                 default:
                     break;

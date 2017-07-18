@@ -1,6 +1,5 @@
-package fr.esilv.simpleparql.source.response;
+package fr.esilv.simpleparql.source.result;
 
-import fr.esilv.simpleparql.source.model.Constants;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.*;
@@ -56,9 +55,7 @@ public class Jena {
         return result;
     }
 
-
-    //---------------------------------------OLD STUFF---------------------------------------------------
-
+    //---------------------------------------OLD STUFF, CAN BE USEFUL---------------------------------------------------
 
     // old main function
     private static void saveSparql(String base, String sparqlQueryString, String format, String filename) throws IOException {

@@ -32,7 +32,7 @@ public class Server {
         logger.debug("Server up & ready for connections...");
         while (true) {
             Socket client = serverSocket.accept();
-            new ServerThread(clientID, client, serverConfig.getBasesConfig(), serverConfig.getIgnored()).start();
+            new ServerThread(clientID, client, serverConfig.getBasesConfig(), serverConfig.getQueryConfig()).start();
             logger.debug("#" + clientID + " just connected from " + client.getRemoteSocketAddress().toString());
             clientID++;
         }

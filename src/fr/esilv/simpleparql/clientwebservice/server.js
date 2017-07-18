@@ -5,13 +5,14 @@ var clientPort = 2222;
 var host = "localhost";
 
 function handleConnection (conn) {
-	conn.on ("text", function (s) {
-
+     conn.on ("close", function (s) {
+        console.log("Connection closed");
+     });
+	 conn.on ("text", function (s) {
             var client = new net.Socket();
             client.setEncoding('utf8');
             client.connect(clientPort, host, function() {
                 console.log('Connected to Java Server!');
-                console.log(s);
                 client.write(s);
                 console.log("Message sent to Java server");
             });
@@ -30,7 +31,12 @@ function handleConnection (conn) {
             client.on('close', function() {
                 console.log('Connection to Java Server closed!');
             });
+
+            client.on('error', function(ex) {
+              console.log("handled error");
+              conn.sendText(JSON.stringify({'error':ex}));
+            });
 		});
 	}
 
-ws.createServer (handleConnection).listen (serverPort);
+ws.createServer(handleConnection).listen(serverPort);

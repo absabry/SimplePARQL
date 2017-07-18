@@ -1,11 +1,11 @@
-package fr.esilv.simpleparql.source.response;
+package fr.esilv.simpleparql.source.result;
 
 import fr.esilv.simpleparql.source.model.Truc;
 
 import java.util.ArrayList;
 
 /**
- * Strcuture of the response we get from JENA server.
+ * Strcuture of the result we get from JENA server.
  * We keep variables and all stuff we need to handle the result of the sparql query
  * and give it to the user in the best readble way
  */

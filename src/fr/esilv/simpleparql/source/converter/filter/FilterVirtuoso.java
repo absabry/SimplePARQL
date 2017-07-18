@@ -5,7 +5,6 @@ import fr.esilv.simpleparql.source.model.Constants;
 import java.util.List;
 
 /**
- * TODO change this filter to triples..
  * It's working sometimes and sometimes it dosent,  therefore it's better to add it as triples
  * Filter when the interface is virtuoso
  * we use FILTER(bif:contains(..,..))

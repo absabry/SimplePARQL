@@ -1,11 +1,10 @@
-package fr.esilv.simpleparql.source.response;
+package fr.esilv.simpleparql.source.result;
 
-import fr.esilv.simpleparql.source.model.POSITION;
 import fr.esilv.simpleparql.source.model.Truc;
 import fr.esilv.simpleparql.source.model.VARIABLES;
 
 /**
- * Created to handle the response
+ * Created to handle the result
  */
 public class TrucVariable {
 
