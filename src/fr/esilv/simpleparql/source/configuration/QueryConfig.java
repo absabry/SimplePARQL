@@ -1,9 +1,8 @@
-package fr.esilv.simpleparql.configuration;
+package fr.esilv.simpleparql.source.configuration;
 
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Scanner;
 
 /**

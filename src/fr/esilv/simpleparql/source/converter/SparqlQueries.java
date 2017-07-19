@@ -6,7 +6,7 @@ import fr.esilv.simpleparql.source.converter.filter.FilterNormal;
 import fr.esilv.simpleparql.source.model.*;
 import fr.esilv.simpleparql.source.converter.query.GenerateQuery;
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
-import fr.esilv.simpleparql.configuration.QueryConfig;
+import fr.esilv.simpleparql.source.configuration.QueryConfig;
 import javafx.util.Pair;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;

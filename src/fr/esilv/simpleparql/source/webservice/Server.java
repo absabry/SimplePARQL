@@ -1,6 +1,6 @@
-package fr.esilv.simpleparql.webservice;
+package fr.esilv.simpleparql.source.webservice;
 
-import fr.esilv.simpleparql.configuration.ServerConfig;
+import fr.esilv.simpleparql.source.configuration.ServerConfig;
 import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;

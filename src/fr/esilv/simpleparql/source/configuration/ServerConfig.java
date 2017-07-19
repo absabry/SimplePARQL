@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.configuration;
+package fr.esilv.simpleparql.source.configuration;
 
 import java.io.*;
 

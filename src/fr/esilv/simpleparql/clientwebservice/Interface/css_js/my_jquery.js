@@ -4,6 +4,8 @@ var HOST= 'localhost';
 var urlMySocket = "ws://"+HOST+":"+PORT+"/";
 var mySocket;
 var jsonResults;
+var SIMPLEPARQL_QUERY_ASSISTED;
+var SIMPLEPARQL_QUERY;
 
 $("#query_form").submit(function( event ) {
      event.preventDefault();
@@ -13,6 +15,7 @@ $("#query_form").submit(function( event ) {
      } else {
         queryInformations = createQueryFromNoAssisted();
      }
+     SIMPLEPARQL_QUERY = queryInformations.query;
 
      callSocket(queryInformations, function (s) {
             jsonResults = JSON.parse(s);
@@ -129,8 +132,6 @@ function formatXml(xml) {
 
 
 
-
-
 /* ---------------- Get the POST fields and manipulate it before creating the socket ---------------------------*/
 
 // create array when it's NOT assisted form
@@ -149,6 +150,13 @@ function createQueryFromAssisted(){
      for(var i=0;i<prefixes.length;i++){
         allPrefixes += ' PREFIX ' + prefixes[i];
      }
+     // keep this infomrmations, to be used when we replace the truc in the original query
+      SIMPLEPARQL_QUERY_ASSISTED= {
+         'select':select,
+         'where':where,
+         'filter':filter,
+         'optional':optional,
+         }
      var query= allPrefixes
                + ' SELECT ' + select
                + ' WHERE {' + where
@@ -242,10 +250,9 @@ function result(query_div,json){
 
     addBase(query_div,json.base);
 
-    for (var i=0; i <json.response.length;i++){
-        console.log(json.base.link);
-        addQuery(query_div,json.response[i].query,i,json.base.link);
-        var table = $('<table></table>').attr('title','Click to use me!');
+    for (var i=0; i <json.result.length;i++){
+        addQuery(query_div,json.result[i].query,i,json.base.api);
+        var table = $('<table></table>');
         addTitle(table,json,i);
         addResults(table,json,i);
         $(query_div).append(table);
@@ -277,7 +284,7 @@ function addBase(query_div,base){
 }
 
 // add query to the html page
-function addQuery(query_div,query,i,base){
+function addQuery(query_div,query,i,apiBase){
     var header = $('<div></div>').addClass('query_header').attr('title',query.substring(0,50)+'...\nClick on the arrow to see more');
     var textBesidesTheImage = $('<h5></h5>').text('Generated query n°'+(i+1)).css('display','inline');
     var imageCollapse =  $('<img></img>').addClass('showQuery_img')
@@ -291,46 +298,48 @@ function addQuery(query_div,query,i,base){
 
     var queryTag= $("<p></p>").addClass('query')
         .multiline(reformatQuery(query));
-    console.log('dans adddquery ');
-    console.log(base);
-    addLogoToQuery(queryTag,base);
+        addLogoToQuery(queryTag,apiBase);
     $(query_div).append(header);
     $(query_div).append(queryTag);
 }
 
 // add the logo to the query to execute it in dbpedia
-function addLogoToQuery(queryTag,base){
+function addLogoToQuery(queryTag,apiBase){
 
     var div= $('<div></div>')
     var openBase = $('<img></img>').addClass('pointer').attr('title','Click to use me in the base!');
     openBase.attr('src', 'images/useme.png');
     $(openBase).on( "click", function() {
-        //copyToClipboard($(this)); // to get the query from the <p> tag
+        copyToClipboard($(this).parent().parent().text()); // to get the query text from the <p> tag (this.parent is <div>, and then it's <p>)
+        alert("Just past the query in the new form!");
         window.open(base);
     })
     var seeResult = $('<img></img>').addClass('pointer').attr('title','Click to see my results in the base!');
         seeResult.attr('src', 'images/result.png');
         $(seeResult).on( "click", function() {
-            window.open(base+'?query='+$(this).parent().text());
+            var tempQuery = $(this).parent().parent().text();
+            console.log(apiBase);
+            window.open(encodeURI(apiBase+tempQuery));
         });
     div.append(openBase);
     div.append(seeResult);
     queryTag.append(div);
 }
 
-function copyToClipboard(img) {
-  var element = $('<textarea>').appendTo('body').val(img.parent().text()).select();
+function copyToClipboard(text) {
+  var element = $('<textarea>').appendTo('body').val(text).select();
   var successful = document.execCommand('copy');
-  var msg = successful ? 'successful' : 'unsuccessful';
+  var msg = successful ? 'Text copied to clipboard!' : 'Unsuccessful copy of text to clipboard';
+  console.log(msg);
   element.remove();
 }
 
 // add the th of the table
 function addTitle(table,json,i){
     var row= $('<tr></tr>');
-    for(var j=0; j<json.response[i].variables.length; j++){
-        if(!isTrucVariables(json.response[i].variables[j])){
-            var title = $('<th></th>').text(json.response[i].variables[j]);
+    for(var j=0; j<json.result[i].variables.length; j++){
+        if(!isTrucVariables(json.result[i].variables[j])){
+            var title = $('<th></th>').text(json.result[i].variables[j]);
             row.append(title);
         }
     }
@@ -345,19 +354,19 @@ function addTitle(table,json,i){
 
 // add results to the table created dynamically
 function addResults(table,json,i){
-    for(var j=0;j<json.response[i].results.length;j++){
+    for(var j=0;j<json.result[i].results.length;j++){
         var row= $('<tr></tr>');
-        for(var k=0;k<json.response[i].results[j].length;k++){
+        for(var k=0;k<json.result[i].results[j].length;k++){
             var element=$('<td></td>');
-            if(json.response[i].results[j][k] instanceof Array){ // when the variable is temporary, and it's not a real variable
-                addURIElement(element,json.response[i].results[j][k][1].Result,'value');
-                addPropretyOrLabel(element,json.response[i].results[j][k]);
+            if(json.result[i].results[j][k] instanceof Array){ // when the variable is temporary, and it's not a real variable
+                addURIElement(element,json.result[i].results[j][k][1].Result,'value');
+                addPropretyOrLabel(element,json.result[i].results[j][k]);
                 addLogoToTrucCell(element,json);
                 row.append(element);
             }
             else{
-               if(isSelectedVariable(json.response[i].variables,json.response[i].results[j][k].Variable)){
-                  addURIElement(element,json.response[i].results[j][k].Result);
+               if(isSelectedVariable(json.result[i].variables,json.result[i].results[j][k].Variable)){
+                  addURIElement(element,json.result[i].results[j][k].Result);
                   row.append(element);
                }
             }
@@ -369,20 +378,34 @@ function addResults(table,json,i){
 // add the logo for coping the value to query
 function addLogoToTrucCell(element){
       var img = $('<img></img>').addClass('pointer');
-      img.attr('src', 'images/useme.png');
+      img.attr({'src':'images/grab.png','title':'Click to use me!'});
       $(img).on( "click", function() {
         var $td =$(this).parent();
         var $th = $td.closest('table').find('th').eq($td.index());
-        replaceTruc($th.text(),$td.find('.value').text() )
+        replaceTruc($th.text(),$td.find('.value').text())
+        resetCellsImages($td);
+        img.attr('src', 'images/after_grab.png');
       })
       .mousedown(function(){
-         $(this).attr('src','images/useme_pressed.png' );
+         $(this).attr('src','images/grabbed.png' );
       })
       .mouseup(function(){
-        $(this).attr('src','images/useme.png' );
+        $(this).attr('src','images/grab.png' );
       })
       element.addClass('truc_in_table');
       element.append(img);
+}
+
+// get all table results, and reset their image if it's in the same column as $td
+function resetCellsImages($td){
+    $('#query_results table').each(function(){
+        $(this).find('td').each(function() {
+            var colIndex=$(this).index();
+            if(colIndex == $td.index()){
+                $(this).find('img').attr('src', 'images/grab.png');
+            }
+        });
+    });
 }
 
 // replace the truc on clicking the logo in the ceil
@@ -391,17 +414,17 @@ function replaceTruc(trucName, trucFound){
             trucFound = "<"+trucFound+">";
         }
         if ($('#assist').is(':checked')) {
-             var select = $('#select').val();
+             var select = SIMPLEPARQL_QUERY_ASSISTED.select;
              elementToTextArea('select',select.replace(trucName,trucFound));
-             var where = $('#where').val();
+             var where = SIMPLEPARQL_QUERY_ASSISTED.where;
              elementToTextArea('where',where.replace(trucName,trucFound));
-             var filter = $('#filter').val();
+             var filter = SIMPLEPARQL_QUERY_ASSISTED.filter;
              elementToTextArea('filter',filter.replace(trucName,trucFound));
-             var optional = $('#optional').val();
+             var optional = SIMPLEPARQL_QUERY_ASSISTED.optional;
              elementToTextArea('optional',optional.replace(trucName,trucFound));
         }
         else{
-            var query = $('#query').val();
+            var query = SIMPLEPARQL_QUERY;
             var index = query.indexOf(trucName);
             var foundInQuery = getWord(index,trucName.length,query); // the truc found before adding the limiter " or
             if(index != -1 ){

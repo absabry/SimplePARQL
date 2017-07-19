@@ -1,11 +1,11 @@
-package fr.esilv.simpleparql.webservice;
+package fr.esilv.simpleparql.source.webservice;
 
 import com.google.gson.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import fr.esilv.simpleparql.configuration.BaseConfig;
-import fr.esilv.simpleparql.configuration.QueryConfig;
+import fr.esilv.simpleparql.source.configuration.BaseConfig;
+import fr.esilv.simpleparql.source.configuration.QueryConfig;
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import fr.esilv.simpleparql.source.converter.SparqlQueries;
 import fr.esilv.simpleparql.source.model.*;
@@ -31,6 +31,8 @@ public class ServerThread extends Thread {
     private Socket socket;
     private int client;
     private String address;
+
+    private final PAGE PAGECHOOSEN = PAGE.THIRD;
 
     private String baseConfig;
     private QueryConfig queryConfig;
@@ -78,18 +80,17 @@ public class ServerThread extends Thread {
         for (String base : request.getBases()) {
             // TODO créer un thread pour chaque base
             BaseConfig config = getFile(base);
+            addBaseInformations(json, config);
+
             JsonArray jsonElementBase = new JsonArray();
-            SparqlQueries generatedQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), PAGE.THIRD, config.getOptionnal(), queryConfig);
+            SparqlQueries generatedQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), PAGECHOOSEN, config.isOptionnal(), queryConfig);
             for (ParseElement generatedElement : generatedQueries.getGeneratedQueries()) {
                 JsonObject jsonElementgeneratedElement = new JsonObject();
                 String query = Constants.treeToString(parser, generatedElement.getQuery());
-                //logger.debug(Constants.treeToStringFormatted(parser,generatedElement.getQuery())); /*
                 jsonElementgeneratedElement.addProperty("query", query);
                 Result result = new Jena().executeSparql(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF));
                 if (result.getError() != null) {
-                    JsonObject jsonObject = new JsonObject();
-                    jsonObject.addProperty("error", result.getError());
-                    output.write(jsonObject.toString() + null);
+                    sendError(result, output);
                     return;
                 } else {
                     TrucVariables trucVariables = getVariablesOfTrucs(result, generatedQueries);
@@ -99,17 +100,40 @@ public class ServerThread extends Thread {
                     jsonElementgeneratedElement.add("results", results);
                     jsonElementBase.add(jsonElementgeneratedElement);
                 }
-                JsonObject baseInformations = new JsonObject();
-                baseInformations.addProperty("name", config.getName());
-                baseInformations.addProperty("link", config.getLink());
-                json.add("base", baseInformations);
                 json.add("result", jsonElementBase);
             }
         }
-        output.write(json.toString() + null);
+        output.write(json.toString() + null); // add null to mark the end of the json!
         Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         logger.debug(gson.toJson(json));
     }
+
+    /**
+     * add the base infomations to the returned json
+     *
+     * @param json   object that will be returned to the client
+     * @param config configuration structure of the current base
+     */
+    private void addBaseInformations(JsonObject json, BaseConfig config) {
+        JsonObject baseInformations = new JsonObject();
+        baseInformations.addProperty("name", config.getName());
+        baseInformations.addProperty("link", config.getLink());
+        baseInformations.addProperty("api", config.getApi());
+        json.add("base", baseInformations);
+    }
+
+    /**
+     * send error to the client when there is one.
+     *
+     * @param output PrintWriter of the socket that will be sent to user
+     * @param result Result structure of the SPARQL query
+     */
+    private void sendError(Result result, PrintWriter output) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("error", result.getError());
+        output.write(jsonObject.toString() + null);
+    }
+
 
     /**
      * get all the variables of the query, even those which are not selected

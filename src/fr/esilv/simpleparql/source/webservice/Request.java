@@ -1,7 +1,6 @@
-package fr.esilv.simpleparql.webservice;
+package fr.esilv.simpleparql.source.webservice;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 /**
  * Request of the receving data from the server

@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.configuration;
+package fr.esilv.simpleparql.source.configuration;
 
 
 import fr.esilv.simpleparql.source.converter.filter.FilterGenerator;
@@ -17,6 +17,7 @@ public class BaseConfig {
     private String link;
     private String filter;
     private boolean optionnal;
+    private String api;
 
 
     public BaseConfig(String base) throws IOException {
@@ -44,8 +45,12 @@ public class BaseConfig {
         }
     }
 
-    public boolean getOptionnal() {
+    public boolean isOptionnal() {
         return optionnal;
+    }
+
+    public String getApi() {
+        return api;
     }
 
     private void readBase(InputStream file) throws IOException {
@@ -69,6 +74,9 @@ public class BaseConfig {
                     break;
                 case "optionnal":
                     optionnal = Boolean.valueOf(line[1]);
+                    break;
+                case "api":
+                    api = line[1];
                     break;
                 default:
                     break;
