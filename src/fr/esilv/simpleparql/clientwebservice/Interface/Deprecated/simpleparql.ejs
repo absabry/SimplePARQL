@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<meta charset="utf-8" />
+	<title>Universal Endpoint</title>
+
+
+	<link rel="stylesheet" href="css_js/style.css" />
+	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">-->
+
+	<link rel="stylesheet" href="http://cdn.kendostatic.com/2015.2.624/styles/kendo.common.min.css" />
+	<link rel="stylesheet" href="http://cdn.kendostatic.com/2015.2.624/styles/kendo.default.min.css" />
+
+	<script type="application/javascript" src="css_js/jquery.min.js"></script>
+	<script type="application/javascript" src="http://cdn.kendostatic.com/2015.2.624/js/kendo.all.min.js"></script>
+
+	<script type="text/javascript" src="css_js/script_css.js"></script>
+
+
+</head>
+
+
+<body>
+	<div id="page_bloc">
+		<header>
+			<div id="main_title">
+				<a href="simpleparql" style="float:left;" class="pointer">
+					<img id="logo"  src="images/universal-endpoint_logo.png" alt="Logo" />
+				</a>
+				<p> Universal Endpoint</p>
+			</div>
+
+			<nav >
+				<ul>
+					<li><a href="simpleparql">SimplePARQL</a></li>
+					<li><a href="sparql">Sparql Hub</a></li>
+					<li><a href="about">About</a></li>
+				</ul>
+			</nav>
+		</header>
+
+		<section>
+			<h1> SimplePARQL </h1>
+			<p id="abstract">
+				<b>&gt; A friendly environment for writing queries in the way of SPARQL, but simpler and more intuitive: <i>terms</i> (as keywords) can be used instead of identifiers (IRIs).</b>
+			</p>
+
+			<div id="query_bloc">
+				<form id="query_form"  action="/simpleparql" method="post">
+					<br />
+					<label class="query_element" >Please select at least one base:</label>
+					<br />
+					<select id="list_bases" name="list_bases[]" multiple="multiple" class="element"  > </select>
+                    <br />
+                    <label class="query_element" >Prefixes:</label>
+                    <select id="list_prefixes" name="list_prefixes[]" multiple="multiple" style="width:95%; font-size:10px; border-radius:4px;"  class="element" ></select>
+                    <script>
+                    $("#list_bases").kendoMultiSelect({
+                        dataSource: {
+                        data: [
+                            {value: "Dbpedia", Name:"DBpedia (v)"},
+                            {value: "Utpl_Linked_Open_Data", Name:"UTPL Linked Open Data (v)"},
+                            {value: "National_Library_of_Francel", Name:"National Library of France (v)"},
+                            {value: "Linked_Stat", Name:"Linked Stat (v)"},
+                            {value: "European_Council_Council_of_the_European_Union", Name:"European Council Council of the European Union"},
+                            {value: "oxford", Name:"Oxford"},
+                            {value: "European_Central_Bank", Name:"European Central Bank"},
+                            {value: "DisGeNet", Name:"DisGeNet (v)" },
+                            {value: "HDP", Name:"HealthData.gov Platform - HDP"}
+                        ]
+                      },
+                      dataTextField: "Name",
+                      dataValueField: "value"
+                    });
+
+                    $("#list_prefixes").kendoMultiSelect({
+                        dataSource: {
+                            data: [
+                                {value: "rdf:http://www.w3.org/1999/02/22-rdf-syntax-ns#"},
+                                {value: "rdfs:http://www.w3.org/2000/01/rdf-schema#"},
+                                {value: "foaf:http://xmlns.com/foaf/0.1/"},
+                                {value: "dbo:http://dbpedia.org/ontology/"},
+                                {value: "dbp:http://dbpedia.org/property/"},
+                                {value: "dc:http://purl.org/dc/elements/1.1/"},
+                                {value: "owl:http://www.w3.org/2002/07/owl#"},
+
+                                {value: "xhv:http://www.w3.org/1999/xhtml/vocab#"},
+                                {value: "xhtml:http://www.w3.org/1999/xhtml#"},
+                                {value: "xhtmlvocab:http://www.w3.org/1999/xhtml/vocab/"},
+                                {value: "log:http://www.w3.org/2000/10/swap/log#"},
+                                {value: "math:http://www.w3.org/2000/10/swap/math#"},
+                                {value: "con:http://www.w3.org/2000/10/swap/pim/contact#"},
+                                {value: "contact:http://www.w3.org/2000/10/swap/pim/contact#"},
+                                {value: "list:http://www.w3.org/2000/10/swap/list#"},
+                                {value: "string:http://www.w3.org/2000/10/swap/string#"},
+                                {value: "crypto:http://www.w3.org/2000/10/swap/crypto#"},
+                                {value: "mf:http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#"},
+                                {value: "xsd:http://www.w3.org/2001/XMLSchema#"},
+                                {value: "xs:http://www.w3.org/2001/XMLSchema#"},
+                                {value: "ical:http://www.w3.org/2002/12/cal/ical#"},
+                                {value: "cal:http://www.w3.org/2002/12/cal/ical#"},
+                                {value: "xf:http://www.w3.org/2002/xforms/"},
+                                {value: "p3p:http://www.w3.org/2002/01/p3prdfv1#"},
+                                {value: "xforms:http://www.w3.org/2002/xforms/"},
+                                {value: "bookmark:http://www.w3.org/2002/01/bookmark#"},
+                                {value: "geo:http://www.w3.org/2003/01/geo/wgs84_pos#"},
+                                {value: "vs:http://www.w3.org/2003/06/sw-vocab-error/ns#"},
+                                {value: "swrl:http://www.w3.org/2003/11/swrl#"},
+                                {value: "swrlb:http://www.w3.org/2003/11/swrlb#"},
+                                {value: "exif:http://www.w3.org/2003/12/exif/ns#"},
+                                {value: "grddl:http://www.w3.org/2003/g/data-view#"},
+                                {value: "wgs:http://www.w3.org/2003/01/geo/wgs84_pos#"}
+                            ]
+                          },
+                          dataTextField: "value",
+                          dataValueField: "value"
+                        });
+
+                    var bases=[];
+                    var prefixes=[];
+                    <% if(result != null){ %>
+                           <% for(var i =0;i<result.lastQuery.bases.length; i++) {%>
+                                 bases.push("<%-result.lastQuery.bases[i]%>")
+                           <% }%>
+                           <% for(var i =0;i<result.lastQuery.bases.length; i++) {%>
+                                prefixes.push("<%-result.lastQuery.prefixes[i]%>")
+                          <% }%>
+                    <% } else{ %>
+                           bases = ["Dbpedia"];
+                           prefixes = ["rdf:http://www.w3.org/1999/02/22-rdf-syntax-ns#"];
+                    <%}%>
+
+                    $("#list_bases").getKendoMultiSelect().value(bases);
+                    $("#list_prefixes").getKendoMultiSelect().value(prefixes);
+
+                    </script>
+
+
+					<img  id="plus_minus" class="query_element_hidden pointer" src="images/plus.png" onclick="toggleForm('newprefix','plus_minus')"/>
+					<label class="query_element pointer" for="prefix" onclick="toggleForm('newprefix','plus_minus')">Add new prefix.</label>
+					<textarea id="newprefix" name="newprefix" rows="1" class="element" style="font-size:14px"></textarea>
+
+					<br />
+					<br />
+					<label class="query_element">Your SimplePARQL query: </label>
+					<br />
+					<textarea id="Query" name="Query" rows="5" class="element" style="font-size:14px">
+					<%if(result!=null){%>
+					    <%= result.lastQuery.query %>
+                    <% } else{%>
+					SELECT ?place WHERE { "John Smith" dbo:birthPlace London.}
+					<%}%>
+					</textarea>
+
+					<br />
+					<br />
+					<div class="center">
+						<button id="send" type="submit" name ="envoi" onclick="waitFunction();" class="pointer"/> Query </button>
+						<button id="clear" type="button" class="pointer"> Clear </button>
+					</div>
+
+					<br />
+				</form>
+				<br />
+			</div>
+		</section>
+
+
+		<section>
+			<div id="wait" align="center"></div>
+			<div id="query_results" name="query_results">
+			    <% if(result != null){ %>
+
+                    <% if(result.hasOwnProperty('error')){%>
+                    <h3 align="center" style="color: red;"> <%= result.error %> </h3>
+                    <% }else{ %>
+                            <p> The base : <%= result.base %> </p>
+                            <% for (var i=0; i <result.response.length;i++){%>
+                                <p class="query pointer" id="query" onclick="queryToTextArea(this)" >
+                                    <%= result.response[i].query %>
+                                </p>
+                                <table>
+                                    <tr>
+                                         <% for(var j=0; j < result.response[i].variables.length; j++) { %>
+                                            <th> <%= result.response[i].variables[j] %> </th>
+                                         <% }%>
+                                     </tr>
+
+                                     <% for(var j=0; j < result.response[i].results.length; j++) { %>
+                                            <tr>
+                                                <% for(var k=0; k < result.response[i].results[j].length; k++) { %>
+                                                        <td>
+                                                             <%= result.response[i].results[j][k][1].Result %>
+                                                             <%if(result.response[i].results[j][k][2] != undefined){ %>
+                                                                 <% if(result.response[i].results[j][k][2].Position == "LABEL"){ %>
+                                                                    <b> has for label</b>
+                                                                    <%= result.response[i].results[j][k][2].Result %>
+                                                                 <%} else if(result.response[i].results[j][k][2].Position == "TMP1"){%>
+                                                                    <b> has for the proprety</b>
+                                                                    <%= result.response[i].results[j][k][2].Result %>
+                                                                     <b> the value </b>
+                                                                    <%= result.response[i].results[j][k][3].Result %>
+                                                                <%}%>
+                                                             <% }%>
+                                                        </td>
+                                                <%}%>
+                                            </tr>
+                                      <%}%>
+                                 </table>
+                                 <br />
+                            <% }%>
+                    <%}%>
+                <%}%>
+            </div>
+		</section>
+
+		<footer>
+			<div class="left"> <a href="http://www.esilv.fr/recherche/de-vinci-technology-lab/"> <img src="images/ESILV_logo.png" height="40" width="133" alt="logo ESILV" /> </a> </div>
+			<div class="right"> &copy; ESILV 2014--2016 </div>
+		</footer>
+
+	</div>
+</body>
+
+</html>

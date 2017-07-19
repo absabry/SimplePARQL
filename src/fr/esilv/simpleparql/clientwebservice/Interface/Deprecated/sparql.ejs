@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<meta charset="utf-8" />
+	<title>Universal Endpoint</title>
+
+
+	<link rel="stylesheet" href="css_js/style.css" />
+
+	<link rel="stylesheet" href="http://cdn.kendostatic.com/2015.2.624/styles/kendo.common.min.css" />
+	<link rel="stylesheet" href="http://cdn.kendostatic.com/2015.2.624/styles/kendo.default.min.css" />
+
+	<script type="application/javascript" src="css_js/jquery.min.js"></script>
+	<script type="application/javascript" src="http://cdn.kendostatic.com/2015.2.624/js/kendo.all.min.js"></script>
+
+	<script type="text/javascript" src="css_js/script_css.js"></script>
+
+</head>
+<body>
+	<div id="page_bloc">
+		<header>
+			<div id="main_title">
+				<a href="simpleparql" style="float:left;" class="pointer">
+					<img id="logo"  src="images/universal-endpoint_logo.png" alt="Logo" />
+				</a>
+				<p> Universal Endpoint</p>
+			</div>
+
+			<nav >
+				<ul>
+					<li><a href="simpleparql">SimplePARQL</a></li>
+					<li><a href="sparql">Sparql Hub</a></li>
+					<li><a href="about">About</a></li>
+				</ul>
+			</nav>
+		</header>
+
+		<section>
+			<h1> SPARQL Hub </h1>
+			<p id="abstract">
+				<b>&gt; Several SPARQL remote endpoints accessible from an unique access point!</b>
+			</p>
+
+			<div id="query_bloc">
+				<form id="query_form"  action="/simpleparql" method="post">
+					<br />
+					<label class="query_element" >Please select at least one base:</label>
+					<br />
+					<select id="list_bases" name="list_bases[]" multiple="multiple" class="element"  >
+						<option value ="DBpedia"	title="http://dbpedia.org/sparql" selected /> DBpedia (v) </option>  <!-- current Virtuoso version: 07.20.3214 -->
+						<option value ="UTPL_Linked_Open_Data"	title="http://data.utpl.edu.ec/utpl/lod/sparql" /> UTPL Linked Open Data (v) </option>
+						<option value ="National_Library_of_France"	title="http://data.bnf.fr/sparql" /> National Library of France (v) </option>
+						<option value ="LinkedStat"	title="http://linkedstat.spaziodati.eu/sparql" /> Linked Stat (v) </option>
+						<option value ="European_Council_Council_of_the_European_Union"	title="http://data.consilium.europa.eu/sparql" /> European Council Council of the European Union </option>
+						<option value ="HealthData_gov_Platform_(HDP)"	title="http://healthdata.tw.rpi.edu/sparql" /> HealthData.gov Platform - HDP </option> <!--(v) ???-->
+						<option value ="Oxford"		title="https://data.ox.ac.uk/sparql" /> Oxford </option>
+						<option value ="European_Central_Bank" title="http://ecb.270a.info/sparql" /> European Central Bank </option>
+						<option value ="DisGeNet"	title="http://rdf.disgenet.org/sparql/"  /> DisGeNet (v) </option>
+					</select>
+					<script>
+					$("#list_bases").kendoMultiSelect({
+						autoClose: false
+					});
+					</script>
+
+					<br />
+					<label class="query_element" >Prefixes:</label>
+					<select id="list_prefixes" name="list_prefixes[]" multiple="multiple" style="width:95%; font-size:10px; border-radius:4px;"  class="element">
+						<option value ="rdf:&lt;http://www.w3.org/1999/02/22-rdf-syntax-ns# &gt;" selected/>rdf :&lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#> </option>
+						<option value ="rdfs:&lt;http://www.w3.org/2000/01/rdf-schema#&gt; &gt;"/>rdfs :&lt;http://www.w3.org/2000/01/rdf-schema#></option>
+						<option value ="foaf:&lt;http://xmlns.com/foaf/0.1/ &gt;"/>foaf : &lt;http://xmlns.com/foaf/0.1></option>
+						<option value ="dbo:&lt;http://dbpedia.org/ontology/ &gt;"/>dbo : &lt;http://dbpedia.org/ontology></option>
+						<option value ="dbp:&lt;http://dbpedia.org/property/ &gt;"/>dbp : &lt;http://dbpedia.org/property></option>
+						<option value ="dc:&lt;http://purl.org/dc/elements/1.1/ &gt;"/>dc : &lt;http://purl.org/dc/elements/1.1></option>
+						<option value ="owl:&lt;http://www.w3.org/2002/07/owl# &gt;"/>owl : &lt;http://www.w3.org/2002/07/owl#></option>
+
+						<option value ="xhv:&lt;http://www.w3.org/1999/xhtml/vocab# &gt;"/>xhv : &lt;http://www.w3.org/1999/xhtml/vocab#></option>
+						<option value ="xhtml:&lt;http://www.w3.org/1999/xhtml# &gt;"/>xhtml : &lt;http://www.w3.org/1999/xhtml#></option>
+						<option value ="xhtmlvocab:&lt;http://www.w3.org/1999/xhtml/vocab/ &gt;"/> xhtmlvocab : &lt;http://www.w3.org/1999/xhtml/vocab/></option>
+
+						<option value ="log:&lt;http://www.w3.org/2000/10/swap/log# &gt;"/>log : &lt;http://www.w3.org/2000/10/swap/log#></option>
+						<option value ="math:&lt;http://www.w3.org/2000/10/swap/math# &gt;"/>math : &lt;http://www.w3.org/2000/10/swap/math#></option>
+						<option value ="con:&lt;http://www.w3.org/2000/10/swap/pim/contact# &gt;"/>con : &lt;http://www.w3.org/2000/10/swap/pim/contact#></option>
+						<option value ="contact:&lt;http://www.w3.org/2000/10/swap/pim/contact# &gt;"/>contact : &lt;http://www.w3.org/2000/10/swap/pim/contact#></option>
+						<option value ="list:&lt;http://www.w3.org/2000/10/swap/list# &gt;"/>list : &lt;http://www.w3.org/2000/10/swap/list#></option>
+						<option value ="string:&lt;http://www.w3.org/2000/10/swap/string# &gt;"/>string : &lt;http://www.w3.org/2000/10/swap/string#></option>
+						<option value ="crypto:&lt;http://www.w3.org/2000/10/swap/crypto# &gt;"/>crypto : &lt;http://www.w3.org/2000/10/swap/crypto#></option>
+
+						<option value ="mf:&lt;http://www.w3.org/2001/sw/DataAccess/tests/test-manifest# &gt;"/>mf : &lt;http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#></option>
+						<option value ="xsd:&lt;http://www.w3.org/2001/XMLSchema# &gt;"/>xsd : &lt;http://www.w3.org/2001/XMLSchema#></option>
+						<option value ="xs: &lt;http://www.w3.org/2001/XMLSchema# &gt;"/>xs : &lt;http://www.w3.org/2001/XMLSchema#></option>
+
+						<option value ="ical: &lt;http://www.w3.org/2002/12/cal/ical# &gt;"/>ical : &lt;http://www.w3.org/2002/12/cal/ical#></option>
+						<option value ="cal: &lt;http://www.w3.org/2002/12/cal/ical# &gt;"/>cal : &lt;http://www.w3.org/2002/12/cal/ical#></option>
+						<option value ="xf : &lt;http://www.w3.org/2002/xforms/ &gt;"/>xf : &lt;http://www.w3.org/2002/xforms/></option>
+						<option value ="p3p:&lt;http://www.w3.org/2002/01/p3prdfv1# &gt;"/>p3p : &lt;http://www.w3.org/2002/01/p3prdfv1#></option>
+						<option value ="xforms:&lt;http://www.w3.org/2002/xforms/ &gt;"/>xforms : &lt;http://www.w3.org/2002/xforms/></option>
+						<option value ="bookmark:&lt;http://www.w3.org/2002/01/bookmark# &gt;"/>bookmark : &lt;http://www.w3.org/2002/01/bookmark#></option>
+						<option value ="geo:&lt;http://www.w3.org/2003/01/geo/wgs84_pos# &gt;"/>geo : &lt;http://www.w3.org/2003/01/geo/wgs84_pos#></option>
+						<option value ="vs:&lt;http://www.w3.org/2003/06/sw-vocab-error/ns# &gt;"/>vs : &lt;http://www.w3.org/2003/06/sw-vocab-error/ns#></option>
+						<option value ="swrl:&lt;http://www.w3.org/2003/11/swrl# &gt;"/>swrl : &lt;http://www.w3.org/2003/11/swrl#></option>
+						<option value ="swrlb:&lt;http://www.w3.org/2003/11/swrlb# &gt;"/>swrlb: &lt;http://www.w3.org/2003/11/swrlb#></option>
+						<option value ="exif:&lt;http://www.w3.org/2003/12/exif/ns# &gt;"/>exif : &lt;http://www.w3.org/2003/12/exif/ns#></option>
+						<option value ="grddl:&lt;http://www.w3.org/2003/g/data-view# &gt;"/>grddl : &lt;http://www.w3.org/2003/g/data-view#></option>
+						<option value ="wgs:&lt;http://www.w3.org/2003/01/geo/wgs84_pos#> &gt;"/>wgs : &lt;http://www.w3.org/2003/01/geo/wgs84_pos#></option>
+
+						<option value ="skos:&lt;http://www.w3.org/2004/02/skos/core# &gt;"/>skos : &lt;http://www.w3.org/2004/02/skos/core#></option>
+						<option value ="rdfg: &lt;http://www.w3.org/2004/03/trix/rdfg-1/ &gt;"/>rdfg : &lt;http://www.w3.org/2004/03/trix/rdfg-1/></option>
+						<option value ="fresnel:&lt;http://www.w3.org/2004/09/fresnel# &gt;"/>fresnel : &lt;http://www.w3.org/2004/09/fresnel#></option>
+						<option value ="swp:&lt;http://www.w3.org/2004/03/trix/swp-2/ &gt;"/>swp : &lt;http://www.w3.org/2004/03/trix/swp-2/></option>
+						<option value ="imreg:&lt;http://www.w3.org/2004/02/image-regions# &gt;"/>imreg : &lt;http://www.w3.org/2004/02/image-regions#></option>
+						<option value ="states:&lt;http://www.w3.org/2005/07/aaa# &gt;"/>states : &lt;http://www.w3.org/2005/07/aaa#></option>
+						<option value ="fn:&lt;http://www.w3.org/2005/xpath-functions# &gt;"/>fn : &lt;http://www.w3.org/2005/xpath-functions#></option>
+						<option value ="wairole:&lt;http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy# &gt;"/>wairole : &lt;http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#></option>
+						<option value ="vcard:&lt;http://www.w3.org/2006/vcard/ns# &gt;"/>vcard : &lt;http://www.w3.org/2006/vcard/ns#></option>
+						<option value ="gen:&lt;http://www.w3.org/2006/gen/ont# &gt;"/>gen : &lt;http://www.w3.org/2006/gen/ont#></option>
+						<option value ="tzont: &lt;http://www.w3.org/2006/timezone# &gt;"/>tzont : &lt;http://www.w3.org/2006/timezone#></option>
+						<option value ="time:&lt;http://www.w3.org/2006/time# &gt;"/>time : &lt;http://www.w3.org/2006/time#></option>
+						<option value ="wn20schema:&lt;http://www.w3.org/2006/03/wn/wn20/schema/ &gt;"/>wn20schema : &lt;http://www.w3.org/2006/03/wn/wn20/schema/></option>
+						<option value ="link:&lt;http://www.w3.org/2006/link# &gt;"/>link : &lt;http://www.w3.org/2006/link#></option>
+						<option value ="loc:&lt;http://www.w3.org/2007/uwa/context/location.owl# &gt;"/>loc : &lt;http://www.w3.org/2007/uwa/context/location.owl#></option>
+						<option value ="java:&lt;http://www.w3.org/2007/uwa/context/java.owl# &gt;"/>java : &lt;http://www.w3.org/2007/uwa/context/java.owl#></option>
+						<option value ="wdrs:&lt;http://www.w3.org/2007/05/powder-s# &gt;"/>wdrs : &lt;http://www.w3.org/2007/05/powder-s#></option>
+						<option value ="net:&lt;http://www.w3.org/2007/uwa/context/network.owl# &gt;"/>net : &lt;http://www.w3.org/2007/uwa/context/network.owl#></option>
+						<option value ="hard:&lt;http://www.w3.org/2007/uwa/context/hardware.owl# &gt;"/>hard : &lt;http://www.w3.org/2007/uwa/context/hardware.owl#></option>
+						<option value ="wdr:&lt;http://www.w3.org/2007/05/powder# &gt;"/>wdr : &lt;http://www.w3.org/2007/05/powder#></option>
+						<option value ="web:&lt;http://www.w3.org/2007/uwa/context/web.owl# &gt;"/>web : &lt;http://www.w3.org/2007/uwa/context/web.owl#></option>
+						<option value ="rif: &lt;http://www.w3.org/2007/rif# &gt;"/>rif : &lt;http://www.w3.org/2007/rif#></option>
+						<option value ="dcn:&lt;http://www.w3.org/2007/uwa/context/deliverycontext.owl# &gt;"/> dcn:&lt;http://www.w3.org/2007/uwa/context/deliverycontext.owl#></option>
+						<option value ="httph:&lt;http://www.w3.org/2007/ont/httph#  &gt;"/> httph : &lt;http://www.w3.org/2007/ont/httph#></option>
+						<option value ="common:&lt;http://www.w3.org/2007/uwa/context/common.owl# &gt;"/>common : &lt;http://www.w3.org/2007/uwa/context/common.owl#></option>
+						<option value ="push:&lt;http://www.w3.org/2007/uwa/context/push.owl# &gt;"/>push : &lt;http://www.w3.org/2007/uwa/context/push.owl#></option>
+						<option value ="soft:&lt;http://www.w3.org/2007/uwa/context/software.owl# &gt;"/>soft : &lt;http://www.w3.org/2007/uwa/context/software.owl#></option>
+						<option value ="skosxl:&lt;http://www.w3.org/2008/05/skos-xl# &gt;"/>skosxl : &lt;http://www.w3.org/2008/05/skos-xl#></option>
+						<option value ="ttl:&lt;http://www.w3.org/2008/turtle# &gt;"/>ttl : &lt;http://www.w3.org/2008/turtle#></option>
+						<option value ="ptr:&lt;http://www.w3.org/2009/pointers# &gt;"/>ptr : &lt;http://www.w3.org/2009/pointers#></option>
+						<option value ="cnt:&lt;http://www.w3.org/2011/content# &gt;"/>cnt : &lt;http://www.w3.org/2011/content#></option>
+						<option value ="http:&lt;http://www.w3.org/2011/http# &gt;"/>http : &lt;http://www.w3.org/2011/http#></option>
+						<option value ="gldp:&lt;http://www.w3.org/ns/people# &gt;"/>gldp : &lt;http://www.w3.org/ns/people#></option>
+						<option value ="org:&lt;http://www.w3.org/ns/org &gt;"/>org : &lt;http://www.w3.org/ns/org></option>
+						<option value ="prov:&lt;http://www.w3.org/ns/prov# &gt;"/>prov : &lt;http://www.w3.org/ns/prov#></option>
+						<option value ="md:&lt;http://www.w3.org/ns/md# &gt;"/>md : &lt;http://www.w3.org/ns/md#></option>
+						<option value ="sd:&lt;http://www.w3.org/ns/sparql-service-description# &gt;"/>sd : &lt;http://www.w3.org/ns/sparql-service-description#></option>
+						<option value ="dcat:&lt;http://www.w3.org/ns/dcat# &gt;"/>dcat : &lt;http://www.w3.org/ns/dcat#></option>
+						<option value ="earl:&lt;http://www.w3.org/ns/earl# &gt;"/>earl : &lt;http://www.w3.org/ns/earl#></option>
+						<option value ="rr:&lt;http://www.w3.org/ns/r2rml# &gt;"/>rr : &lt;http://www.w3.org/ns/r2rml#></option>
+						<option value ="ma:&lt;http://www.w3.org/ns/ma-ont# &gt;"/>ma : &lt;http://www.w3.org/ns/ma-ont#></option>
+						<option value ="cert:&lt;http://www.w3.org/ns/auth/cert# &gt;"/>cert : &lt;http://www.w3.org/ns/auth/cert#></option>
+						<option value ="rsa:&lt;http://www.w3.org/ns/auth/rsa# &gt;"/>rsa : &lt;http://www.w3.org/ns/auth/rsa#></option>
+						<option value ="adms:&lt;http://www.w3.org/ns/adms# &gt;"/>adms : &lt;http://www.w3.org/ns/adms#></option>
+						<option value ="oa:&lt;http://www.w3.org/ns/oa# &gt;"/>oa :&lt;http://www.w3.org/ns/oa#></option>
+						<option value ="acl:&lt;http://www.w3.org/ns/auth/acl# &gt;"/>acl : &lt;http://www.w3.org/ns/auth/acl#></option>
+						<option value ="ldp:&lt;http://www.w3.org/ns/ldp# &gt;"/>ldp : &lt;http://www.w3.org/ns/ldp#></option>
+						<option value ="rdfa:&lt;http://www.w3.org/ns/rdfa# &gt;"/>rdfa : &lt;http://www.w3.org/ns/rdfa#></option>
+						<option value ="sawsdl:&lt;http://www.w3.org/ns/sawsdl# &gt;"/>sawsdl : &lt;http://www.w3.org/ns/sawsdl#></option>
+						<option value ="sec: &lt;https://w3id.org/security# &gt;"/>sec : &lt;https://w3id.org/security#></option>
+						<option value ="ps:&lt;https://w3id.org/payswarm# &gt;"/>ps : &lt;https://w3id.org/payswarm#></option>
+					</select>
+					<script>
+                    $("#list_prefixes").kendoMultiSelect({
+                        autoClose: false
+                    });
+                    </script>
+
+                    <img  id="plus_minus" class="query_element_hidden pointer" src="images/plus.png" onclick="toggleForm('newprefix','plus_minus')"/>
+                    <label class="query_element pointer" for="prefix" onclick="toggleForm('newprefix','plus_minus')">Add new prefix.</label>
+                    <textarea id="newprefix" name="newprefix" rows="1" class="element" style="font-size:14px"></textarea>
+
+					<br />
+					<br />
+					<label class="query_element">Your SPARQL query: </label>
+					<br />
+					<textarea id="Query" name="Query" rows="5" class="element" style="font-size:14px">SELECT * WHERE {?a ?b ?c} LIMIT 100</textarea>
+					<div class="center">
+						<button id="send" type="submit" onclick="waitFunction();" name ="envoi" class="pointer" /> Query </button>
+						<button id="clear" type="button" class="pointer"> Clear </button>
+					</div>
+					<br />
+				</form>
+			</div>
+		</section>
+
+
+		<section>
+			<div id="wait" align="center"></div>
+			<div id="information"></div>
+			<div id="query_results"></div>
+		</section>
+		<footer>
+			<div class="left"> <a href="http://www.esilv.fr/recherche/de-vinci-technology-lab/"> <img src="images/ESILV_logo.png" height="40" width="133" alt="logo ESILV" /> </a> </div>
+			<div class="right"> &copy; ESILV 2014--2016 </div>
+		</footer>
+
+	</body>
+	</html>

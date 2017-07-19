@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<meta charset="utf-8" />
+	<title>Universal Endpoint</title>
+
+
+	<link rel="stylesheet" href="css_js/style.css" />
+
+	<link rel="stylesheet" href="http://cdn.kendostatic.com/2015.2.624/styles/kendo.common.min.css" />
+	<link rel="stylesheet" href="http://cdn.kendostatic.com/2015.2.624/styles/kendo.default.min.css" />
+
+	<script type="application/javascript" src="css_js/jquery.min.js"></script>
+	<script type="application/javascript" src="http://cdn.kendostatic.com/2015.2.624/js/kendo.all.min.js"></script>
+
+	<script type="text/javascript" src="css_js/script_css.js"></script>
+
+</head>
+
+<body>
+	<div id="page_bloc">
+		<header>
+			<div id="main_title">
+				<a href="simpleparql.html" style="float:left;" class="pointer">
+					<img id="logo"  src="images/universal-endpoint_logo.png" alt="Logo" />
+				</a>
+				<p> Universal Endpoint</p>
+			</div>
+		</header>
+
+		<section>
+			<h1>About</h1>
+
+			<div class="box">
+				<div class="box_head"><h2>SimplePARQL: a new approach using keywords over SPARQL to query the web of data</h2></div>
+				<div class="box_body">
+					<b>Sonia Djebali</b> &amp; <b>Thomas Raimbault</b>, in proceedings of the 11th International Conference on Semantic Systems (<b>SEMANTiCS</b>), Vienna, Austria, 2015, 188-191, ACM.
+
+					<p class="small">
+						Abstact: The SimplePARQL is a new and intuitive approach to query the Web of Data through existing SPARQL endpoints by using keywords in addition to SPARQL elements. Thus, the user is able to write more expressive pseudo-SPARQL queries where knowing the ontology (classes and properties) and resources’ identifiers from an RDF base are not required. Concretely, a SimplePARQL query is transformed into N valid SPARQL queries that extend the initial query in order to reach the IRIs or literals in the RDF bases corresponding to keywords.
+						<p/>
+
+
+
+						<a href="files/Djebali-and-Raimbault_Semantics2015.pdf">
+							<img src="images/icon_pdf_download.png" height="60" width="60" alt="Download paper" title="Download paper" />
+							<a/>
+
+							<a href="files/Djebali-and-Raimbault_Semantics2015.bib">
+								<img src="images/icon_bibtex.png" height="40" width="40" alt="Download bibtex" title="Download bibtex" />
+								<a/>
+							</div>
+						</div>
+
+						<h1>SimplePARQL query example</h1>
+
+						<p>
+							Looking for the movies where Brad Pitt starred?
+						</p>
+						<table>
+							<tr>
+								<th>With <b>SimplePARQL</b></th>
+								<th>With only SPARQL</th>
+							</tr>
+
+							<tr>
+								<td>
+									<b>For all bases:</b>
+									<pre>SELECT *<br />WHERE<br />{<br /><dd>?Movies  star  (brad pitt)</dd>}
+									</pre>
+									<br />
+									<u>Note:</u>
+									For each term <b>star</b> and <b>(brad pitt)</b>, our platform will attempt to match a specific resource which in one way or another is linked to corresponding term.
+									In other words, it is not necessary to know identifiers (like &lt;http://dbpedia.org/resource/Brad_Pitt&gt;) of each handled resource.
+								</td>
+								<td>
+									<b>On DBpedia:</b>
+									<pre>SELECT * <br />WHERE<br />{<br /><dd>?Movies  &lt;http://dbpedia.org/property/starring&gt;  &lt;http://dbpedia.org/resource/Brad_Pitt&gt;</dd>}
+									</pre>
+
+									<br />
+									<b>On Wikidata:</b>
+									<pre>SELECT *<br />WHERE<br />{<br /><dd>?Movies  &lt;http://www.wikidata.org/entity/P161&gt;  &lt;http://www.wikidata.org/entity/Q373912&gt;</dd>}
+									</pre>
+								</td>
+							</tr>
+						</table>
+
+
+
+
+
+						<section>
+
+
+							<footer>
+								<div class="left"> <a href="http://www.esilv.fr/recherche/de-vinci-technology-lab/"> <img src="images/ESILV_logo.png" height="40" width="133" alt="logo ESILV" /> </a> </div>
+								<div class="right"><a href="about.html">About</a> <br /> <b>@ESILV 2014--2017</b> </div>
+							</footer>
+
+						</div>
+					</body>
+
+					</html>
