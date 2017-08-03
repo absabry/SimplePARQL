@@ -1,12 +1,15 @@
 package fr.esilv.simpleparql.source.converter.query;
 
 
+import fr.esilv.simpleparql.source.converter.filter.FilterCommon;
 import fr.esilv.simpleparql.source.converter.filter.FilterGenerator;
 import fr.esilv.simpleparql.source.converter.filter.FilterNormal;
 import fr.esilv.simpleparql.source.model.Truc;
 import fr.esilv.simpleparql.source.model.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,6 +42,7 @@ public class GenerateQuery {
     }
 
     public ArrayList<Composant> getGeneratedComposants() {
+        Collections.sort(generatedComposants);
         return generatedComposants;
     }
 
@@ -50,7 +54,7 @@ public class GenerateQuery {
      * FILTER ( CONTAINS ( STR ( ?SimplePARQL_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc current fr.esilv.simpleparql.source.model.Truc
+     * @param truc Truc which we'll generate composant for it
      * @param page page which the query belongs to
      * @return generated item (triple, filter and page it belongs to)
      */
@@ -67,8 +71,12 @@ public class GenerateQuery {
                     + truc.getVariables().get(VARIABLES.VARIABLE) + " . ";
         }
         if (triples != null) {
-
-            String filter = new FilterNormal().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
+            String filter;
+            if (truc.isExact()) {
+                filter = new FilterCommon().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
+            } else {
+                filter = new FilterNormal().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
+            }
             return new Composant(triples, filter, null, page);
         }
         return null;
@@ -90,9 +98,14 @@ public class GenerateQuery {
     private Composant generatelabels(Truc truc, PAGE page) {
         Composant result = generateURI(truc, page);
         if (result != null) {
+            String filter;
+            if (truc.isExact()) {
+                filter = new FilterCommon().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.LABEL));
+            } else {
+                filter = filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.LABEL));
+            }
             return new Composant(result.getTriple() + " " + truc.getVariables().get(VARIABLES.VARIABLE) + " "
-                    + Constants.RDF + truc.getVariables().get(VARIABLES.LABEL) + " . ",
-                    filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.LABEL)), null, page);
+                    + Constants.RDF + truc.getVariables().get(VARIABLES.LABEL) + " . ", filter, null, page);
         }
         return null;
     }
@@ -106,22 +119,29 @@ public class GenerateQuery {
      * FILTER ( CONTAINS ( STR ( ?tmp_var2_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc current fr.esilv.simpleparql.source.model.Truc
+     * @param truc current Truc
      * @param page page which the query belongs to
      * @return generated item (triple, filter and page it belongs to)
      */
     private Composant generateProprieties(Truc truc, PAGE page) {
         Composant result = generateURI(truc, page);
         if (result != null) {
+            String filter;
+            if (truc.isExact()) {
+                filter = new FilterCommon().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.TMP2));
+            } else {
+                filter = filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.TMP2));
+            }
             return new Composant(result.getTriple() + truc.getVariables().get(VARIABLES.VARIABLE)
                     + truc.getVariables().get(VARIABLES.TMP1) + truc.getVariables().get(VARIABLES.TMP2) + " . ",
-                    filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.TMP2)),
-                    filterGenerator.removeIgnoredPropreties(truc.getVariables().get(VARIABLES.TMP1), ignoredProprieties),
-                    page);
+                    filter, new FilterCommon().removeIgnoredPropreties(truc.getVariables().get(VARIABLES.TMP1), ignoredProprieties), page);
         }
         return null;
     }
 
+    /**
+     * main function to launch the first, second or third page
+     */
     private void createGeneratedTriples() {
         switch (page) {
             case THIRD:
@@ -136,14 +156,30 @@ public class GenerateQuery {
 
     /**
      * First page generate :
-     * if subjet then it willgenerateLabels
+     * if subjet then it will generateLabels
      * if predicate then it will generateLabels
      * if object then it will generatePropreties and generateLabels
+     * BUT if it's an exact query (delimited by double quotes "")
+     * <p>
+     * if it's in object position
+     * it will not generate literal search directly in the first page
+     * <p>
+     * otherwise
+     * it will generate labels exactly like when it's not an exact truc
      */
     private void PageFirst() {
-        generatedComposants.add(generatelabels(truc, PAGE.FIRST));
-        if (truc.getPosition() == POSITION.OBJECT) {
-            generatedComposants.add(generateURI(truc, PAGE.FIRST));
+        if (truc.isExact()) {
+            if (truc.getPosition() == POSITION.OBJECT) {
+                generatedComposants.add(generateURI(truc, PAGE.FIRST));
+            } else {
+                generatedComposants.add(generatelabels(truc, PAGE.FIRST));
+            }
+
+        } else {
+            generatedComposants.add(generatelabels(truc, PAGE.FIRST));
+            if (truc.getPosition() == POSITION.OBJECT) {
+                generatedComposants.add(generateURI(truc, PAGE.FIRST));
+            }
         }
     }
 
@@ -152,12 +188,27 @@ public class GenerateQuery {
      * if subjet then it will generatePropreties
      * if predicate then it will generateURI
      * if object then it will generatePropreties
+     * BUT if it's an exact query (delimited by double quotes "")
+     * <p>
+     * if it's in object position
+     * it will not generate labels (that we haven't geenrate in the PageFirst() function search
+     * <p>
+     * otherwise
+     * it will generate proprieties
      */
     private void PageSecond() {
-        if (truc.getPosition() == POSITION.PREDICATE) {
-            generatedComposants.add(generateURI(truc, PAGE.SECOND));
+        if (truc.isExact()) {
+            if (truc.getPosition() == POSITION.OBJECT) {
+                generatedComposants.add(generatelabels(truc, PAGE.SECOND));
+            } else {
+                generatedComposants.add(generateProprieties(truc, PAGE.SECOND));
+            }
         } else {
-            generatedComposants.add(generateProprieties(truc, PAGE.SECOND));
+            if (truc.getPosition() == POSITION.PREDICATE) {
+                generatedComposants.add(generateURI(truc, PAGE.SECOND));
+            } else {
+                generatedComposants.add(generateProprieties(truc, PAGE.SECOND));
+            }
         }
     }
 
@@ -165,11 +216,21 @@ public class GenerateQuery {
      * Third page generate :
      * if subjet then it will generateURI
      * if predicate then it will do nothing
-     * if object then it willdo nothing
+     * if object then it will do nothing
+     * BUT if it's an exact query (delimited by double quotes "")
+     * <p>
+     * if it's in object position
+     * we'll not generate propreties which e haven't generate in PageSecond() function
      */
     private void PageThird() {
-        if (truc.getPosition() == POSITION.SUBJECT) {
-            generatedComposants.add(generateURI(truc, PAGE.THIRD));
+        if (truc.isExact()) {
+            if (truc.getPosition() == POSITION.OBJECT) {
+                generatedComposants.add(generateProprieties(truc, PAGE.THIRD));
+            }
+        } else {
+            if (truc.getPosition() == POSITION.SUBJECT) {
+                generatedComposants.add(generateURI(truc, PAGE.THIRD));
+            }
         }
     }
 

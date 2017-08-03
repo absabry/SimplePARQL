@@ -9,57 +9,87 @@
 
     <link rel="stylesheet" href="css_js/style.css"/>
 
+    <link rel="stylesheet" type="text/css" href="css_js/tooltipster/dist/css/tooltipster.bundle.min.css"/>
     <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.2.624/styles/kendo.common.min.css"/>
     <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.2.624/styles/kendo.default.min.css"/>
 
+    <link rel="shortcut icon" href="images/universal-endpoint_logo.png"/>
+
     <script type="application/javascript" src="css_js/jquery.min.js"></script>
     <script type="application/javascript" src="http://cdn.kendostatic.com/2015.2.624/js/kendo.all.min.js"></script>
+    <script type="text/javascript" src="css_js/tooltipster/dist/js/tooltipster.bundle.min.js"></script>
 
+    <script>
+        // VERSIONS
+        const ANTLR = 'antlr-4.7-complete';
+        const JENA = 'apache-jena-2.12.1';
+
+
+
+
+
+
+
+
+    </script>
 </head>
 
 
 <body>
 <div id="page_bloc">
     <header>
-        <div id="main_title">
+        <div id="main_title" style="vertical-align:center;">
             <a href="simpleparql.html" style="float:left;" class="pointer">
                 <img id="logo" src="images/universal-endpoint_logo.png" alt="Logo"/>
             </a>
             <p> Universal Endpoint</p>
         </div>
+        <nav>
+            <ul>
+                <li><a href="#">Contact</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </nav>
     </header>
 
-    <section>
-        <h1> SimplePARQL </h1>
-        <p id="abstract">
-            <b>&gt; A friendly environment for writing queries in the way of SPARQL, but simpler and more intuitive: <i>terms</i>
-                (as keywords) can be used instead of identifiers (IRIs).</b>
-        </p>
+    <h1> SimplePARQL </h1>
+    <p id="abstract">
+        <b>&gt; A friendly environment for writing queries in the way of SPARQL, but simpler and more intuitive: <i>terms</i>
+            (as keywords) can be used instead of identifiers (IRIs).</b>
+    </p>
 
-        <input type="checkbox" value="1" id="assist" name="assist"/> Assisted mode
-        <br/>
+    <input type="checkbox" value="1" id="assist" name="assist"/> Assisted mode
+    <br/>
+    <div style="display:flex;">
+
         <div id="query_bloc" class="not_assisted">
             <form id="query_form">
                 <br/>
-                <label class="query_element">Please select at least one base:</label>
+                <label class="query_element">Please select at least one <strong>remote base: </strong></label>
                 <br/>
                 <select id="list_bases" name="list_bases[]" multiple="multiple" class="element sm-font"> </select>
                 <br/>
 
-                <div class="assisted_form">
 
-                    <label class="query_element">Prefixes:</label>
+                <img id="prefixe_img" class="query_element_hidden pointer" src="images/plus.png"
+                     title="prefixes field"
+                     onclick="toggleForm('prefix')"/>
+                <label class="query_element pointer" onclick="toggleForm('prefix')"> prefix</label>
+                <div id="prefix" class="hidden_field">
+                    <label class="query_element">Choose up your prefixe(s) up here:</label>
                     <select id="list_prefixes" name="list_prefixes[]" multiple="multiple"
                             class="element sm-font"></select>
 
-                    <img id="plus_minus" class="query_element_hidden pointer" src="images/plus.png"
-                         onclick="toggleForm('newprefix','plus_minus')"/>
-                    <label class="query_element pointer " onclick="toggleForm('newprefix','plus_minus')">Add new
-                        prefix.</label>
-                    <textarea id="newprefix" name="newprefix" rows="1" class="element"></textarea>
+                    <label class="small">You can find the predefined prefixes </label><a target="_blank"
+                                                                                         href="prefixes.html"
+                                                                                         class="pointer small">here</a>.
+                </div>
+                <label class="small"> <i> You can also add prefixes directly into the query</i></label>.
 
-                    <br/>
-                    <br/>
+                <br/>
+                <br/>
+
+                <div class="assisted_form">
 
                     <label class="query_element" for="Select"> <b>Select</b></label>
                     <textarea id="select" name="Select" class="element" rows="1">*</textarea>
@@ -67,53 +97,62 @@
                     <br/>
                     <br/>
                     <label class="query_element" for="Where"><b>Where</b></label>
-                    <textarea id="where" name="Where" class="element" rows="3">?a ?b ?c.</textarea>
+                    <textarea id="where" name="Where" class="element" rows="3">/John Smith/ birth London.</textarea>
 
                     <br/>
                     <br/>
-                    <img class="query_element_hidden pointer" src="images/fleche.png" title="optional field"
+
+                    &nbsp;
+                    <img id="filter_img" class="query_element_hidden pointer" src="images/plus.png"
+                         title="filter field"
                          onclick="toggleForm('filter')"/>
-                    <label class="query_element pointer" onclick="toggleForm('filter')" for="Filter"> <b>Filter</b>
-                    </label>
-                    <textarea id="filter" name="Filter" class="element" rows="1"></textarea>
+                    <label class="query_element pointer" onclick="toggleForm('filter')"> <b>Filter</b></label>
+                    <textarea id="filter" name="Filter" class="element hidden_field" rows="1"></textarea>
 
                     &nbsp;
-                    <img class="query_element_hidden pointer" src="images/fleche.png" title="optional field"
+                    <img id="optional_img" class="query_element_hidden pointer" src="images/plus.png"
+                         title="optional field"
                          onclick="toggleForm('optional')"/>
-                    <label class="query_element pointer" onclick="toggleForm('optional')" for="Optional">
-                        <b>Optional</b></label>
-                    <textarea id="optional" name="Optional" class="element" rows="1"></textarea>
+                    <label class="query_element pointer" onclick="toggleForm('optional')"
+                           for="Optional"><b>Optional</b></label>
+                    <textarea id="optional" name="Optional" class="element hidden_field" rows="1"></textarea>
 
                     &nbsp;
-                    <img class="query_element_hidden pointer" src="images/fleche.png" title="limit field"
+                    <img id="limit_img" class="query_element_hidden pointer" src="images/plus.png" title="limit field"
                          onclick="toggleForm('limit')"/>
-                    <label class="query_element pointer" for="Limit" onclick="toggleForm('limit')"> <b>Limit</b>
-                    </label>
-                    <input id="limit" name="Limit" class="element" type="number" value="10">
+                    <label class="query_element pointer" for="Limit" onclick="toggleForm('limit')"> <b>Limit</b></label>
+                    <input id="limit" name="Limit" class="element hidden_field" type="number">
+
+                    <br/>
+                    <br/>
+
                 </div>
                 <div class="not_assisted_form">
-                    <label class="query_element"> Your SimplePARQL query: </label>
+                    <label class="query_element"> Your <i>(SELECT) ony</i> <b>SimplePARQL query: </b> </label>
                     <br/>
-                    <textarea id="query" name="query" rows="10" class="element">SELECT * WHERE { "John Smith" dbo:birthPlace London.} LIMIT 20</textarea>
+                    <textarea id="query" name="query" rows="10" class="element">SELECT * WHERE { /John Smith/ birth London.} LIMIT 20</textarea>
                 </div>
+
+                <label class="query_element">Output:</label>
+                <select id="download_list" name="download_list[]" class="sm-element sm-font"></select>
+
+                <label class="query_element">Timeout(in milliseconds):</label>
+                <br/>
+                <input id="timeout" name="timeout" type="number" class="sm-element" value="5000" step="1000"/>
+
+                <br/>
+                <br/>
                 <div class="center">
-                    <button id="send" type="submit" onclick="waitFunction();" class="pointer"> Query</button>
-                    <button id="clear" type="button" onclick="clearFunction();" class="pointer"> Clear</button>
-                    <button id="download" type="button" class="pointer"> Download</button>
-                    <button id="download-XML" type="button" class="pointer"> Download XML</button>
+                    <button id="send" type="submit" class="pointer"> Query</button>
+                    <button id="clear" type="button" class="pointer"> Clear</button>
                 </div>
                 <br/>
             </form>
             <br/>
         </div>
-    </section>
-
-    <br/>
-    <br/>
-
-    <div id="informations" class="assisted_form">
-        <b>How to write a SimplePARQL query:</b>
-        <span class="small">
+        <div id="informations" class="assisted_form">
+            <b>How to write a SimplePARQL query:</b>
+            <span class="small">
                 <p>
                     <b>BASES:</b> Items marked with a <b>(v)</b> are hosted on a Virtuoso server, with a version on which the optimized Virtuoso/PL function ‘bif:contains’ can be used on this platform instead of SPARQL sub-string search functions.
                     <br/>
@@ -124,38 +163,39 @@
                         <li>rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;</li>
                         <li>rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;</li>
                     </ul>
-            </p>
-            <p>
+                </p>
+                <p>
                     <b>SELECT:</b> Variables to print. Note: use * (star) to select all variables. The inaccurate fields will always be displayed.
                 </p>
                 <p>
                     <b>WHERE:</b> Your query, as either (A) a set of triples or (B) a single element to describe.
                     <br/>
                     <br/>
-                    Case (A):
                     A triple consists of three parts (subject, property, and value), where each part can be either:
                     <ol>
-                        <li> a term as an inaccurate field, i.e. just a (key)word, or several words in parentheses, simply such as you speak...
+                        <li> a term as an inaccurate field, i.e. just a (key)word, or several words between slashes,
+                            or several words between quotes for an exact search, simply such as you speak...
                             That's why it's so simple to use SimplePARQL :)</li>
-                        <li> an identifier as an IRI (in angle brackets like
-                                &lt;http://www.w3.org/2000/01/rdf-schema#type&gt;,
-                                using prefix like rdf:type, or the SPARQL keyword 'a'
-                                which means rdf:type) </li>
-                        <li> a blank node (i.e. [ ] that means anonymous identifier)</li>
-                        <li> a literal (in double quotes) only available for the third part of a triple.</li>
+                        <li> any other part of a read SPARQL query, which you can found details here
+                            <a href="https://www.w3.org/TR/rdf-sparql-query/"> SPARQL documentation </a>
+                        </li>
                     </ol>
-                        Case (B):
-                                The element can be either an inaccurate field or an IRI.
-                    The variables can be declared exactly like the SPARQL syntax with the ";" or the "," symbols.
-                    <b> You cannot use any of those strings for your variables ["SimplePARQL_","tmp_var1_","tmp_var2_","label_"]</b>
-            </p>
-            <p>
+                    <b> You cannot use any of those names for your variables ["SimplePARQL_", "tmp_var1_", "tmp_var2_", "label_"]</b>
+                </p>
+                <strong> For all the coming fields, you have to click on the <img src="images/plus.png"
+                                                                                  style="width:15px;"
+                                                                                  title="plus image"/> image to write on it's text field.</strong>
+                <p>
                     <b>FILTER:</b> Some filters on variables that are literals. For instance: ?x > 10.
                 </p>
                 <p>
                     <b>OPTIONAL:</b> An optional part of the query, as a set of triples (see WHERE clause)."
                 </p>
+                <p>
+                    <b>Limit:</b> An optional part of the query, a number indicating the limit of the SPARQL results."
+                </p>
             </span>
+        </div>
     </div>
 
     <section>
@@ -167,86 +207,18 @@
     <footer>
         <div class="left"><a href="http://www.esilv.fr/recherche/de-vinci-technology-lab/"> <img
                 src="images/ESILV_logo.png" height="40" width="133" alt="logo ESILV"/> </a></div>
-        <div class="right"><a href="about.html">About</a> <br/> <b>@ESILV 2014--2017</b></div>
+        <div class="center">
+            <div class="version"><img src="images/antlr.jpeg" height="50" alt="antlr version"/> <br/>
+                <p id="antlr-version"></p></div>
+            &nbsp;
+            <div class="version"><img src="images/jena.png" height="50" alt="jena version"/> <br/>
+                <p id="jena-version"></p></div>
+        </div>
+        <div class="right"><b>@ESILV 2014--2017</b></div>
     </footer>
 </div>
 </body>
 <script type="text/javascript" src="css_js/my_jquery.js"></script>
 <script type="text/javascript" src="css_js/script_css.js"></script>
-<script>
-        $("#list_bases").kendoMultiSelect({
-            autoClose: false,
-            dataSource: {
-            data: [
-                {value: "Dbpedia", Name:"DBpedia (v)"},
-                {value: "Utpl_Linked_Open_Data", Name:"UTPL Linked Open Data (v)"},
-                {value: "National_Library_of_Francel", Name:"National Library of France (v)"},
-                {value: "Linked_Stat", Name:"Linked Stat (v)"},
-                {value: "European_Council_Council_of_the_European_Union", Name:"European Council Council of the European Union"},
-                {value: "oxford", Name:"Oxford"},
-                {value: "European_Central_Bank", Name:"European Central Bank"},
-                {value: "DisGeNet", Name:"DisGeNet (v)" },
-                {value: "HDP", Name:"HealthData.gov Platform - HDP"}
-            ]
-          },
-          dataTextField: "Name",
-          dataValueField: "value"
-        });
-
-        $("#list_prefixes").kendoMultiSelect({
-            autoClose: false,
-            dataSource: {
-                data: [
-                    {value: "xhv:<http://www.w3.org/1999/xhtml/vocab#>"},
-                    {value: "xhtml:<http://www.w3.org/1999/xhtml#>"},
-                    {value: "xhtmlvocab:<http://www.w3.org/1999/xhtml/vocab/>"},
-                    {value: "log:<http://www.w3.org/2000/10/swap/log#>"},
-                    {value: "math:<http://www.w3.org/2000/10/swap/math#>"},
-                    {value: "con:<http://www.w3.org/2000/10/swap/pim/contact#>"},
-                    {value: "contact:<http://www.w3.org/2000/10/swap/pim/contact#>"},
-                    {value: "list:<http://www.w3.org/2000/10/swap/list#>"},
-                    {value: "string:<http://www.w3.org/2000/10/swap/string#>"},
-                    {value: "crypto:<http://www.w3.org/2000/10/swap/crypto#>"},
-                    {value: "mf:<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#>"},
-                    {value: "xsd:<http://www.w3.org/2001/XMLSchema#>"},
-                    {value: "xs:<http://www.w3.org/2001/XMLSchema#>"},
-                    {value: "ical:<http://www.w3.org/2002/12/cal/ical#>"},
-                    {value: "cal:<http://www.w3.org/2002/12/cal/ical#>"},
-                    {value: "xf:<http://www.w3.org/2002/xforms/>"},
-                    {value: "p3p:<http://www.w3.org/2002/01/p3prdfv1#>"},
-                    {value: "xforms:<http://www.w3.org/2002/xforms/>"},
-                    {value: "bookmark:<http://www.w3.org/2002/01/bookmark#>"},
-                    {value: "geo:<http://www.w3.org/2003/01/geo/wgs84_pos#>"},
-                    {value: "vs:<http://www.w3.org/2003/06/sw-vocab-error/ns#>"},
-                    {value: "swrl:<http://www.w3.org/2003/11/swrl#>"},
-                    {value: "swrlb:<http://www.w3.org/2003/11/swrlb#>"},
-                    {value: "exif:<http://www.w3.org/2003/12/exif/ns#>"},
-                    {value: "grddl:<http://www.w3.org/2003/g/data-view#>"},
-                    {value: "wgs:<http://www.w3.org/2003/01/geo/wgs84_pos#>"}
-                ]
-              },
-              dataTextField: "value",
-              dataValueField: "value"
-            });
-
-/*
-        $("#list_download").kendoMultiSelect({
-            autoClose: false,
-            dataSource: {
-            data: [
-                {value:"None"},
-                {value:"JSON"},
-                {value:"XML"},
-                {value: "HTML"}
-            ]
-          },
-          dataTextField: "value",
-          dataValueField: "value"
-        });
-        $("#list_download").getKendoMultiSelect().value(["None"]);
-*/
-        $("#list_bases").getKendoMultiSelect().value(["Dbpedia"]);
-
-</script>
 
 </html>

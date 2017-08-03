@@ -4,6 +4,7 @@ import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import javafx.util.Pair;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,6 +117,7 @@ public class Truc {
     /**
      * Generate the triple where are the truc
      */
+
     private void generateTripleComposantes() {
         if (parents.size() != 0) {
             Pair<ParserRuleContext, Integer> triplesSameSubject = find(SimplePARQLParser.RULE_triplesSameSubject);
@@ -140,7 +142,7 @@ public class Truc {
      * @return same text cleaned up
      */
     private String clean(String text) {
-        return text.replace("\"", "").replace("<<", "").replace(">>", "");
+        return text.replace("\"", "").replace("/", "").replace("/", "");
     }
 
     /**
@@ -154,8 +156,28 @@ public class Truc {
         variables.put(VARIABLES.TMP2, Constants.VARIABLE_TMP_2 + counter);
     }
 
+    /**
+     * get if this truc is in optional group pattern or not
+     *
+     * @return true if it's it, false if it's not
+     */
     public boolean isOptionnal() {
         return find(SimplePARQLParser.RULE_optionalGraphPattern) != null;
+    }
+
+    /**
+     * get if this truc is an exact truc or not, the exact truc is the one delimited by double quotes " ".
+     *
+     * @return true if it's it, false if it's not
+     */
+    public boolean isExact() {
+        ParserRuleContext truc = parents.get(0).getKey();
+        if (truc.getChild(0) instanceof ParserRuleContext) {
+            if (((ParserRuleContext) truc.getChild(0)).getRuleIndex() == SimplePARQLParser.RULE_string) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public VARIABLES getVariablePosition(String variable) {
@@ -165,35 +187,6 @@ public class Truc {
             }
         }
         return null;
-    }
-
-    /**
-     * Get the parents' name
-     *
-     * @param parser containing all the parser
-     * @return parent's name of the truc
-     * @deprecated
-     */
-    String printParentPath(SimplePARQLParser parser) {
-        String result = "";
-        for (Pair<ParserRuleContext, Integer> rule : this.getParents()) {
-            result += getRuleName(rule.getKey(), parser) + " " + rule.getValue().toString();
-            result += "\n";
-        }
-        return result;
-    }
-
-    /**
-     * gets the rule name from the rule tree
-     *
-     * @param rule   the rule itself
-     * @param parser to get all the rules
-     * @return the rule name
-     * @deprecated
-     */
-    private String getRuleName(ParserRuleContext rule, SimplePARQLParser parser) {
-        int ruleIndex = rule.getRuleIndex();
-        return parser.getRuleNames()[ruleIndex];
     }
 
     public String toString() {

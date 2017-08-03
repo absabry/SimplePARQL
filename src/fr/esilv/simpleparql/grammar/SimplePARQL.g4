@@ -192,7 +192,7 @@ groupOrUnionGraphPattern
     : groupGraphPattern ( Union groupGraphPattern )*
     ;
 truc
-    : (TRUC_WORD | TRUC_DIESE | string)
+    : (TRUC_WORD(LANGTAG)? | TRUC_DIESE(LANGTAG)?  | string(LANGTAG)? )
     ;
 
 solutionModifier
@@ -338,7 +338,7 @@ STRING_LITERAL2
     : '"'  ( ~('\u0022' | '\u005C' | '\u000A' | '\u000D' ) | ECHAR )* '"'
     ;
 TRUC_DIESE
-    : '<<' ( ~('\u0022' | '\u005C' | '\u000A' | '\u000D' | '(' | ')') | ' ' | ECHAR)* '>>'
+    : '/' ( ~('\u0022' | '\u005C' | '\u000A' | '\u000D' | '(' | ')') | ' ' | ECHAR)* '/'
     ;
 
 ECHAR

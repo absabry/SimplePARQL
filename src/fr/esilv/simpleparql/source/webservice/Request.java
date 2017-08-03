@@ -8,6 +8,7 @@ import java.util.ArrayList;
 public class Request {
     private String query;
     private ArrayList<String> bases;
+    private String timeout;
 
     public String getQuery() {
         return query;
@@ -17,8 +18,14 @@ public class Request {
         return bases;
     }
 
+    public String getTimeout() {
+        return timeout;
+    }
+
     public String toString() {
         return "base : " + bases + "\n" +
-                "query : " + query;
+                "query : " + query + "\n" +
+                "timeout : " + timeout;
+
     }
 }

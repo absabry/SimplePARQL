@@ -5,6 +5,7 @@ import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.sparql.core.TriplePath;
+import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
 import com.hp.hpl.jena.sparql.resultset.RDFOutput;
 import com.hp.hpl.jena.sparql.syntax.ElementPathBlock;
 import com.hp.hpl.jena.sparql.syntax.ElementVisitorBase;
@@ -16,6 +17,7 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.HTMLWriter;
 import org.dom4j.io.OutputFormat;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.io.*;
 import java.util.*;
@@ -23,12 +25,13 @@ import java.util.*;
 public class Jena {
 
     // new main function
-    public Result executeSparql(String base, String sparqlQueryString) {
+    public Result executeSparql(String base, String sparqlQueryString, String timeout) {
         Result result = new Result();
 
         try {
             Query query = QueryFactory.create(sparqlQueryString);
-            QueryExecution qexec = QueryExecutionFactory.sparqlService(base, query);
+            QueryEngineHTTP qexec = (QueryEngineHTTP) QueryExecutionFactory.sparqlService(base, query);
+            qexec.addParam("timeout", timeout);
             ResultSet results = qexec.execSelect();
             result.setVariables(new ArrayList<>(results.getResultVars())); // get variables of the query
             for (; results.hasNext(); ) {
@@ -39,7 +42,11 @@ public class Jena {
                     RDFNode var = sol.get(ittVar);
                     if (var.isLiteral()) {
                         Literal l = (Literal) var;
-                        val = l.getValue().toString();
+                        val = l.toString();
+                        // delete the types from the string (but keep the @lang)!
+                        if (val.contains("^^")) {
+                            val = val.substring(0, val.indexOf("^^"));
+                        }
                     } else {
                         Resource r = (Resource) var;
                         val = r.getURI();
@@ -49,8 +56,10 @@ public class Jena {
                 result.addToResponse(solution);
             }
             qexec.close();
+        } catch (QueryParseException e) {
+            result.setError("error while parsing your SimplePARQL query");
         } catch (Exception e) {
-            result.setError(e.getMessage().substring(e.getMessage().indexOf(":") + 1));
+            result.setError(e.getMessage().substring(e.getMessage().indexOf(":") + 1).replace("Server", "remote server"));
         }
         return result;
     }
@@ -60,7 +69,8 @@ public class Jena {
     // old main function
     private static void saveSparql(String base, String sparqlQueryString, String format, String filename) throws IOException {
         Query query = QueryFactory.create(sparqlQueryString);
-        QueryExecution qexec = QueryExecutionFactory.sparqlService(base, query);
+        QueryEngineHTTP qexec = (QueryEngineHTTP) QueryExecutionFactory.sparqlService(base, query);
+        qexec.addParam("timeout", "5000");
         ResultSet results = qexec.execSelect();
         ResultSet resultsClone = ResultSetFactory.copyResults(results);
         Model model = new RDFOutput().toModel(ResultSetFactory.copyResults(resultsClone));

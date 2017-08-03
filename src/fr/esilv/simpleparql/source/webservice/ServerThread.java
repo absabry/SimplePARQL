@@ -16,10 +16,13 @@ import fr.esilv.simpleparql.source.result.TrucVariables;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 
 /**
  * Create a thread for each user that connects to the server.
@@ -45,40 +48,52 @@ public class ServerThread extends Thread {
         address = socket.getInetAddress().getHostAddress();
     }
 
+    /**
+     * function that will be looped till the end of this thread
+     */
     public void run() {
-
         try {
             PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String message = bufferedReader.readLine();
             Request request = new Gson().fromJson(message, Request.class);
+            JsonObject result = launch(request);
+            // begin debug
+            Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+            logger.debug(gson.toJson(result));
+            // end debug
+
             output.flush();
-            launch(request, output);
+            output.write(result.toString() + null); // add null to mark the end of the json
             output.flush();
             output.close();
-            // detect when the client disconnect from the server
-            if (bufferedReader.read() == -1) {
-                logger.debug("#" + client + "," + address + " has propely quit the room.");
-            }
             socket.close();
         } catch (SocketException socketException) {
             if (socketException.getMessage().equals("Connection reset ")) {
                 logger.debug("#" + client + "," + address + " has brutally quit the room.");
             }
-        } catch (IOException e) {
+        } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void launch(Request request, PrintWriter output) throws IOException {
+    /**
+     * main function that call Jena results, the converter and the request from the client
+     *
+     * @param request request of client
+     * @return
+     * @throws IOException
+     * @throws JSONException
+     */
+    private JsonObject launch(Request request) throws IOException, JSONException {
         CharStream codeStream = CharStreams.fromString(request.getQuery());
-        QueryOrdered queryOrdered = new QueryOrdered(Constants.getTreeOfText(codeStream.toString()), queryConfig.getPredifinedPrefixes());
-        SimplePARQLParser parser = queryOrdered.getParser();
+        SimplePARQLParser queryFromUser = Constants.getTreeOfText(codeStream.toString());
+        SimplePARQLQuery simplePARQLQuery = new SimplePARQLQuery(queryFromUser, queryConfig.getPredifinedPrefixes());
+        SimplePARQLParser parser = simplePARQLQuery.getParser();
         String treeString = Constants.treeToString(parser, parser.query());
 
         JsonObject json = new JsonObject();
         for (String base : request.getBases()) {
-            // TODO créer un thread pour chaque base
             BaseConfig config = getFile(base);
             addBaseInformations(json, config);
 
@@ -88,24 +103,23 @@ public class ServerThread extends Thread {
                 JsonObject jsonElementgeneratedElement = new JsonObject();
                 String query = Constants.treeToString(parser, generatedElement.getQuery());
                 jsonElementgeneratedElement.addProperty("query", query);
-                Result result = new Jena().executeSparql(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF));
+                Result result = new Jena().executeSparql(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF), request.getTimeout());
                 if (result.getError() != null) {
-                    sendError(result, output);
-                    return;
+                    return sendError(result);
                 } else {
                     TrucVariables trucVariables = getVariablesOfTrucs(result, generatedQueries);
-                    JsonArray theSelectedVariables = addVariablesTojSON(result, generatedQueries, queryOrdered);
+                    JsonArray theSelectedVariables = addVariablesTojSON(result, generatedQueries, simplePARQLQuery);
                     jsonElementgeneratedElement.add("variables", theSelectedVariables);
-                    JsonArray results = addResultsToJson(result, trucVariables);
+                    JsonArray results = addResultsToJson(result, trucVariables, simplePARQLQuery);
+                    results = sortResults(theSelectedVariables, results);
                     jsonElementgeneratedElement.add("results", results);
                     jsonElementBase.add(jsonElementgeneratedElement);
                 }
                 json.add("result", jsonElementBase);
             }
         }
-        output.write(json.toString() + null); // add null to mark the end of the json!
-        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-        logger.debug(gson.toJson(json));
+        return json;
+
     }
 
     /**
@@ -125,15 +139,13 @@ public class ServerThread extends Thread {
     /**
      * send error to the client when there is one.
      *
-     * @param output PrintWriter of the socket that will be sent to user
      * @param result Result structure of the SPARQL query
      */
-    private void sendError(Result result, PrintWriter output) {
+    private JsonObject sendError(Result result) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("error", result.getError());
-        output.write(jsonObject.toString() + null);
+        return jsonObject;
     }
-
 
     /**
      * get all the variables of the query, even those which are not selected
@@ -162,17 +174,22 @@ public class ServerThread extends Thread {
      * @param queryOrdered     the original query reordered, to know if the query is selectAll, and if the variable is a selected one
      * @return JsonArray that will be added to the result transfered in a socket tovthe user
      */
-    private JsonArray addVariablesTojSON(Result result, SparqlQueries generatedQueries, QueryOrdered queryOrdered) {
+    private JsonArray addVariablesTojSON(Result result, SparqlQueries generatedQueries, SimplePARQLQuery queryOrdered) {
+
+        ArrayList<String> variables = new ArrayList<>(result.getVariables());
+        for (Truc truc : generatedQueries.getSimpleARQLTrucs()) {
+            for (String value : truc.getVariables().values()) {
+                variables.remove(value.substring(2));
+            }
+        }
         JsonArray theSelectedVariables = new JsonArray();
-        for (int i = 0; i < result.getVariables().size(); i++) {
-            String variable = result.getVariables().get(i);
+        for (int i = 0; i < generatedQueries.getSimpleARQLTrucs().size(); i++) {
+            theSelectedVariables.add(new JsonPrimitive(generatedQueries.getSimpleARQLTrucs().get(i).getCleanedName()));
+        }
+        for (String variable : variables) {
             if (queryOrdered.isSelectAll() || queryOrdered.getSelectedVariables().contains(variable)) {
                 theSelectedVariables.add(new JsonPrimitive(variable));
             }
-        }
-
-        for (int i = 0; i < generatedQueries.getSimpleARQLTrucs().size(); i++) {
-            theSelectedVariables.add(new JsonPrimitive(generatedQueries.getSimpleARQLTrucs().get(i).getCleanedName()));
         }
         return theSelectedVariables;
     }
@@ -184,7 +201,7 @@ public class ServerThread extends Thread {
      * @param trucVariables the temporary variables generated to convert SimplePARQL to SPARQL
      * @return JSON Array to be added to the Json result
      */
-    private JsonArray addResultsToJson(Result result, TrucVariables trucVariables) {
+    private JsonArray addResultsToJson(Result result, TrucVariables trucVariables, SimplePARQLQuery queryOrdered) {
         JsonArray results = new JsonArray();
         JsonArray elementOfArray;
         for (int i = 0; i < result.getResponses().size(); i++) {
@@ -206,14 +223,60 @@ public class ServerThread extends Thread {
                     jsonObject.addProperty("Position", tmp.getPosition());
                     jsonArray.add(jsonObject);
                 } else {
-                    jsonObject.addProperty("Variable", result.getVariables().get(j));
-                    jsonObject.addProperty("Result", result.getResponses().get(i).get(j));
-                    elementOfArray.add(jsonObject);
+                    if (queryOrdered.isSelectAll() || queryOrdered.getSelectedVariables().contains(result.getVariables().get(j))) {
+                        jsonObject.addProperty("Variable", result.getVariables().get(j));
+                        jsonObject.addProperty("Result", result.getResponses().get(i).get(j));
+                        elementOfArray.add(jsonObject);
+                    }
                 }
             }
             results.add(elementOfArray);
         }
         return results;
+    }
+
+    /**
+     * Sort results of the json array, to be in the same order of the variables (in the begining of the json object).
+     *
+     * @param results old results : JsonArray
+     * @return sorted JsonArray result
+     */
+    private JsonArray sortResults(JsonArray variables, JsonArray results) throws JSONException {
+        JsonArray newResults = new JsonArray();
+        for (int i = 0; i < results.size(); i++) {
+            JsonArray newOne = new JsonArray();
+            JsonArray current = (JsonArray) results.get(i);
+            for (int j = 0; j < current.size(); j++) {
+                newOne.add(getResultElement(current, variables.get(j).getAsString()));
+            }
+            newResults.add(newOne);
+        }
+        return newResults;
+    }
+
+    /**
+     * get the variable's result from the final results json array
+     *
+     * @param array        the results array (the array containing one result of all variables)
+     * @param variableName name of the variable
+     * @return the json object of the array, that variable matches with variableName.
+     * @throws JSONException
+     */
+    private static JsonElement getResultElement(JsonArray array, String variableName) throws JSONException {
+        for (JsonElement element : array) {
+            if (element instanceof JsonArray) {
+                JSONObject json = new JSONObject(((JsonArray) element).get(0).toString());
+                if (json.getString("Variable").equals(variableName)) {
+                    return element;
+                }
+            } else {
+                JSONObject json = new JSONObject(element.toString());
+                if (json.getString("Variable").equals(variableName)) {
+                    return element;
+                }
+            }
+        }
+        return null;
     }
 
     /**

@@ -89,7 +89,7 @@ public class SparqlQueries {
      * We clone the array og queries
      * Then we browse to find (in the old tree) all truc
      * we create structure fr.esilv.simpleparql.source.model.Truc
-     * Then we generate cartesian prodcut of the truc (that may contains multiple new Items)
+     * Then we generate cartesian product of the truc (that may contains multiple new Items)
      */
     private void mainGenerate() throws IOException {
         ArrayList<ParseElement> oldGeneratedTrees = new ArrayList<>();
@@ -136,6 +136,35 @@ public class SparqlQueries {
             simpleARQLTrucs.add(trucFound);
         }
         return trucFound;
+    }
+
+    /**
+     * Get the parents' name
+     *
+     * @param parser containing all the parser
+     * @return parent's name of the truc
+     * @deprecated
+     */
+    String printParentPath(SimplePARQLParser parser, Truc truc) {
+        String result = "";
+        for (Pair<ParserRuleContext, Integer> rule : truc.getParents()) {
+            result += getRuleName(rule.getKey(), parser) + " " + rule.getValue().toString();
+            result += "\n";
+        }
+        return result;
+    }
+
+    /**
+     * gets the rule name from the rule tree
+     *
+     * @param rule   the rule itself
+     * @param parser to get all the rules
+     * @return the rule name
+     * @deprecated
+     */
+    private String getRuleName(ParserRuleContext rule, SimplePARQLParser parser) {
+        int ruleIndex = rule.getRuleIndex();
+        return parser.getRuleNames()[ruleIndex];
     }
 
     /**
@@ -284,7 +313,6 @@ public class SparqlQueries {
             graphPatternNotTriplesContext.addChild(Constants.getTreeOfText(filterText).filter());
         }
     }
-
 
 
     /**

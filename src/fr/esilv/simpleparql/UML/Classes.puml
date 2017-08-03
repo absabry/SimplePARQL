@@ -95,9 +95,9 @@ class fr.esilv.simpleparql.source.model.ParseElement{
 +getPage()
 }
 
-class fr.esilv.simpleparql.source.model.QueryOrdered{
+class fr.esilv.simpleparql.source.model.SimplePARQLQuery{
 - parser : SimplePARQLParser
-+fr.esilv.simpleparql.source.model.QueryOrdered(SimplePARQLParser parser)
++fr.esilv.simpleparql.source.model.SimplePARQLQuery(SimplePARQLParser parser)
 +getParser()
 -{static} RearrangeQuery(SimplePARQLParser parser)
 -{static} getComposantesOfTriples(ParseTree triplesSameSubject)
@@ -159,7 +159,7 @@ note top of fr.esilv.simpleparql.source.model.Truc : SimpleARQL new structure.
 note top of fr.esilv.simpleparql.source.model.ParseElement : Final SPARQL queries with page.
 note top of fr.esilv.simpleparql.source.converter.SparqlQueries : SimplePARQL SPARQL converter.
 note top of fr.esilv.simpleparql.source.converter.query.GenerateQuery : Generate composant for the truc.
-note top of fr.esilv.simpleparql.source.model.QueryOrdered : Delete ; and  , from query.
+note top of fr.esilv.simpleparql.source.model.SimplePARQLQuery : Delete ; and  , from query.
 note top of fr.esilv.simpleparql.source.model.Composant : fr.esilv.simpleparql.source.model.Triple,filter and page
 note top of fr.esilv.simpleparql.source.model.Triple : Subject,predicate,object.
 

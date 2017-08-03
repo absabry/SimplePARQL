@@ -122,6 +122,12 @@ nav a
 	border-radius:4px;
 }
 
+.sm-element{
+width:200px;
+font-size:14px;
+border-radius:4px;
+}
+
 .small_element{
     height:20px;
 	font-size:10px;
@@ -155,26 +161,26 @@ aside
 	font-size: 0.9em;
 }
 
-.assisted{
+#query_bloc{
     display: inline-block;
-    width: 50%;
     border-radius: 10px;
     box-shadow: 0px 2px 5px #1c1a19;
     padding-left: 10px;
 }
+.assisted{
+    width: 50%;
+}
 
 .not_assisted{
-    display: inline-block;
     width: 99%;
-    border-radius: 10px;
-    box-shadow: 0px 2px 5px #1c1a19;
-    padding-left: 10px;
 }
 
 #informations{
     width: 50%;
     box-shadow: 0px 2px 5px #1c1a19;
+    border-radius: 10px;
     padding: 10px;
+    margin-left:10px;
 }
 
 #informations b {
@@ -192,14 +198,8 @@ aside
 	width: 20px;
 }
 
-#newprefix {
-	display: none;
-}
-#filter {
-	display: none;
-}
-#optional {
-	display: none;
+.hidden_field{
+display:none;
 }
 
 #limit {
@@ -264,9 +264,9 @@ textarea:focus {
     background-color: #eed;
 }
 
-.showQuery_img{
+.collapse{
     position: absolute;
-    right: 10px;
+    right: 15px;
     vertical-align: middle;
 }
 
@@ -275,11 +275,6 @@ font-family: "Lato","sans-serif";
 border: 1px;
 table-layout:fixed;
 width: 100%;
-}
-
-table.one {
-    margin-bottom: 3em;
-    border-collapse:collapse;
 }
 
 th {							  /* removed the border from the table heading row  */
@@ -305,6 +300,7 @@ table tr:nth-child(even) {		      /* added all even rows a #eee color  */
 table tr:nth-child(odd) {		     /* added all odd rows a #fff color  */
     background-color:#fff;
 }
+
 
 /*** Other ***/
 
@@ -339,12 +335,37 @@ footer {
     color : #888888;
 }
 
-footer .left {
-    display: inline-block;
+footer{
+    width:100%;
+    text-align:center;
+    position:relative;
 }
+
+footer .left {
+    float:left;
+    width:100px;
+}
+
+footer .center {
+    display: inline-block;
+    margin:0 auto;
+    width:300px;
+    text-align:center;
+}
+
+.version
+{
+    display:inline-block;
+}
+
 footer .right {
     float:right;
+    width:100px;
 }
+
+
+
+
 
 .truc_in_table {
     position: relative;
@@ -354,4 +375,61 @@ footer .right {
     position: absolute;
     bottom: 0px;
     right: 0px;
+}
+
+
+/* ---------------------------------------- Box in the about file ------------------------------*/
+.box, .box_body, .box_head, .box_head h2 {
+    background: transparent url(../images/box_background.png) no-repeat bottom right;
+}
+.box {
+    width:98% !important; /* intended total box width - padding-right(next) */
+    /*width: 1000px; /* IE Win = width - padding */
+    padding-right: 15px; /* the gap on the right edge of the image (not content padding) */
+    margin: 0 0 0 0; /* use to position the box */
+}
+
+/* set the top-right image */
+.box_head {
+    background-position: top right; margin-right: -15px; /* pull the right image over on top of border */
+    padding-right: 40px; /* right-image-gap + right-inside padding */
+}
+
+/* set the top-left image */
+.box_head h2 {
+    background-position: top left;
+    margin: 0; /* reset main site styles*/
+    border: 0; /* ditto */
+    padding: 25px 0 15px 40px; /* padding-left = image gap + interior padding ... no padding-right */
+    height: auto !important; height: 1%; /* IE Holly Hack */
+	font-size:100%
+}
+
+/* set the lower-left corner image */
+.box_body {
+    background-position: bottom left;
+    margin-right: 25px; /* interior-padding right */
+    padding: 15px 0 30px 40px; /* mirror .box_head right/left */
+	text-align:justify;
+	font-size:80%
+	font-size : 1.5em;
+}
+
+.query_about{
+    font-size : 0.8em;
+}
+
+.justify{
+text-align:justify;
+}
+
+.med-size{
+    font-size:1.1em;
+}
+
+.one_page {
+ position: absolute;
+ bottom:0;
+ left: 0;
+ right:0;
 }

@@ -3,12 +3,15 @@ var PORT = 1234;
 var HOST= 'localhost';
 var urlMySocket = "ws://"+HOST+":"+PORT+"/";
 var mySocket;
-var jsonResults;
 var SIMPLEPARQL_QUERY_ASSISTED;
 var SIMPLEPARQL_QUERY;
+var dictionnaryTrucs={};
 
 $("#query_form").submit(function( event ) {
      event.preventDefault();
+     $('#clear').trigger('click');
+     waitFunction();
+     dictionnaryTrucs={};
      var queryInformations;
       if ($('#assist').is(':checked')) {
          queryInformations = createQueryFromAssisted();
@@ -17,49 +20,54 @@ $("#query_form").submit(function( event ) {
      }
      SIMPLEPARQL_QUERY = queryInformations.query;
 
+
+    var download_list = $("#download_list").data("kendoMultiSelect").value();
      callSocket(queryInformations, function (s) {
-            jsonResults = JSON.parse(s);
-            result("#query_results",jsonResults);
+            var jsonResults = JSON.parse(s);
+            if(jsonResults != undefined){
+                for(var i in download_list){
+                     download_display(download_list[i],jsonResults);
+                }
+            }
             $('#wait').empty();
      });
 });
 
+// not working yet, we should stop the socket and the web socket when clicking on clear!
 $("#clear").click(function(){
-    if(mySocket != undefined){
-         //mySocket.close();
-         // does not work yet
+    clearFunction();
+    if(mySocket != undefined && mySocket.readyState != mySocket.CLOSED && mySocket.readyState != mySocket.CLOSING ){
+         mySocket.send('stop');
+         mySocket.close();
     }
 });
 
-$("#download").click(function() {
-  if(jsonResults != undefined){
-      $("<a />", {
-        "download": Date() + ".json",
-        "href" : "data:application/json," + encodeURIComponent(JSON.stringify(jsonResults,null,4))
-      }).appendTo("body")
-      .click(function() {
-         $(this).remove()
-      })[0].click()
-  }
-  else{
-    alert("You don't have any result, please run the query first!");
-  }
-});
 
-$("#download-XML").click(function() {
-    if(jsonResults != undefined){
-          $("<a />", {
-            "download": Date() + ".xml",
-            "href" : "data:application/json," + encodeURIComponent(json2xml(jsonResults))
-          }).appendTo("body")
-          .click(function() {
-             $(this).remove()
-          })[0].click();
+// download files directly
+function download_display(format,jsonResults){
+    if(format == 'XML'){
+        $("<a />", {
+          "download": Date() + ".xml",
+          "href" : "data:application/json," + encodeURIComponent(json2xml(jsonResults))
+        }).appendTo("body")
+        .click(function() {
+           $(this).remove()
+        })[0].click();
     }
-    else{
-        alert("You don't have any result, please run the query first!");
+    else if(format =='JSON'){
+        $("<a />", {
+          "download": Date() + ".json",
+          "href" : "data:application/json," + encodeURIComponent(JSON.stringify(jsonResults,null,4))
+        }).appendTo("body")
+        .click(function() {
+           $(this).remove()
+        })[0].click()
     }
-});
+    else if(format == 'HTML'){
+        result("#query_results",jsonResults);
+    }
+}
+
 
 function json2xml(json) {
     var c = document.createElement("root");
@@ -143,9 +151,6 @@ function createQueryFromAssisted(){
      var optional = $('#optional').val();
      var limit = $('#limit').val();
      var prefixes = $("#list_prefixes").data("kendoMultiSelect").value();
-     var newprefix = $('#newprefix').val();
-     newprefix = cleanArray(newprefix.split("\n"));
-     prefixes = prefixes.concat(newprefix);
      var allPrefixes = '';
      for(var i=0;i<prefixes.length;i++){
         allPrefixes += ' PREFIX ' + prefixes[i];
@@ -155,8 +160,8 @@ function createQueryFromAssisted(){
          'select':select,
          'where':where,
          'filter':filter,
-         'optional':optional,
-         }
+         'optional':optional
+      }
      var query= allPrefixes
                + ' SELECT ' + select
                + ' WHERE {' + where
@@ -166,20 +171,19 @@ function createQueryFromAssisted(){
                + (limit.trim() != ''? ' LIMIT ' + limit:'');
      var queryInformations={
                   "bases" : bases,
-                  "query":query
+                  "query":query,
+                  "timeout" : $('#timeout').val()
      }
      return queryInformations;
 }
 
 // create array when it's assisted form
 function createQueryFromNoAssisted(){
-      var bases = $("#list_bases").data("kendoMultiSelect").value();
-      var query= $('#query').val();
-      var queryInformations={
-              "bases" : bases,
-              "query":query
+      return {
+              "bases" : $("#list_bases").data("kendoMultiSelect").value(),
+              "query":$('#query').val(),
+              "timeout" : $('#timeout').val()
       }
-      return queryInformations;
 }
 
 // get cleaned array (without empty elements)
@@ -197,16 +201,16 @@ function cleanArray(array){
 
 // main websocket
 function callSocket (s, callback) {
-    var whenstart = new Date ();
+    var whenstart = new Date();
     mySocket = new WebSocket (urlMySocket)
     mySocket.onopen = function (evt) {
         mySocket.send(JSON.stringify(s)+"\n");
-        };
+    };
     mySocket.onmessage = function (evt) {
         $("#idWebSocketTime").text ("The call to the server took " + secondsSince (whenstart) + " secs to perform this query.");
         callback (evt.data);
         mySocket.close ();
-        };
+    };
     mySocket.onerror = function (event) {
         var result = $('<h3></h3>').addClass('error')
                     .text("There was an error with your websocket. [Maybe the webservice isn't connected to the server..?]");
@@ -214,8 +218,8 @@ function callSocket (s, callback) {
         $('#wait').empty();
     };
     mySocket.onclose = function(event){
-         // detect when the socket is closing
-        //console.log("Socket closed");
+        // detect when the socket is closing
+        console.log("Socket closed");
     }
 }
 
@@ -240,149 +244,210 @@ function isJSON (something) {
     }
 }
 
-function result(query_div,json){
-    $(query_div).empty(); // clear the div
+function result($query_div,json){
+    $($query_div).empty(); // clear the div
 
     if(json.hasOwnProperty('error')){
-        addError(query_div,json.error);
+        addError($query_div,json.error);
         return;
     }
 
-    addBase(query_div,json.base);
+    addBase($query_div,json.base);
 
+    var counter=1;
     for (var i=0; i <json.result.length;i++){
-        addQuery(query_div,json.result[i].query,i,json.base.api);
-        var table = $('<table></table>');
-        addTitle(table,json,i);
-        addResults(table,json,i);
-        $(query_div).append(table);
-        $(query_div).append('<hr>');
-        $(query_div).append('<br/>');
+        if(json.result[i].results.length != 0){
+            addQuery($query_div,json.result[i].query,counter,json.base.link,json.base.api);
+            var $div_title = $('<div></div>').addClass('title');
+            addTitle($div_title,json.result[i]);
+            var $div_results=$('<div></div>').addClass('results');
+            addResults($div_results,json.result[i]);
+            $($query_div).append($div_title);
+            $($query_div).append($div_results);
+            $($query_div).append('<hr>');
+            $($query_div).append('<br/>');
+            counter++;
+        }
     }
 }
 
 // add error (if exsits) to the html page
-function addError(query_div,error){
-    var errorTag = $('<h3></h3>').addClass('error');
+function addError($query_div,error){
+    var $error = $('<h3></h3>').addClass('error');
     if(isJSON(error)){
-        errorTag.multiline("Connection refused to the server. [Maybe the server isn't turned on..?] \n" + JSON.stringify(error));
+        $error.multiline("Connection refused to the server. [Maybe the server isn't turned on..?] \n" + JSON.stringify(error));
     }
     else{
-        errorTag.text(json.error);
+        $error.text(error);
     }
-    $(query_div).append(errorTag);
+    $($query_div).append($error);
 }
 
 // add base to the html page
-function addBase(query_div,base){
-    var baseTag=$('<p></p>')
+function addBase($query_div,base){
+    var $base=$('<p></p>')
             .text('Results for the base ')
             .append('<b>'+base.name+'</b>')
             .append(' You can found it here: ');
-            addURIElement(baseTag,base.link);
-            $(query_div).append(baseTag);
+            addURIElement($base,base.link);
+            $($query_div).append($base);
 }
 
 // add query to the html page
-function addQuery(query_div,query,i,apiBase){
-    var header = $('<div></div>').addClass('query_header').attr('title',query.substring(0,50)+'...\nClick on the arrow to see more');
-    var textBesidesTheImage = $('<h5></h5>').text('Generated query n°'+(i+1)).css('display','inline');
-    var imageCollapse =  $('<img></img>').addClass('showQuery_img')
-                          .attr('src','images/down-arrow.png').addClass('pointer')
+function addQuery($query_div,query,counter,base,apiBase){
+    var header = $('<div></div>').addClass('query_header tooltip').attr('title',query.substring(0,50)+'...\nClick on the arrow to see more.');
+    var textBesidesTheImage = $('<h5></h5>').text('SPARQL query n°'+counter).css('display','inline');
+    var imageCollapse =  $('<img></img>').addClass('collapse pointer')
+                          .attr('src','images/down-arrow.png')
                           .click(function () {
-                            $(this).parent().next().slideToggle(500);
+                            var $toggled = $(this).parent().next();
+                            $toggled.slideToggle(500,toggleQuery($(this),$toggled.is( ":visible" ),300));
                           });
-
     header.append(textBesidesTheImage);
     header.append(imageCollapse);
 
-    var queryTag= $("<p></p>").addClass('query')
+    var $query= $("<p></p>").addClass('query')
         .multiline(reformatQuery(query));
-        addLogoToQuery(queryTag,apiBase);
-    $(query_div).append(header);
-    $(query_div).append(queryTag);
+    addLogoToQuery($query,base,apiBase);
+    $($query_div).append(header);
+    $($query_div).append($query);
 }
 
-// add the logo to the query to execute it in dbpedia
-function addLogoToQuery(queryTag,apiBase){
+function toggleQuery($img,visible){
+    setTimeout(function() {
+       if(visible){
+            $img.attr('src','images/down-arrow.png');
+       }
+       else{
+            $img.attr('src','images/up-arrow.png');
+       }
+    }, 300);
+}
 
-    var div= $('<div></div>')
-    var openBase = $('<img></img>').addClass('pointer').attr('title','Click to use me in the base!');
-    openBase.attr('src', 'images/useme.png');
-    $(openBase).on( "click", function() {
-        copyToClipboard($(this).parent().parent().text()); // to get the query text from the <p> tag (this.parent is <div>, and then it's <p>)
-        alert("Just past the query in the new form!");
-        window.open(base);
+// add the logo to the query to execute it in the api
+function addLogoToQuery($query,base,apiBase){
+
+    var $div= $('<div></div>');
+    var $openBase = $('<img></img>').addClass('pointer tooltip');
+    $openBase.attr('src', 'images/copy_me.png');
+    $openBase.tooltipster({
+        content: 'Click to use me in the base!',
+        autoClose: 'false',
+    });
+    $($openBase).on( "click", function() {
+        var msg = copyToClipboard($(this).parent().parent()); // to get the query text from the <p> tag (this.parent is <div>, and then it's <p>)
+        setTimeout(function() {
+            window.open(base);
+        }, 1000);
+        $(this).tooltipster('content', msg);
     })
-    var seeResult = $('<img></img>').addClass('pointer').attr('title','Click to see my results in the base!');
-        seeResult.attr('src', 'images/result.png');
-        $(seeResult).on( "click", function() {
-            var tempQuery = $(this).parent().parent().text();
-            console.log(apiBase);
-            window.open(encodeURI(apiBase+tempQuery));
+    .mousedown(function(){
+             $(this).attr('src','images/copy_me_pressed.png' );
+    })
+    .mouseup(function(){
+        $(this).attr('src','images/copy_me.png' );
+     })
+    .mouseout(function(){
+             $(this).tooltipster('content', 'Click to use me in the base!');
+     })
+
+    var $seeResult = $('<img></img>').addClass('pointer tooltip').attr('title','Click to see my results in the base!');
+        $seeResult.attr('src', 'images/result.png');
+        $($seeResult).on( "click", function() {
+            var tempQuery = $(this).parent().parent().clone().find('br').prepend(' ').end().text();;
+            window.open(apiBase+encodeURIComponent(tempQuery));
         });
-    div.append(openBase);
-    div.append(seeResult);
-    queryTag.append(div);
+    $div.append($openBase);
+    $div.append($seeResult);
+    $query.append($div);
 }
 
-function copyToClipboard(text) {
-  var element = $('<textarea>').appendTo('body').val(text).select();
+function copyToClipboard($parent) {
+  var filtredText = $($parent).clone().find('br').prepend('\r\n').end().text();  // trasnform <br> tag to \r\n tag!
+  var element = $('<textarea>').appendTo('body').val(filtredText).select();
   var successful = document.execCommand('copy');
   var msg = successful ? 'Text copied to clipboard!' : 'Unsuccessful copy of text to clipboard';
-  console.log(msg);
   element.remove();
+  return msg;
 }
 
 // add the th of the table
-function addTitle(table,json,i){
-    var row= $('<tr></tr>');
-    for(var j=0; j<json.result[i].variables.length; j++){
-        if(!isTrucVariables(json.result[i].variables[j])){
-            var title = $('<th></th>').text(json.result[i].variables[j]);
-            row.append(title);
+function addTitle($div,result){
+    var $table=$('<table></table>');
+    var $thead=$('<thead></thead>');
+    var $row= $('<tr></tr>');
+    for(var j=0; j<result.variables.length; j++){
+        var $title = $('<th></th>').text(result.variables[j]);
+        // add the arrow to the last title (to be able to collapse and expand results)
+        if(j == result.variables.length -1){
+            var imageCollapse =  $('<img></img>').addClass('collapse tooltip')
+                                  .attr({'src':'images/arrow-up.png','title':'Show results.'}).addClass('pointer')
+                                  .click(function () {
+                                        var $toggled = $(this).closest('.title').next('.results');
+                                        $toggled.slideToggle(1200,toggleTable($(this),$toggled.is( ":visible" )));
+                                  });
+            $title.append(imageCollapse);
         }
+        $row.append($title);
     }
-    var imageCollapse =  $('<img></img>').addClass('showQuery_img')
-                          .attr('src','images/down-arrow.png').addClass('pointer')
-                          .click(function () {
-                            $(this).parent().next().slideToggle(500);
-                          });
-    //row.append(imageCollapse);
-    table.append(row);
+    $thead.append($row);
+    $table.append($thead);
+    $div.append($table);
+}
+
+// change image when slideToggle after animation time.
+function toggleTable($img,visible){
+    setTimeout(function() {
+       if(visible){
+            $img.attr('src','images/arrow-table.png');
+       }
+       else{
+            $img.attr('src','images/arrow-up.png');
+       }
+    }, 800);
 }
 
 // add results to the table created dynamically
-function addResults(table,json,i){
-    for(var j=0;j<json.result[i].results.length;j++){
-        var row= $('<tr></tr>');
-        for(var k=0;k<json.result[i].results[j].length;k++){
+function addResults($div,result){
+    var $table = $('<table></table>');
+    var $tbody = $('<tbody></tbody>');
+    for(var j=0;j<result.results.length;j++){
+        var $row= $('<tr></tr>');
+        for(var k=0;k<result.results[j].length;k++){
             var element=$('<td></td>');
-            if(json.result[i].results[j][k] instanceof Array){ // when the variable is temporary, and it's not a real variable
-                addURIElement(element,json.result[i].results[j][k][1].Result,'value');
-                addPropretyOrLabel(element,json.result[i].results[j][k]);
-                addLogoToTrucCell(element,json);
-                row.append(element);
+            if(result.results[j][k] instanceof Array){ // when the variable is temporary, and it's not a real variable
+                var currentResult = result.results[j][k][1].Result;
+                addURIElement(element,currentResult,'value');
+                addPropretyOrLabel(element,result.results[j][k]);
+                if(isUrl(currentResult)){ // if it's a label and not URI, we dont add the logo to the cell
+                    addLogoToTrucCell(element);
+                }
+                $row.append(element);
             }
             else{
-               if(isSelectedVariable(json.result[i].variables,json.result[i].results[j][k].Variable)){
-                  addURIElement(element,json.result[i].results[j][k].Result);
-                  row.append(element);
+               if(isSelectedVariable(result.variables,result.results[j][k].Variable)){
+                  addURIElement(element,result.results[j][k].Result);
+                  $row.append(element);
                }
             }
         }
-        table.append(row);
+        $tbody.append($row);
+        $table.append($tbody);
+        $div.append($table);
     }
 }
 
 // add the logo for coping the value to query
 function addLogoToTrucCell(element){
-      var img = $('<img></img>').addClass('pointer');
+      var img = $('<img></img>').addClass('pointer tooltip');
       img.attr({'src':'images/grab.png','title':'Click to use me!'});
       $(img).on( "click", function() {
         var $td =$(this).parent();
-        var $th = $td.closest('table').find('th').eq($td.index());
-        replaceTruc($th.text(),$td.find('.value').text())
+        var $th = $td.closest('.results').prev().find('th').eq($td.index());
+        var value = $td.find('.value').text();
+        if(isUrl(value)){value = "<"+value+">";}
+        dictionnaryTrucs[$th.text()] = value;
+        replaceTrucs();
         resetCellsImages($td);
         img.attr('src', 'images/after_grab.png');
       })
@@ -395,6 +460,11 @@ function addLogoToTrucCell(element){
       element.addClass('truc_in_table');
       element.append(img);
 }
+
+
+
+/*----------------------------------- Replace trucs from the query with the URL result---------------------------------*/
+
 
 // get all table results, and reset their image if it's in the same column as $td
 function resetCellsImages($td){
@@ -409,41 +479,41 @@ function resetCellsImages($td){
 }
 
 // replace the truc on clicking the logo in the ceil
-function replaceTruc(trucName, trucFound){
-        if(isUrl(trucFound)){
-            trucFound = "<"+trucFound+">";
-        }
-        if ($('#assist').is(':checked')) {
-             var select = SIMPLEPARQL_QUERY_ASSISTED.select;
-             elementToTextArea('select',select.replace(trucName,trucFound));
-             var where = SIMPLEPARQL_QUERY_ASSISTED.where;
-             elementToTextArea('where',where.replace(trucName,trucFound));
-             var filter = SIMPLEPARQL_QUERY_ASSISTED.filter;
-             elementToTextArea('filter',filter.replace(trucName,trucFound));
-             var optional = SIMPLEPARQL_QUERY_ASSISTED.optional;
-             elementToTextArea('optional',optional.replace(trucName,trucFound));
-        }
-        else{
-            var query = SIMPLEPARQL_QUERY;
-            var index = query.indexOf(trucName);
-            var foundInQuery = getWord(index,trucName.length,query); // the truc found before adding the limiter " or
-            if(index != -1 ){
-                var beforechar = query.charAt(index-1);
-                var afterchar = query.charAt(index+trucName.length);
-                // add it to trucName to be removed when we will replace it
-                if(beforechar != ' '){
-                    trucName= beforechar + trucName;
-                }
-                if(afterchar != ' ' && afterchar !='.'){
-                    trucName = trucName + afterchar;
-                }
-                if(!isUrl(foundInQuery)){
-                    query = query.replace(trucName,trucFound); // replace the word
-                    queryToTextArea(query);
-                }
-            }
-        }
+function replaceTrucs(){
+    if ($('#assist').is(':checked')) {
+         (SIMPLEPARQL_QUERY_ASSISTED.select,'select');
+         replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.where,'where');
+         replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.filter,'filter');
+         replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.optional,'optional');
+    }
+    else{
+        replaceToTextArea(SIMPLEPARQL_QUERY,'query');
+    }
 }
+
+// put replaced text to the text area
+function replaceToTextArea(original,id){
+    var query = original;
+    for (var truc in dictionnaryTrucs) {
+        query = replaceElement(query,truc,dictionnaryTrucs[truc]);
+    }
+    elementToTextArea(id,query);
+}
+
+// replace element, with the corresponding one
+function replaceElement(query,trucName,trucFound){
+    var index = query.indexOf(trucName);
+    var foundInQuery = getWord(index,trucName.length,query); // the truc found before adding the limiter " or
+    if(!isUrl(foundInQuery) && index !=-1){
+        return query.replaceAll(wordToBeReplaced(query,foundInQuery,index,trucName),trucFound); // replace the word
+    }
+    return query;
+}
+
+String.prototype.replaceAll = function (find, replace) {
+    var str = this;
+    return str.replace(new RegExp(find, 'g'), replace);
+};
 
 // get word givin the index (maybe in the middle of the word)
 function getWord(index,endindex,query){
@@ -452,7 +522,7 @@ function getWord(index,endindex,query){
     var indexAfter=index + endindex;
     var charBefore= query.charAt(indexBefore-1);
     while(charBefore.trim() != ''){
-        word = charBefore +word;
+        word = charBefore + word;
         indexBefore = indexBefore-1;
         charBefore = query.charAt(indexBefore);
     }
@@ -465,6 +535,20 @@ function getWord(index,endindex,query){
     return word;
 }
 
+// clean word that will be replaced
+function wordToBeReplaced(query,foundInQuery,index,trucName){
+     var beforechar = query.charAt(index-1);
+     var afterchar = query.charAt(index+trucName.length);
+     if(beforechar != ' '){
+        trucName= beforechar + trucName;
+     }
+     if(afterchar != ' ' && afterchar !='.'){
+        trucName = trucName + afterchar;
+     }
+     return trucName;
+}
+
+/*----------------------------------- Build table results---------------------------------*/
 // add proprety tmp_var_1 tmp_var_2 OR label
 function addPropretyOrLabel(element,arrayOfResult){
     if(arrayOfResult[2] != undefined){
@@ -485,17 +569,6 @@ function addPropretyOrLabel(element,arrayOfResult){
 function isSelectedVariable(variables,variable){
     for(var i=0;i<variables.length;i++){
         if(variables[i] == variable){
-            return true;
-        }
-    }
-    return false;
-}
-
-// check if it's temp variable
-function isTrucVariables(variable){
-    trucVariables = ["SimplePARQL_","tmp_var1_","tmp_var2_","label_"]
-    for(var i=0;i<trucVariables.length;i++){
-        if(trucVariables[i] == variable.substring(0,variable.length-1)){
             return true;
         }
     }
@@ -527,3 +600,10 @@ function addURIElement(element,text,classAdded){
 // check if text is url (basic form)
 function isUrl(s) { return s.toLowerCase().startsWith('http') || s.toLowerCase().startsWith('<http');}
 
+// replace truc of old query with new values in the ASSISTED MODE
+function elementToTextArea(id,text){
+    if(id == 'query'){
+        text = reformatQuery(text);
+    }
+    document.getElementById(id).value = text;
+}
