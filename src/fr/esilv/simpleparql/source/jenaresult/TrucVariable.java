@@ -1,10 +1,12 @@
-package fr.esilv.simpleparql.source.result;
+package fr.esilv.simpleparql.source.jenaresult;
 
 import fr.esilv.simpleparql.source.model.Truc;
 import fr.esilv.simpleparql.source.model.VARIABLES;
 
 /**
- * Created to handle the result
+ * Created to handle the result from the Jena API.
+ * TODO  EXPLICATION ICI QUAND JE RE RENTRE DANS LE CODE
+ *
  */
 public class TrucVariable {
 

@@ -1,23 +1,25 @@
-package fr.esilv.simpleparql.source.result;
+package fr.esilv.simpleparql.source.jenaresult;
 
 import fr.esilv.simpleparql.source.model.Truc;
 
 import java.util.ArrayList;
 
 /**
- * Strcuture of the result we get from JENA server.
+ * The result we get from JENA server. <br>
  * We keep variables and all stuff we need to handle the result of the sparql query
- * and give it to the user in the best readble way
+ * and give it to the user in the best readble way.
+ * <p>
+ * <strong>variables:</strong> The variables of the SPARQL query <br>
+ * <strong>responses:</strong> The list of the results list <br>
+ * <strong>error:</strong> If an error occured, this field won't be null. We know then that this SPARQL have an error.
  */
-public class Result {
+public class SPARQLResult {
     private ArrayList<String> variables;
     private ArrayList<ArrayList<String>> responses;
-    private ArrayList<Truc> responsesTruc;
     private String error;
 
-    public Result() {
+    public SPARQLResult() {
         variables = new ArrayList<>();
-        responsesTruc = new ArrayList<>();
         responses = new ArrayList<>();
     }
 
@@ -29,10 +31,6 @@ public class Result {
         return responses;
     }
 
-    public ArrayList<Truc> getResponsesTruc() {
-        return responsesTruc;
-    }
-
     public String getError() {
         return error;
     }
@@ -41,10 +39,6 @@ public class Result {
         this.error = error;
     }
 
-    /**
-     * All the variables of the query
-     * @param variables the arrayList variables
-     */
     public void setVariables(ArrayList<String> variables) {
         this.variables = variables;
     }

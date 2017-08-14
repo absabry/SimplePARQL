@@ -3,7 +3,11 @@ package fr.esilv.simpleparql.source.configuration;
 import java.io.*;
 
 /**
- * Strcuture of the configuration file of the server between the client and the webservice
+ * Configuration file of the server between the client and the webservice. <br>
+ *
+ *  <strong>port:</strong>  Port used to communicate between the client and the webservice. <br>
+ *  <strong>basesConfig:</strong> The repository containing the configuration files of each base. <br>
+ *  <strong>queryConfig:</strong> The configuration file of the query. <br>
  */
 public class ServerConfig {
     private int port;

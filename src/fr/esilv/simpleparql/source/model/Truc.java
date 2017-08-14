@@ -11,18 +11,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Strcutre truc, contains:
- * name
- * position in the triple
- * counter (when we will convert it, we create variables)
- * currentTriple is the complete triple where the "truc" are
- * variables is the variable we generate to this truc (?SimpleARQL_, label_,etc...)
- * <p>
- * When we create a truc, we generate everything in thr constructor directly
- * We create their parent tree to the query
- * We compute their position in the triple
- * We generate the variables
- * generate their new triples
+ * Strcutre of the truc IN SimplaPARQL <br>
+ * <strong>name</strong> The name of the truc <br>
+ * <strong>position</strong>position in the triple <br>
+ * <strong>counter</strong>counter (when we will convert it, we'll create variables with this counter) <br>
+ * <strong> currentTriple </strong>currentTriple is the complete triple where the "truc" is locted. <br>
+ * <strong>variables</strong>variables is the variable we generate to this truc (?SimpleARQL_, label_,etc...) <br>
  */
 
 public class Truc {
@@ -33,6 +27,13 @@ public class Truc {
     private Triple currentTriple;
     private HashMap<VARIABLES, String> variables;
 
+    /**
+     * When we create a truc, we generate everything in thr constructor directly
+     * We create their parent tree to the query
+     * We compute their position in the triple
+     * We generate the variables
+     * generate their new triples
+     */
     public Truc(ParseTree node, int counter) {
         parents = new ArrayList<>();
         name = node.getText();
@@ -88,7 +89,7 @@ public class Truc {
     }
 
     /**
-     * compute the position of the "truc" after adding it
+     * compute the position of the "truc"  in it"s current triple after adding it
      */
     private void computePosition() {
         position = POSITION.SUBJECT;
@@ -100,7 +101,7 @@ public class Truc {
     }
 
     /**
-     * find in the parents of "truc" the ParseRuleContext when want
+     * Find in the parents of "truc" the ParseRuleContext when want <br>
      *
      * @param ruleIndex rule index you're searching for
      * @return FIRST node having the ruleIndex found in the tree
@@ -117,7 +118,6 @@ public class Truc {
     /**
      * Generate the triple where are the truc
      */
-
     private void generateTripleComposantes() {
         if (parents.size() != 0) {
             Pair<ParserRuleContext, Integer> triplesSameSubject = find(SimplePARQLParser.RULE_triplesSameSubject);
@@ -135,8 +135,8 @@ public class Truc {
     }
 
     /**
-     * Clean text we get from the triple, it may contains quotes or rafters
-     * This functions will clean it
+     * Clean text we get from the triple, it may contains quotes or rafters.
+     * This functions will clean it.
      *
      * @param text text to be cleaned from the characteres representing truc
      * @return same text cleaned up
@@ -157,16 +157,16 @@ public class Truc {
     }
 
     /**
-     * get if this truc is in optional group pattern or not
+     * Get if this truc is in optional group pattern or not.
      *
-     * @return true if it's it, false if it's not
+     * @return true if it's it, false if it's not.
      */
     public boolean isOptionnal() {
         return find(SimplePARQLParser.RULE_optionalGraphPattern) != null;
     }
 
     /**
-     * get if this truc is an exact truc or not, the exact truc is the one delimited by double quotes " ".
+     * Get if this truc is an exact truc or not, the exact truc is the one delimited by double quotes " ".
      *
      * @return true if it's it, false if it's not
      */
@@ -189,9 +189,6 @@ public class Truc {
         return null;
     }
 
-    public String toString() {
-        return "Truc: " + name + " nommé : " + variables.toString() + " Position: " + position;
-    }
 
     @Override
     public boolean equals(Object other) {
@@ -199,6 +196,10 @@ public class Truc {
         if (other == this) return true;
         if (!(other instanceof Truc)) return false;
         return (name).equals(((Truc) other).getName());
+    }
+
+    public String toString() {
+        return "Truc: " + name + " nommé : " + variables.toString() + " Position: " + position;
     }
 
 }

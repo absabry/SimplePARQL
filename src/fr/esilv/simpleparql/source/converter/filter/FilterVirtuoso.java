@@ -5,9 +5,8 @@ import fr.esilv.simpleparql.source.model.Constants;
 import java.util.List;
 
 /**
- * It's working sometimes and sometimes it dosent,  therefore it's better to add it as triples
- * Filter when the interface is virtuoso
- * we use FILTER(bif:contains(..,..))
+ * The filter generation when the base is virtuoso <br>
+ * example : FILTER(bif:contains(..,..))
  */
 
 public class FilterVirtuoso implements FilterGenerator {

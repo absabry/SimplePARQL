@@ -3,16 +3,16 @@ package fr.esilv.simpleparql.source.model;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
- * Element of the generatedQueries
+ * Element of the generatedQueries.
  * We keep :
- * page (to handle the split between those queries if needed)
- * query (the main tree geenrated)
+ * <strong>page</strong>to handle the split between those queries <br>
+ * <strong>query </strong>the query generted,in it's tree form <br>
  */
-public class ParseElement {
+public class SPARQLQueryGenerated {
     private ParserRuleContext query;
     private PAGE page;
 
-    public ParseElement(ParserRuleContext query, PAGE page) {
+    public SPARQLQueryGenerated(ParserRuleContext query, PAGE page) {
         this.query = query;
         this.page = page;
     }

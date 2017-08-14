@@ -5,8 +5,8 @@ import fr.esilv.simpleparql.source.model.Constants;
 import java.util.List;
 
 /**
- * Filter when we prefer to use regex
- * we use FILTER regex(?name, "text", "i")
+ * Filter generation when we use regex.<br>
+ * example :  FILTER regex(?name, "text", "i")
  */
 public class FilterRegex implements FilterGenerator {
 

@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
- * Strcuture of the configuration file of the ignored proprieties
+ * Configuration file of the SimplePARQL query. <br>
+ *
+ *  <strong>ignoredProprieties:</strong>  Proprieties we'll exclude when we'll search for all proprieties. <br>
+ *  <strong>predifinedPrefixes:</strong> The prefixes that will be defined in the query even if the user don't do it. <br>
  */
 public class QueryConfig {
     private ArrayList<String> ignoredProprieties;

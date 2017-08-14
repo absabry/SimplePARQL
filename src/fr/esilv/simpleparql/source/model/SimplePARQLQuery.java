@@ -12,7 +12,7 @@ import java.util.Collection;
 /**
  * order the query to have triples only
  * ?a ?b ?c;?d ?e,?f
- * the result will be:
+ * the jenaresult will be:
  * ?a ?b ?c .
  * ?a ?d ?e .
  * ?a ?d ?e

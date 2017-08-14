@@ -5,9 +5,9 @@ import fr.esilv.simpleparql.source.model.Constants;
 import java.util.List;
 
 /**
- * Normal filter, no special case here
+ * No special filter's case here, it's just the default case.
  */
-public class FilterNormal implements FilterGenerator {
+public class FilterDefault implements FilterGenerator {
 
     /**
      * Filter of this specific query depending on the type of the query (labels, IRI or proprieties)

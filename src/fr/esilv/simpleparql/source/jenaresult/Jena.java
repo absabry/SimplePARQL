@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.source.result;
+package fr.esilv.simpleparql.source.jenaresult;
 
 
 import com.hp.hpl.jena.graph.Node;
@@ -17,27 +17,34 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.HTMLWriter;
 import org.dom4j.io.OutputFormat;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.io.*;
 import java.util.*;
 
+/**
+ * Working with Jena API.
+ */
 public class Jena {
 
-    // new main function
-    public Result executeSparql(String base, String sparqlQueryString, String timeout) {
-        Result result = new Result();
-
+    /**
+     * Execute SPARQL query using Jena API.
+     * @param base Base the user chose for exectuing this query
+     * @param sparqlQueryString The query in string format
+     * @param timeout The timeout decided for the query
+     * @return
+     */
+    public SPARQLResult executeSparqlQuery(String base, String sparqlQueryString, String timeout) {
+        SPARQLResult SPARQLQuery = new SPARQLResult();
         try {
             Query query = QueryFactory.create(sparqlQueryString);
             QueryEngineHTTP qexec = (QueryEngineHTTP) QueryExecutionFactory.sparqlService(base, query);
             qexec.addParam("timeout", timeout);
             ResultSet results = qexec.execSelect();
-            result.setVariables(new ArrayList<>(results.getResultVars())); // get variables of the query
+            SPARQLQuery.setVariables(new ArrayList<>(results.getResultVars())); // get variables of the query
             for (; results.hasNext(); ) {
                 QuerySolution sol = results.nextSolution();
                 ArrayList<String> solution = new ArrayList<>();
-                for (String ittVar : result.getVariables()) {
+                for (String ittVar : SPARQLQuery.getVariables()) {
                     String val;
                     RDFNode var = sol.get(ittVar);
                     if (var.isLiteral()) {
@@ -53,20 +60,22 @@ public class Jena {
                     }
                     solution.add(val);
                 }
-                result.addToResponse(solution);
+                SPARQLQuery.addToResponse(solution);
             }
             qexec.close();
         } catch (QueryParseException e) {
-            result.setError("error while parsing your SimplePARQL query");
+            SPARQLQuery.setError("error while parsing your SimplePARQL query");
         } catch (Exception e) {
-            result.setError(e.getMessage().substring(e.getMessage().indexOf(":") + 1).replace("Server", "remote server"));
+            SPARQLQuery.setError(e.getMessage().substring(e.getMessage().indexOf(":") + 1).replace("Server", "remote server"));
         }
-        return result;
+        return SPARQLQuery;
     }
 
-    //---------------------------------------OLD STUFF, CAN BE USEFUL---------------------------------------------------
+    /*---------------------------------------OLD STUFF, CAN BE USEFUL LATER---------------------------------------------------*/
 
-    // old main function
+    /**
+     * old main function
+     */
     private static void saveSparql(String base, String sparqlQueryString, String format, String filename) throws IOException {
         Query query = QueryFactory.create(sparqlQueryString);
         QueryEngineHTTP qexec = (QueryEngineHTTP) QueryExecutionFactory.sparqlService(base, query);
@@ -120,7 +129,9 @@ public class Jena {
         }
     }
 
-    // save in html format
+    /**
+     * save in html format
+     */
     private static ByteArrayOutputStream saveHTML(ResultSet results) throws Exception {
         Document document = DocumentHelper.createDocument();
         Element html = document.addElement("html");
@@ -211,7 +222,9 @@ public class Jena {
         return byteOutput;
     }
 
-    // get exact format of files we use in this application
+    /**
+     * get exact format of files we use in this application
+     */
     private static String getFormat(String format) {
         String result = format.toLowerCase();
         if (Objects.equals(result, "turtle")) {
@@ -224,7 +237,9 @@ public class Jena {
         return result;
     }
 
-    // work with a local database as an endpoint
+    /**
+     * work with a local database as an endpoint
+     */
     private static void TDBTest() {
         String tdbDirectory = "C:\\TDBTEST";
         String dbdump0 = "C:\\Users\\Abdel\\Desktop\\Stage_A4\\StageRechreche\\dataTarantinoFilms.purge.nt";
@@ -239,7 +254,9 @@ public class Jena {
         tdb.close();
     }
 
-    // get all triples of the query
+    /**
+     * get all triples of the query
+     */
     private static void getTriples(String sparqlQueryString) {
 
         Query query = QueryFactory.create(sparqlQueryString);

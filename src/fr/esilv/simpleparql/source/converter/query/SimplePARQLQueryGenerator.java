@@ -2,13 +2,12 @@ package fr.esilv.simpleparql.source.converter.query;
 
 
 import fr.esilv.simpleparql.source.converter.filter.FilterCommon;
+import fr.esilv.simpleparql.source.converter.filter.FilterDefault;
 import fr.esilv.simpleparql.source.converter.filter.FilterGenerator;
-import fr.esilv.simpleparql.source.converter.filter.FilterNormal;
 import fr.esilv.simpleparql.source.model.Truc;
 import fr.esilv.simpleparql.source.model.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,7 +22,7 @@ import java.util.List;
  * the page we keep it in
  */
 
-public class GenerateQuery {
+public class SimplePARQLQueryGenerator {
     private Truc truc;
     private ArrayList<Composant> generatedComposants;
     private FilterGenerator filterGenerator;
@@ -31,7 +30,7 @@ public class GenerateQuery {
     private List<String> ignoredProprieties;
 
 
-    public GenerateQuery(Truc truc, FilterGenerator filterGenerator, PAGE page, List<String> ignoredProprieties) {
+    public SimplePARQLQueryGenerator(Truc truc, FilterGenerator filterGenerator, PAGE page, List<String> ignoredProprieties) {
         this.filterGenerator = filterGenerator;
         this.truc = truc;
         generatedComposants = new ArrayList<>();
@@ -47,7 +46,7 @@ public class GenerateQuery {
     }
 
     /**
-     * This function never change, it generates the query that check the IRI of the ressource
+     * This function never change, it generates the query that check the IRI of the ressource. <br>
      * SELECT *
      * WHERE {
      * ?SimplePARQL_1 ?b ?c .
@@ -75,7 +74,7 @@ public class GenerateQuery {
             if (truc.isExact()) {
                 filter = new FilterCommon().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
             } else {
-                filter = new FilterNormal().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
+                filter = new FilterDefault().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
             }
             return new Composant(triples, filter, null, page);
         }

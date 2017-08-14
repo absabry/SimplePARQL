@@ -2,14 +2,20 @@ package fr.esilv.simpleparql.source.configuration;
 
 
 import fr.esilv.simpleparql.source.converter.filter.FilterGenerator;
-import fr.esilv.simpleparql.source.converter.filter.FilterNormal;
+import fr.esilv.simpleparql.source.converter.filter.FilterDefault;
 import fr.esilv.simpleparql.source.converter.filter.FilterRegex;
 import fr.esilv.simpleparql.source.converter.filter.FilterVirtuoso;
 
 import java.io.*;
 
 /**
- * Strcuture of the configuration file of the bases
+ * Configuration file of the each base. <br>
+ *
+ *  <strong>name:</strong>  name of the base. <br>
+ *  <strong>link:</strong> The link of the base.<br>
+ *  <strong>filter:</strong> The filter he want to use, if it's virtuoso it should be filter virtuoso for example. <br>
+ *  <strong>optionnal:</strong> Include the optionnal conversion or not, when the trucs is in this composant.  <br>
+ *  <strong>api:</strong> The link to redirect the user to the base's api in the web interface (usally begins with link field).<br>
  */
 public class BaseConfig {
 
@@ -39,7 +45,7 @@ public class BaseConfig {
             case "VIRTUOSO":
                 return new FilterVirtuoso();
             case "OTHER":
-                return new FilterNormal();
+                return new FilterDefault();
             default:
                 return null;
         }

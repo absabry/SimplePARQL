@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.source.result;
+package fr.esilv.simpleparql.source.jenaresult;
 
 import fr.esilv.simpleparql.source.model.Truc;
 
@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 /**
  * List of responses triplets structure
+ * TODO  EXPLICATION ICI QUAND JE RE RENTRE DANS LE CODE
  */
 public class TrucVariables {
     private ArrayList<TrucVariable> triplets;

@@ -9,10 +9,10 @@ import fr.esilv.simpleparql.source.configuration.QueryConfig;
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import fr.esilv.simpleparql.source.converter.SparqlQueries;
 import fr.esilv.simpleparql.source.model.*;
-import fr.esilv.simpleparql.source.result.Jena;
-import fr.esilv.simpleparql.source.result.Result;
-import fr.esilv.simpleparql.source.result.TrucVariable;
-import fr.esilv.simpleparql.source.result.TrucVariables;
+import fr.esilv.simpleparql.source.jenaresult.Jena;
+import fr.esilv.simpleparql.source.jenaresult.SPARQLResult;
+import fr.esilv.simpleparql.source.jenaresult.TrucVariable;
+import fr.esilv.simpleparql.source.jenaresult.TrucVariables;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.apache.log4j.Logger;
@@ -29,8 +29,8 @@ import java.util.ArrayList;
  * This will create a multiclient server that will not be influenced
  * by other clients.
  */
-public class ServerThread extends Thread {
-    private final static Logger logger = Logger.getLogger(ServerThread.class);
+public class ClientThread extends Thread {
+    private final static Logger logger = Logger.getLogger(ClientThread.class);
     private Socket socket;
     private int client;
     private String address;
@@ -40,7 +40,7 @@ public class ServerThread extends Thread {
     private String baseConfig;
     private QueryConfig queryConfig;
 
-    ServerThread(int client, Socket socket, String baseConfig, QueryConfig queryConfig) {
+    ClientThread(int client, Socket socket, String baseConfig, QueryConfig queryConfig) {
         this.socket = socket;
         this.client = client;
         this.baseConfig = baseConfig;
@@ -98,28 +98,27 @@ public class ServerThread extends Thread {
             addBaseInformations(json, config);
 
             JsonArray jsonElementBase = new JsonArray();
-            SparqlQueries generatedQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), PAGECHOOSEN, config.isOptionnal(), queryConfig);
-            for (ParseElement generatedElement : generatedQueries.getGeneratedQueries()) {
+            SparqlQueries sparqlQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), PAGECHOOSEN, config.isOptionnal(), queryConfig);
+            for (SPARQLQueryGenerated generatedElement : sparqlQueries.getGeneratedQueries()) {
                 JsonObject jsonElementgeneratedElement = new JsonObject();
                 String query = Constants.treeToString(parser, generatedElement.getQuery());
                 jsonElementgeneratedElement.addProperty("query", query);
-                Result result = new Jena().executeSparql(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF), request.getTimeout());
-                if (result.getError() != null) {
-                    return sendError(result);
+                SPARQLResult SPARQLQuery = new Jena().executeSparqlQuery(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF), request.getTimeout());
+                if (SPARQLQuery.getError() != null) {
+                    return sendError(SPARQLQuery);
                 } else {
-                    TrucVariables trucVariables = getVariablesOfTrucs(result, generatedQueries);
-                    JsonArray theSelectedVariables = addVariablesTojSON(result, generatedQueries, simplePARQLQuery);
+                    TrucVariables trucVariables = getVariablesOfTrucs(SPARQLQuery, sparqlQueries);
+                    JsonArray theSelectedVariables = addVariablesTojSON(SPARQLQuery, sparqlQueries, simplePARQLQuery);
                     jsonElementgeneratedElement.add("variables", theSelectedVariables);
-                    JsonArray results = addResultsToJson(result, trucVariables, simplePARQLQuery);
+                    JsonArray results = addResultsToJson(SPARQLQuery, trucVariables, simplePARQLQuery);
                     results = sortResults(theSelectedVariables, results);
                     jsonElementgeneratedElement.add("results", results);
                     jsonElementBase.add(jsonElementgeneratedElement);
                 }
-                json.add("result", jsonElementBase);
+                json.add("SPARQLResult", jsonElementBase);
             }
         }
         return json;
-
     }
 
     /**
@@ -139,25 +138,25 @@ public class ServerThread extends Thread {
     /**
      * send error to the client when there is one.
      *
-     * @param result Result structure of the SPARQL query
+     * @param SPARQLQuery SPARQLResult structure of the SPARQL query
      */
-    private JsonObject sendError(Result result) {
+    private JsonObject sendError(SPARQLResult SPARQLQuery) {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("error", result.getError());
+        jsonObject.addProperty("error", SPARQLQuery.getError());
         return jsonObject;
     }
 
     /**
      * get all the variables of the query, even those which are not selected
      *
-     * @param result           result object of the queries
+     * @param SPARQLQuery           SPARQLResult object of the queries
      * @param generatedQueries the generated queries we get from the SparqlQueries object
      * @return TrucVariables Object (ArrayList of TrucVariable) that contains all the temporary variables (the generated variables the used don't need)
      */
-    private TrucVariables getVariablesOfTrucs(Result result, SparqlQueries generatedQueries) {
+    private TrucVariables getVariablesOfTrucs(SPARQLResult SPARQLQuery, SparqlQueries generatedQueries) {
         TrucVariables variables = new TrucVariables();
-        for (int i = 0; i < result.getVariables().size(); i++) {
-            String variable = result.getVariables().get(i);
+        for (int i = 0; i < SPARQLQuery.getVariables().size(); i++) {
+            String variable = SPARQLQuery.getVariables().get(i);
             Truc found = generatedQueries.find(variable);
             if (found != null) {
                 variables.add(new TrucVariable(found, i, found.getVariablePosition(variable)));
@@ -169,14 +168,14 @@ public class ServerThread extends Thread {
     /**
      * add the selected variables (or all if it's all) to the results.
      *
-     * @param result           result object of the queries
+     * @param SPARQLQuery           SPARQLResult object of the queries
      * @param generatedQueries the generated queries we get from the SparqlQueries object
      * @param queryOrdered     the original query reordered, to know if the query is selectAll, and if the variable is a selected one
-     * @return JsonArray that will be added to the result transfered in a socket tovthe user
+     * @return JsonArray that will be added to the SPARQLResult transfered in a socket tovthe user
      */
-    private JsonArray addVariablesTojSON(Result result, SparqlQueries generatedQueries, SimplePARQLQuery queryOrdered) {
+    private JsonArray addVariablesTojSON(SPARQLResult SPARQLQuery, SparqlQueries generatedQueries, SimplePARQLQuery queryOrdered) {
 
-        ArrayList<String> variables = new ArrayList<>(result.getVariables());
+        ArrayList<String> variables = new ArrayList<>(SPARQLQuery.getVariables());
         for (Truc truc : generatedQueries.getSimpleARQLTrucs()) {
             for (String value : truc.getVariables().values()) {
                 variables.remove(value.substring(2));
@@ -195,18 +194,18 @@ public class ServerThread extends Thread {
     }
 
     /**
-     * get a json array to add it to the result that will be tranfered in a sokcet to the user
+     * get a json array to add it to the SPARQLResult that will be tranfered in a sokcet to the user
      *
-     * @param result        result object of the queries
+     * @param SPARQLQuery        SPARQLResult object of the queries
      * @param trucVariables the temporary variables generated to convert SimplePARQL to SPARQL
-     * @return JSON Array to be added to the Json result
+     * @return JSON Array to be added to the Json SPARQLResult
      */
-    private JsonArray addResultsToJson(Result result, TrucVariables trucVariables, SimplePARQLQuery queryOrdered) {
+    private JsonArray addResultsToJson(SPARQLResult SPARQLQuery, TrucVariables trucVariables, SimplePARQLQuery queryOrdered) {
         JsonArray results = new JsonArray();
         JsonArray elementOfArray;
-        for (int i = 0; i < result.getResponses().size(); i++) {
+        for (int i = 0; i < SPARQLQuery.getResponses().size(); i++) {
             elementOfArray = new JsonArray();
-            for (int j = 0; j < result.getVariables().size(); j++) {
+            for (int j = 0; j < SPARQLQuery.getVariables().size(); j++) {
                 JsonObject jsonObject = new JsonObject();
                 if (trucVariables.contains(j)) { // on sait que c'est une variable générée.
                     JsonArray jsonArray;
@@ -219,13 +218,13 @@ public class ServerThread extends Thread {
                         elementOfArray.add(jsonArray);
                     }
                     jsonArray = elementOfArray.get(tmp.getIndexOfFirstInVariables()).getAsJsonArray();
-                    jsonObject.addProperty("Result", result.getResponses().get(i).get(j));
+                    jsonObject.addProperty("SPARQLResult", SPARQLQuery.getResponses().get(i).get(j));
                     jsonObject.addProperty("Position", tmp.getPosition());
                     jsonArray.add(jsonObject);
                 } else {
-                    if (queryOrdered.isSelectAll() || queryOrdered.getSelectedVariables().contains(result.getVariables().get(j))) {
-                        jsonObject.addProperty("Variable", result.getVariables().get(j));
-                        jsonObject.addProperty("Result", result.getResponses().get(i).get(j));
+                    if (queryOrdered.isSelectAll() || queryOrdered.getSelectedVariables().contains(SPARQLQuery.getVariables().get(j))) {
+                        jsonObject.addProperty("Variable", SPARQLQuery.getVariables().get(j));
+                        jsonObject.addProperty("SPARQLResult", SPARQLQuery.getResponses().get(i).get(j));
                         elementOfArray.add(jsonObject);
                     }
                 }
@@ -239,7 +238,7 @@ public class ServerThread extends Thread {
      * Sort results of the json array, to be in the same order of the variables (in the begining of the json object).
      *
      * @param results old results : JsonArray
-     * @return sorted JsonArray result
+     * @return sorted JsonArray jenaresult
      */
     private JsonArray sortResults(JsonArray variables, JsonArray results) throws JSONException {
         JsonArray newResults = new JsonArray();
@@ -255,9 +254,9 @@ public class ServerThread extends Thread {
     }
 
     /**
-     * get the variable's result from the final results json array
+     * get the variable's jenaresult from the final results json array
      *
-     * @param array        the results array (the array containing one result of all variables)
+     * @param array        the results array (the array containing one jenaresult of all variables)
      * @param variableName name of the variable
      * @return the json object of the array, that variable matches with variableName.
      * @throws JSONException

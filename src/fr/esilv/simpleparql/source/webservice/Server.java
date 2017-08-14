@@ -9,7 +9,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Lauch server on port 1234 to create a webservice
+ * Lauch Java server to create a webservice
+ *
+ * <strong>cliendID:</strong> The query having all the prefixes, select é where composants<br>
+ * <strong> serverConfig:</strong> Configuration of the server from the Server.config file beside this file.
+ * The user can choose a personalized configuration file which he'll give as a parametere.
  */
 public class Server {
     private final static Logger logger = Logger.getLogger(Server.class);
@@ -27,12 +31,17 @@ public class Server {
         runServer();
     }
 
+    /**
+     * Run the server without an exit statement. Each client which connect to the server, will have a ClientThread
+     * for him that will handle receving informations, converting it and send it back to the client.
+     * @throws IOException
+     */
     private static void runServer() throws IOException {
         ServerSocket serverSocket = new ServerSocket(serverConfig.getPort());
         logger.debug("Server up & ready for connections...");
         while (true) {
             Socket client = serverSocket.accept();
-            new ServerThread(clientID, client, serverConfig.getBasesConfig(), serverConfig.getQueryConfig()).start();
+            new ClientThread(clientID, client, serverConfig.getBasesConfig(), serverConfig.getQueryConfig()).start();
             logger.debug("#" + clientID + " just connected from " + client.getRemoteSocketAddress().toString());
             clientID++;
         }
