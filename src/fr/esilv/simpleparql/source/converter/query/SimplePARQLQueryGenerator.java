@@ -12,36 +12,33 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Methodes to generate the query
- * We can override those methodes if we need to change it or create new methodes
- * <p>
- * We keep:
- * the truc for whom we create the queries
- * generated composants for this truc
- * the filter generator interface
- * the page we keep it in
+ * Methodes to generate the SimplePARQL queries <strong>for just one truc</strong>. It use the filter interface to add the filter composant. <br>
+ * We can override the methodes (PageFirst(), PageSecond() and PageThird()) to change the pages' strategy, or create a new personliazed ones.
+ *
+ * <strong>truc</strong> The truc for which we create the queries. <br>
+ * <strong>genertedComposants</strong> Generated composants for this truc. (Filter,triples and pages) <br>
+ * <strong>filterGenertor</strong> The filter generator interface. <br>
+ * <strong>ignoredProprieties</strong> ignored proprieties when we search for all proprieties. <br>
+ *
  */
 
 public class SimplePARQLQueryGenerator {
     private Truc truc;
     private ArrayList<Composant> generatedComposants;
     private FilterGenerator filterGenerator;
-    private PAGE page;
     private List<String> ignoredProprieties;
 
 
-    public SimplePARQLQueryGenerator(Truc truc, FilterGenerator filterGenerator, PAGE page, List<String> ignoredProprieties) {
+    public SimplePARQLQueryGenerator(Truc truc, FilterGenerator filterGenerator, List<String> ignoredProprieties) {
         this.filterGenerator = filterGenerator;
         this.truc = truc;
         generatedComposants = new ArrayList<>();
-        this.page = page;
         this.ignoredProprieties = ignoredProprieties;
 
         createGeneratedTriples();
     }
 
     public ArrayList<Composant> getGeneratedComposants() {
-        Collections.sort(generatedComposants);
         return generatedComposants;
     }
 
@@ -82,7 +79,7 @@ public class SimplePARQLQueryGenerator {
     }
 
     /**
-     * This function never change, it generates the query that check the rdfs:label of the ressource
+     * This function never change, it generates the query that check the rdfs:label of the ressource.<br>
      * SELECT *
      * WHERE {
      * ?SimplePARQL_1 ?b ?c .
@@ -110,7 +107,7 @@ public class SimplePARQLQueryGenerator {
     }
 
     /**
-     * This function never change, it generates the query that check all proprietes
+     * This function never change, it generates the query that check all proprietes. <br>
      * SELECT *
      * WHERE {
      * ?SimplePARQL_1 ?b ?c .
@@ -139,32 +136,23 @@ public class SimplePARQLQueryGenerator {
     }
 
     /**
-     * main function to launch the first, second or third page
+     * Main function to launch the first, second and third page.<br>
      */
     private void createGeneratedTriples() {
-        switch (page) {
-            case THIRD:
-                PageThird();
-            case SECOND:
-                PageSecond();
-            case FIRST:
-                PageFirst();
-                break;
-        }
+        PageThird();
+        PageSecond();
+        PageFirst();
     }
 
     /**
      * First page generate :
-     * if subjet then it will generateLabels
-     * if predicate then it will generateLabels
+     * if subjet then it will generateLabels. <br>
+     * if predicate then it will generateLabels.<br>
      * if object then it will generatePropreties and generateLabels
-     * BUT if it's an exact query (delimited by double quotes "")
-     * <p>
-     * if it's in object position
-     * it will not generate literal search directly in the first page
-     * <p>
-     * otherwise
-     * it will generate labels exactly like when it's not an exact truc
+     * <strong>BUT</strong> if it's an exact query (delimited by double quotes ""),
+     * if it's in object position, it will not generate literal search directly in the first page. <br>
+     * <strong>Otherwise,</strong>
+     * it will generate labels exactly like when it's not an exact truc.<br>
      */
     private void PageFirst() {
         if (truc.isExact()) {
@@ -173,7 +161,6 @@ public class SimplePARQLQueryGenerator {
             } else {
                 generatedComposants.add(generatelabels(truc, PAGE.FIRST));
             }
-
         } else {
             generatedComposants.add(generatelabels(truc, PAGE.FIRST));
             if (truc.getPosition() == POSITION.OBJECT) {
@@ -184,16 +171,14 @@ public class SimplePARQLQueryGenerator {
 
     /**
      * Second page generate :
-     * if subjet then it will generatePropreties
-     * if predicate then it will generateURI
-     * if object then it will generatePropreties
-     * BUT if it's an exact query (delimited by double quotes "")
-     * <p>
-     * if it's in object position
-     * it will not generate labels (that we haven't geenrate in the PageFirst() function search
-     * <p>
-     * otherwise
-     * it will generate proprieties
+     * If subjet then it will generatePropreties.<br>
+     * If predicate then it will generateURI.<br>
+     * If object then it will generatePropreties.<br>
+     *
+     * <strong>BUT</strong> if it's an exact query (delimited by double quotes "")
+     * if it's in object position, it will not generate labels (that we haven't geenrate in the PageFirst() function search
+     * <strong>otherwise</strong>
+     * it will generate proprieties. <br>
      */
     private void PageSecond() {
         if (truc.isExact()) {
@@ -213,13 +198,11 @@ public class SimplePARQLQueryGenerator {
 
     /**
      * Third page generate :
-     * if subjet then it will generateURI
-     * if predicate then it will do nothing
-     * if object then it will do nothing
-     * BUT if it's an exact query (delimited by double quotes "")
-     * <p>
-     * if it's in object position
-     * we'll not generate propreties which e haven't generate in PageSecond() function
+     * If subjet then it will generateURI . <br>
+     * If predicate then it will do nothing. <br>
+     * If object then it will do nothing.
+     * <strong>BUT</strong> if it's an exact query (delimited by double quotes ""). <br>
+     * if it's in object position we'll not generate propreties which e haven't generate in PageSecond() function . <br>
      */
     private void PageThird() {
         if (truc.isExact()) {

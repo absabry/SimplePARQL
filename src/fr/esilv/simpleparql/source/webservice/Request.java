@@ -1,5 +1,7 @@
 package fr.esilv.simpleparql.source.webservice;
 
+import fr.esilv.simpleparql.source.model.PAGE;
+
 import java.util.ArrayList;
 
 /**
@@ -13,6 +15,7 @@ public class Request {
     private String query;
     private ArrayList<String> bases;
     private String timeout;
+    private String page;
 
     public String getQuery() {
         return query;
@@ -26,8 +29,13 @@ public class Request {
         return timeout;
     }
 
+    public PAGE getPage() {
+        return PAGE.valueOf(page);
+    }
+
     public String toString() {
-        return "base : " + bases + "\n" +
+        return "page : " + page + "\n" +
+                "base : " + bases + "\n" +
                 "query : " + query + "\n" +
                 "timeout : " + timeout;
     }

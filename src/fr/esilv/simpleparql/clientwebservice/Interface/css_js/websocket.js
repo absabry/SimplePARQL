@@ -3,17 +3,22 @@ var PORT = 1234;
 var HOST= 'localhost';
 var urlMySocket = "ws://"+HOST+":"+PORT+"/";
 var mySocket;
-var SIMPLEPARQL_QUERY_ASSISTED;
-var SIMPLEPARQL_QUERY;
-var dictionnaryTrucs={};
+var SIMPLEPARQL_QUERY_ASSISTED; // keep those informations for replacing trucs correctly
+var SIMPLEPARQL_QUERY; // keep those informations for replacing trucs correctly
+var dictionnaryTrucs={}; // handle replacing trucs
+var pages = ["FIRST","SECOND","THIRD"]; // handle pages displayed
+var page_counter = 0; // handles pages displayed
 
+// submit the form and request the Java server
 $("#query_form").submit(function( event ) {
      event.preventDefault();
-     $('#clear').trigger('click');
+     if (event.originalEvent !== undefined) {
+         $('#clear').trigger('click');
+     }
      waitFunction();
      dictionnaryTrucs={};
      var queryInformations;
-      if ($('#assist').is(':checked')) {
+     if ($('#assist').is(':checked')) {
          queryInformations = createQueryFromAssisted();
      } else {
         queryInformations = createQueryFromNoAssisted();
@@ -21,34 +26,145 @@ $("#query_form").submit(function( event ) {
      SIMPLEPARQL_QUERY = queryInformations.query;
 
 
-    var download_list = $("#download_list").data("kendoMultiSelect").value();
+    var output_list = $("#output_list").data("kendoMultiSelect").value();
      callSocket(queryInformations, function (s) {
             var jsonResults = JSON.parse(s);
             if(jsonResults != undefined){
-                for(var i in download_list){
-                     download_display(download_list[i],jsonResults);
+                for(var i in output_list){
+                     getResults(output_list[i],jsonResults);
                 }
             }
             $('#wait').empty();
      });
 });
 
-// not working yet, we should stop the socket and the web socket when clicking on clear!
+// stop the socket and the web socket when clicking on clear!
 $("#clear").click(function(){
     clearFunction();
+    page_counter=0;
     if(mySocket != undefined && mySocket.readyState != mySocket.CLOSED && mySocket.readyState != mySocket.CLOSING ){
          mySocket.send('stop');
          mySocket.close();
     }
 });
 
+// get the next page results
+$("#nextpage").click(function(){
+    page_counter= page_counter+1;
+    $(this).hide();
+    $("#previouspage").hide();
+    $('#query_form').trigger('submit');
+});
 
-// download files directly
-function download_display(format,jsonResults){
+// get the previous page results
+$("#previouspage").click(function(){
+    page_counter= page_counter-1;
+    $(this).hide();
+    $("#nextpage").hide();
+    $('#query_form').trigger('submit');
+});
+
+/* ---------------- Get the POST fields and manipulate it before creating the socket ---------------------------*/
+
+// create JSON request when it's NOT assisted form
+function createQueryFromAssisted(){
+     var bases = $("#list_bases").data("kendoMultiSelect").value();
+     var select = $('#select').val();
+     var where = $('#where').val();
+     var filter = $('#filter').val();
+     var optional = $('#optional').val();
+     var limit = $('#limit').val();
+     var prefixes = $("#list_prefixes").data("kendoMultiSelect").value();
+     var allPrefixes = '';
+     for(var i=0;i<prefixes.length;i++){
+        allPrefixes += ' PREFIX ' + prefixes[i];
+     }
+     // keep this infomrmations, to be used when we replace the truc in the original query
+     SIMPLEPARQL_QUERY_ASSISTED= {
+         'select':select,
+         'where':where,
+         'filter':filter,
+         'optional':optional
+      }
+     var query= allPrefixes
+               + ' SELECT ' + select
+               + ' WHERE {' + where
+               + (filter.trim() != ''? ' FILTER(' + filter +')' : '')
+               + (optional.trim() != ''? ' OPTIONAL('+ optional +')':'')
+               + '}'
+               + (limit.trim() != ''? ' LIMIT ' + limit:'');
+     var queryInformations={
+                  "bases" : bases,
+                  "query":query,
+                  "page" : pages[page_counter],
+                  "timeout" : $('#timeout').val()
+     }
+     return queryInformations;
+}
+
+// create JSON request when it's assisted form
+function createQueryFromNoAssisted(){
+      return {
+              "bases" : $("#list_bases").data("kendoMultiSelect").value(),
+              "query":$('#query').val(),
+              "page" : pages[page_counter],
+              "timeout" : $('#timeout').val()
+      }
+}
+
+// get cleaned array (without empty elements)
+function cleanArray(array){
+    var tmp=[]
+    for(var i=0;i<array.length;i++){
+       if(array[i].trim() != ''){
+         tmp.push(array[i]);
+       }
+    }
+    return tmp;
+}
+
+/* ---------------------------------------------------- The webscoket ----------------------------------------------------------------------*/
+
+// create the websocket
+function callSocket (s, callback) {
+    var whenstart = new Date();
+    mySocket = new WebSocket (urlMySocket)
+    mySocket.onopen = function (evt) {
+        mySocket.send(JSON.stringify(s)+"\n");
+    };
+    mySocket.onmessage = function (evt) {
+        $("#idWebSocketTime").text ("The call to the server took " + secondsSince (whenstart) + " secs to perform this query.");
+        callback (evt.data);
+        mySocket.close ();
+    };
+    mySocket.onerror = function (event) {
+        var result = $('<h3></h3>').addClass('error')
+                    .text("There was an error with your websocket. [Maybe the webservice isn't connected to the server..?]");
+        $("#query_results").append(result);
+        $('#wait').empty();
+    };
+    mySocket.onclose = function(event){
+        // detect when the socket is closing
+        console.log("Socket closed");
+    }
+}
+
+// compute the seconds since launching the websocket
+function secondsSince (when) {
+    var now = new Date ();
+    when = new Date (when);
+    return ((now - when) / 1000);
+}
+
+
+/*--------------------------------------------------Builds results in different formats ------------------------------------------*/
+
+// get results of formats we ask for (JSON, XML or HTML)
+function getResults(format,jsonResults){
     if(format == 'XML'){
         $("<a />", {
           "download": Date() + ".xml",
-          "href" : "data:application/json," + encodeURIComponent(json2xml(jsonResults))
+          "href" : "data:application/json," + encodeURIComponent(jsonToXmlConverter(jsonResults))
         }).appendTo("body")
         .click(function() {
            $(this).remove()
@@ -64,12 +180,12 @@ function download_display(format,jsonResults){
         })[0].click()
     }
     else if(format == 'HTML'){
-        result("#query_results",jsonResults);
+        htmlresult("#query_results",jsonResults);
     }
 }
 
-
-function json2xml(json) {
+// convert JSON to XML
+function jsonToXmlConverter(json) {
     var c = document.createElement("root");
     var t = function (v) {
         return {}.toString.call(v).split(' ')[1].slice(0, -1).toLowerCase();
@@ -108,6 +224,7 @@ function json2xml(json) {
     return formatXml(c.outerHTML);
 }
 
+// well formated XML file
 function formatXml(xml) {
     var formatted = '';
     var reg = /(>)(<)(\/*)/g; /* this comment is added to escape the /* in the regex expression not useful at all*/
@@ -139,98 +256,8 @@ function formatXml(xml) {
 }
 
 
+/* --------------------------------------- Build the result tags and elements for the HTML file -------------------------------------------------------------*/
 
-/* ---------------- Get the POST fields and manipulate it before creating the socket ---------------------------*/
-
-// create array when it's NOT assisted form
-function createQueryFromAssisted(){
-     var bases = $("#list_bases").data("kendoMultiSelect").value();
-     var select = $('#select').val();
-     var where = $('#where').val();
-     var filter = $('#filter').val();
-     var optional = $('#optional').val();
-     var limit = $('#limit').val();
-     var prefixes = $("#list_prefixes").data("kendoMultiSelect").value();
-     var allPrefixes = '';
-     for(var i=0;i<prefixes.length;i++){
-        allPrefixes += ' PREFIX ' + prefixes[i];
-     }
-     // keep this infomrmations, to be used when we replace the truc in the original query
-      SIMPLEPARQL_QUERY_ASSISTED= {
-         'select':select,
-         'where':where,
-         'filter':filter,
-         'optional':optional
-      }
-     var query= allPrefixes
-               + ' SELECT ' + select
-               + ' WHERE {' + where
-               + (filter.trim() != ''? ' FILTER(' + filter +')' : '')
-               + (optional.trim() != ''? ' OPTIONAL('+ optional +')':'')
-               + '}'
-               + (limit.trim() != ''? ' LIMIT ' + limit:'');
-     var queryInformations={
-                  "bases" : bases,
-                  "query":query,
-                  "timeout" : $('#timeout').val()
-     }
-     return queryInformations;
-}
-
-// create array when it's assisted form
-function createQueryFromNoAssisted(){
-      return {
-              "bases" : $("#list_bases").data("kendoMultiSelect").value(),
-              "query":$('#query').val(),
-              "timeout" : $('#timeout').val()
-      }
-}
-
-// get cleaned array (without empty elements)
-function cleanArray(array){
-    var tmp=[]
-    for(var i=0;i<array.length;i++){
-       if(array[i].trim() != ''){
-         tmp.push(array[i]);
-       }
-    }
-    return tmp;
-}
-
-/* ---------------- The webscoket ---------------------------*/
-
-// main websocket
-function callSocket (s, callback) {
-    var whenstart = new Date();
-    mySocket = new WebSocket (urlMySocket)
-    mySocket.onopen = function (evt) {
-        mySocket.send(JSON.stringify(s)+"\n");
-    };
-    mySocket.onmessage = function (evt) {
-        $("#idWebSocketTime").text ("The call to the server took " + secondsSince (whenstart) + " secs to perform this query.");
-        callback (evt.data);
-        mySocket.close ();
-    };
-    mySocket.onerror = function (event) {
-        var result = $('<h3></h3>').addClass('error')
-                    .text("There was an error with your websocket. [Maybe the webservice isn't connected to the server..?]");
-        $("#query_results").append(result);
-        $('#wait').empty();
-    };
-    mySocket.onclose = function(event){
-        // detect when the socket is closing
-        console.log("Socket closed");
-    }
-}
-
-// compute the seconds since launching
-function secondsSince (when) {
-    var now = new Date ();
-    when = new Date (when);
-    return ((now - when) / 1000);
-}
-
-/* ---------------- Build the result tags and elements ---------------------------*/
 // check if string is JSON
 function isJSON (something) {
     if (typeof something != 'string')
@@ -244,9 +271,8 @@ function isJSON (something) {
     }
 }
 
-function result($query_div,json){
-    $($query_div).empty(); // clear the div
-
+// html result in the web interface directly
+function htmlresult($query_div,json){
     if(json.hasOwnProperty('error')){
         addError($query_div,json.error);
         return;
@@ -254,10 +280,15 @@ function result($query_div,json){
 
     addBase($query_div,json.base);
 
+    if(page_counter == 2){ $("#nextpage").hide();}
+    else{$("#nextpage").show();}
+    if(page_counter == 0){$("#previouspage").hide();}
+    else{ $("#previouspage").show();}
+
     var counter=1;
     for (var i=0; i <json.result.length;i++){
         if(json.result[i].results.length != 0){
-            addQuery($query_div,json.result[i].query,counter,json.base.link,json.base.api);
+            addQuery($query_div,json.result[i].query,counter,json.base);
             var $div_title = $('<div></div>').addClass('title');
             addTitle($div_title,json.result[i]);
             var $div_results=$('<div></div>').addClass('results');
@@ -271,7 +302,7 @@ function result($query_div,json){
     }
 }
 
-// add error (if exsits) to the html page
+// add error (if there are one) to the html page
 function addError($query_div,error){
     var $error = $('<h3></h3>').addClass('error');
     if(isJSON(error)){
@@ -294,7 +325,7 @@ function addBase($query_div,base){
 }
 
 // add query to the html page
-function addQuery($query_div,query,counter,base,apiBase){
+function addQuery($query_div,query,counter,base){
     var header = $('<div></div>').addClass('query_header tooltip').attr('title',query.substring(0,50)+'...\nClick on the arrow to see more.');
     var textBesidesTheImage = $('<h5></h5>').text('SPARQL query n°'+counter).css('display','inline');
     var imageCollapse =  $('<img></img>').addClass('collapse pointer')
@@ -308,11 +339,12 @@ function addQuery($query_div,query,counter,base,apiBase){
 
     var $query= $("<p></p>").addClass('query')
         .multiline(reformatQuery(query));
-    addLogoToQuery($query,base,apiBase);
+    addLogoToQuery($query,base);
     $($query_div).append(header);
     $($query_div).append($query);
 }
 
+// toggle the query when we click in the arrow
 function toggleQuery($img,visible){
     setTimeout(function() {
        if(visible){
@@ -325,7 +357,7 @@ function toggleQuery($img,visible){
 }
 
 // add the logo to the query to execute it in the api
-function addLogoToQuery($query,base,apiBase){
+function addLogoToQuery($query,base){
 
     var $div= $('<div></div>');
     var $openBase = $('<img></img>').addClass('pointer tooltip');
@@ -337,7 +369,7 @@ function addLogoToQuery($query,base,apiBase){
     $($openBase).on( "click", function() {
         var msg = copyToClipboard($(this).parent().parent()); // to get the query text from the <p> tag (this.parent is <div>, and then it's <p>)
         setTimeout(function() {
-            window.open(base);
+            window.open(base.link);
         }, 1000);
         $(this).tooltipster('content', msg);
     })
@@ -350,18 +382,23 @@ function addLogoToQuery($query,base,apiBase){
     .mouseout(function(){
              $(this).tooltipster('content', 'Click to use me in the base!');
      })
-
-    var $seeResult = $('<img></img>').addClass('pointer tooltip').attr('title','Click to see my results in the base!');
-        $seeResult.attr('src', 'images/result.png');
-        $($seeResult).on( "click", function() {
-            var tempQuery = $(this).parent().parent().clone().find('br').prepend(' ').end().text();;
-            window.open(apiBase+encodeURIComponent(tempQuery));
-        });
     $div.append($openBase);
-    $div.append($seeResult);
+
+    // if this base contains any API, we'll add it to the interface to prove it to the user
+    if(base.api != null){
+        var $seeResult = $('<img></img>').addClass('pointer tooltip').attr('title','Click to see my results in the base!');
+            $seeResult.attr('src', 'images/result.png');
+            $($seeResult).on( "click", function() {
+                var tempQuery = $(this).parent().parent().clone().find('br').prepend(' ').end().text();;
+                window.open(base.api+encodeURIComponent(tempQuery));
+            });
+            $div.append($seeResult);
+    }
+
     $query.append($div);
 }
 
+// copy file to clipboard and get the result of this copy
 function copyToClipboard($parent) {
   var filtredText = $($parent).clone().find('br').prepend('\r\n').end().text();  // trasnform <br> tag to \r\n tag!
   var element = $('<textarea>').appendTo('body').val(filtredText).select();
@@ -416,7 +453,7 @@ function addResults($div,result){
         for(var k=0;k<result.results[j].length;k++){
             var element=$('<td></td>');
             if(result.results[j][k] instanceof Array){ // when the variable is temporary, and it's not a real variable
-                var currentResult = result.results[j][k][1].Result;
+                var currentResult = result.results[j][k][1].SPARQLResult;
                 addURIElement(element,currentResult,'value');
                 addPropretyOrLabel(element,result.results[j][k]);
                 if(isUrl(currentResult)){ // if it's a label and not URI, we dont add the logo to the cell
@@ -426,7 +463,7 @@ function addResults($div,result){
             }
             else{
                if(isSelectedVariable(result.variables,result.results[j][k].Variable)){
-                  addURIElement(element,result.results[j][k].Result);
+                  addURIElement(element,result.results[j][k].SPARQLResult);
                   $row.append(element);
                }
             }
@@ -463,7 +500,7 @@ function addLogoToTrucCell(element){
 
 
 
-/*----------------------------------- Replace trucs from the query with the URL result---------------------------------*/
+/*----------------------------------- Replace trucs from the query with the URL result to the HTML results---------------------------------*/
 
 
 // get all table results, and reset their image if it's in the same column as $td
@@ -554,13 +591,13 @@ function addPropretyOrLabel(element,arrayOfResult){
     if(arrayOfResult[2] != undefined){
       if(arrayOfResult[2].Position == "LABEL"){
          element.append( $('<b></b>').text(' has for label '));
-         addURIElement(element,arrayOfResult[2].Result);
+         addURIElement(element,arrayOfResult[2].SPARQLResult);
       }
       else if(arrayOfResult[2].Position == "TMP1"){
         element.append( $('<b></b>').text(' has for the proprety '));
-        addURIElement(element,arrayOfResult[2].Result);
+        addURIElement(element,arrayOfResult[2].SPARQLResult);
         element.append( $('<b></b>').text(' the value '));
-        addURIElement(element,arrayOfResult[3].Result);
+        addURIElement(element,arrayOfResult[3].SPARQLResult);
       }
     }
 }
@@ -600,7 +637,7 @@ function addURIElement(element,text,classAdded){
 // check if text is url (basic form)
 function isUrl(s) { return s.toLowerCase().startsWith('http') || s.toLowerCase().startsWith('<http');}
 
-// replace truc of old query with new values in the ASSISTED MODE
+// replace truc in the textarea (assisted and not_assisted mode)
 function elementToTextArea(id,text){
     if(id == 'query'){
         text = reformatQuery(text);

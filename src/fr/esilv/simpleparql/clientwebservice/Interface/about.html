@@ -16,24 +16,31 @@
     <script type="application/javascript" src="css_js/jquery.min.js"></script>
     <script type="application/javascript" src="http://cdn.kendostatic.com/2015.2.624/js/kendo.all.min.js"></script>
 
-    <script type="text/javascript" src="css_js/script_css.js"></script>
+    <script type="text/javascript" src="css_js/css.js"></script>
 
 </head>
 
 <body>
 <div id="page_bloc">
+    <!--header -->
     <header>
-        <div id="main_title">
+        <div id="main_title" style="vertical-align:center;">
             <a href="simpleparql.html" style="float:left;" class="pointer">
                 <img id="logo" src="images/universal-endpoint_logo.png" alt="Logo"/>
             </a>
             <p> Universal Endpoint</p>
         </div>
+        <nav>
+            <ul>
+                <li><a href="#">Contact</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </nav>
     </header>
-
+    <!--body -->
     <section>
         <h1>About</h1>
-
+        <!--abstract of achivement -->
         <div class="box">
             <div class="box_head"><h2>SimplePARQL: a new approach using keywords over SPARQL to query the web of
                 data</h2></div>
@@ -58,9 +65,15 @@
                     <img src="images/icon_bibtex.png" height="40" width="40" alt="Download bibtex"
                          title="Download bibtex"/></a>
 
+                <p class="small">
+                    <b>Abdellah Sabry</b>, <b>Thomas Raimbault</b>'s trainee continued the work started.
+                    A syntactic parser has been set up, and the keywords structures (that made the new SimplePARQL
+                    language) have been adapted into the SPARQL language.
+                <p/>
+
             </div>
         </div>
-
+        <!--simpleparql comparaison with sparql -->
         <h1>SimplePARQL query example</h1>
         <p>
             Looking for the movies where Brad Pitt starred?
@@ -75,13 +88,14 @@
                     <b>For all bases:</b>
                     <br/><br/>
                     <div class="query_about"> SELECT *<br/>WHERE<br/>{<br/>
-                        <dd class="med-size">?Movies star "brad pitt"</dd>
+                        <dd class="med-size">?Movies starring "brad pitt"</dd>
                         }
                     </div>
                     <br/><br/>
                     <u>Note:</u>
                     <div class="justify">
-                        For each term <b>star</b> and <b>(brad pitt)</b>, our platform will attempt to match a specific
+                        For each term <b>starring</b> and <b>(brad pitt)</b>, our platform will attempt to match a
+                        specific
                         resource which in one way or another is linked to corresponding term.
                         In other words, it is not necessary to know identifiers (like &lt;http://dbpedia.org/resource/Brad_Pitt&gt;)
                         of each handled resource.
@@ -103,13 +117,21 @@
                 </td>
             </tr>
         </table>
-        <section>
-
-            <footer>
-                <div class="left"><a href="http://www.esilv.fr/recherche/de-vinci-technology-lab/"> <img
-                        src="images/ESILV_logo.png" height="40" width="133" alt="logo ESILV"/> </a></div>
-                <div class="right"><a href="about.html">About</a> <br/> <b>@ESILV 2014--2017</b></div>
-            </footer>
+    </section>
+    <br/>
+    <!--footer -->
+    <footer>
+        <div class="left"><a href="http://www.esilv.fr/recherche/de-vinci-technology-lab/"> <img
+                src="images/ESILV_logo.png" height="40" width="133" alt="logo ESILV"/> </a></div>
+        <div class="center">
+            <div class="version"><img src="images/antlr.jpeg" height="50" alt="antlr version"/> <br/>
+                <p id="antlr-version"></p></div>
+            &nbsp;
+            <div class="version"><img src="images/jena.png" height="50" alt="jena version"/> <br/>
+                <p id="jena-version"></p></div>
+        </div>
+        <div class="right"><b>@ESILV 2014--2017</b></div>
+    </footer>
 
 </div>
 </body>

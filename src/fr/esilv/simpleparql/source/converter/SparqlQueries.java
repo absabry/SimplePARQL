@@ -21,17 +21,13 @@ import java.util.Map;
 
 /**
  * Main class to get the SPARQL queries generated from SimpleARQL queries. <br>
- *
- *
  * <strong>simpleARQLTrucs:</strong> List of Truc in the SimplePARQL query.<br>
  * <strong>generatedQueries:</strong> List of SPARQL query generated. <br>
  * <strong>parser:</strong> SimplePARQL parser from the ANTLR tree <br>
  * <strong>counter:</strong>Counter of truc in the tree. The first one will be 0, then 1 etc..<br>
  * <strong>filterGenerator:</strong> filter geenrator for this base <br>
  * <strong>optionnal:</strong> convert the Truc in the optional field<br>
- * <strong>page:</strong> The page we want TODO SHOULD BE REMOVED AND REPLACED
  * <strong>ignoredConfig: List of proprties we want to exlude from our request</strong><br>
- *
  */
 public class SparqlQueries {
 
@@ -39,14 +35,12 @@ public class SparqlQueries {
     private ArrayList<Truc> simpleARQLTrucs;
     private ArrayList<SPARQLQueryGenerated> generatedQueries;
     private SimplePARQLParser parser;
-    private int counter = 0; // counter of created variables
-    private FilterGenerator filterGenerator; // normal,virtuoso or even regex
+    private int counter = 0;
+    private FilterGenerator filterGenerator;
     private boolean optionnal;
-    private PAGE page;
     private ArrayList<String> ignoredConfig;
 
-    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, PAGE page, boolean optionnal, QueryConfig ignoredConfig) throws IOException {
-        this.page = page;
+    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, boolean optionnal, QueryConfig ignoredConfig) throws IOException {
         this.filterGenerator = filterGenerator;
         this.optionnal = optionnal;
         simpleARQLTrucs = new ArrayList<>();
@@ -56,45 +50,52 @@ public class SparqlQueries {
         ParserRuleContext query = this.parser.query();
         generatedQueries.add(new SPARQLQueryGenerated(query, PAGE.FIRST));
         if (containsTruc()) {
-            mainGenerate();
+            generatedSPARQLQueries();
         }
 
     }
 
     public SparqlQueries(SimplePARQLParser parser, QueryConfig ignoredConfig) throws IOException {
-        this(parser, new FilterDefault(), PAGE.FIRST, true, ignoredConfig);
+        this(parser, new FilterDefault(), true, ignoredConfig);
     }
 
     public SparqlQueries(SimplePARQLParser parser, boolean optionnal, QueryConfig ignoredConfig) throws IOException {
-        this(parser, new FilterDefault(), PAGE.FIRST, optionnal, ignoredConfig);
+        this(parser, new FilterDefault(), optionnal, ignoredConfig);
     }
 
     public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, QueryConfig ignoredConfig) throws IOException {
-        this(parser, filterGenerator, PAGE.FIRST, true, ignoredConfig);
-    }
-
-    public SparqlQueries(SimplePARQLParser parser, PAGE page, QueryConfig ignoredConfig) throws IOException {
-        this(parser, new FilterDefault(), page, true, ignoredConfig);
+        this(parser, filterGenerator, true, ignoredConfig);
     }
 
     public ArrayList<Truc> getSimpleARQLTrucs() {
         return simpleARQLTrucs;
     }
 
-
-    public ArrayList<SPARQLQueryGenerated> getGeneratedQueries() {
-        return generatedQueries;
+    /**
+     *
+     * Filter the generated query list to get the one assosicated with the page we're looking for.
+     *
+     * @param page The page we're looking for.
+     * @return The element(s) of the generatedqueries in a new list, corresponding to the page we asked for.
+     */
+    public ArrayList<SPARQLQueryGenerated> getGeneratedQueries(PAGE page) {
+        ArrayList<SPARQLQueryGenerated> result = new ArrayList<>();
+        for (SPARQLQueryGenerated element : generatedQueries) {
+            if (element.getPage().compareTo(page) == 0) {
+                result.add(element);
+            }
+        }
+        return result;
     }
 
     /**
-     * main function to generate the sparql queries from the simpleARQL queries
-     * <p>
-     * We clone the array og queries
-     * Then we browse to find (in the old tree) all truc
-     * we create structure fr.esilv.simpleparql.source.model.Truc
-     * Then we generate cartesian product of the truc (that may contains multiple new Items)
+     * Main function to generate the sparql queries from the simpleARQL queries. <br>
+     * 1.We clone the array of queries <br>
+     * 2.Then we browse to find (in the old tree) all truc <br>
+     * 3.We create structure Truc <br>
+     * 4.Finally we generate cartesian product of the truc, after checking the optionnal field (we can disable trucs from the optionnal composant) <br>
      */
-    private void mainGenerate() throws IOException {
+    private void generatedSPARQLQueries() throws IOException {
         ArrayList<SPARQLQueryGenerated> oldGeneratedTrees = new ArrayList<>();
         oldGeneratedTrees.addAll(generatedQueries);
         for (SPARQLQueryGenerated oldGenereatedTree : oldGeneratedTrees) {
@@ -111,14 +112,13 @@ public class SparqlQueries {
         }
         generatedQueries.removeAll(oldGeneratedTrees);
         if (containsTruc()) {
-            mainGenerate();
+            generatedSPARQLQueries();
         }
     }
 
     /**
-     * check if the truc exsits in the oldest trucs
-     * if so we get it
-     * else we create a new one and add it in the simpleARQLTrucs list
+     * Check if the truc exists in the oldest list of truc.<br>
+     * If so we get it, otherwise we create a new one and add it in the simpleARQLTrucs list. <br>
      *
      * @param trucInTree truc found
      * @return new Truc if it dosent exist
@@ -171,19 +171,16 @@ public class SparqlQueries {
     }
 
     /**
-     * create a fr.esilv.simpleparql.source.converter.query.SimplePARQLQueryGenerator element, that will create all of the filter, triples and fr.esilv.simpleparql.source.model.PAGE of the truc
-     * foreach fr.esilv.simpleparql.source.model.Composant item created (containg filter and triples)
-     * we clone the tree, create a new one and attach the new filter and the new triple
-     * and we add the jenaresult to the generatedQueries List
-     *
+     * Create a SimplePARQLQueryGenerator element, that will create all of the filter, triples and PAGE of the truc. <br>
+     * foreach Composant item created (containg filter and triples),we clone the tree, create a new one and attach the new filter and the new triple
+     * and finally we add the result to the generatedQueries List. <br>
      * @param tree original tree to get it's query and it's page
      * @param truc truc which we add it's triples and filter to the new query
      */
-    // Generate tree with cartesian product directly
     private void generateCartesianProductTrees(SPARQLQueryGenerated tree, Truc truc) throws IOException {
         // we create the QueryConfig here to handle the closed stream after each using, and so,
         // we create a QueryConfig object foreach SimplePARQLQueryGenerator
-        SimplePARQLQueryGenerator generateQuery = new SimplePARQLQueryGenerator(truc, filterGenerator, page, ignoredConfig);
+        SimplePARQLQueryGenerator generateQuery = new SimplePARQLQueryGenerator(truc, filterGenerator, ignoredConfig);
         for (Composant element : generateQuery.getGeneratedComposants()) {
             SimplePARQLParser newOne = Constants.getTreeOfText(Constants.treeToString(parser, tree.getQuery()));
             ParserRuleContext newOneQuery = newOne.query();
@@ -202,8 +199,7 @@ public class SparqlQueries {
     }
 
     /**
-     * if we have the choice between third and second
-     * it will return the third page
+     * If we have the a query containing a composant from the third PAGE and another one from the second PAGE, it should return the third page.
      *
      * @param page1 first page
      * @param page2 second page
@@ -217,8 +213,7 @@ public class SparqlQueries {
     }
 
     /**
-     * Remove the TRIPLES node that contains truc IN AN OPTIONAL CONTEXT
-     * When we set optinonal to false
+     * Remove the TRIPLES node that contains truc in an <strong>optionnal context </strong>, when we set optinonal to false. <br>
      *
      * @param tree the tree which we'll delete the optionnal from it
      * @param truc remove from the tree
@@ -251,12 +246,11 @@ public class SparqlQueries {
     }
 
     /**
-     * we need to count how much triplesblocks this tripleBlocksRoot contains
+     * Count how much triplesblocks this tripleBlocksRoot contains
      *
      * @param tripleBlocksRoot the root where we began to count
      * @return the number of triplesBlocks we found under the root
      */
-
     private int countTripleBlocks(ParserRuleContext tripleBlocksRoot) {
         int result = 0;
         ParseTree lastChild = tripleBlocksRoot.getChild(tripleBlocksRoot.children.size() - 1);
@@ -268,18 +262,15 @@ public class SparqlQueries {
     }
 
     /**
-     * add the new triples generated to the tree
-     * <p>
-     * if the last child of triplesblocks is another trimples blocks
-     * we get this element and add it at the end of our generated triples
-     * <p>
-     * else
-     * we remove the old triples containing the truc, and add the new triples
+     * Add the new triples generated to the tree.
+     * <br>
+     * If the last child of triplesblocks is another triples blocks,, we get this element and add it at the end of our generated triples.
+     * <br>
+     * Otherwise, we remove the old triples containing the truc, and add the new triples. <br>
      *
      * @param triplesBlocks triplesBlocks root from the truc
      * @param triplesText   String of the new triples we generate for the truc
      */
-
     private void addTripleToTree(Pair<ParserRuleContext, Integer> triplesBlocks, String triplesText) {
         ParseTree newTriplesForTrucs = Constants.getTreeOfText(triplesText).triplesBlock();
         if (triplesBlocks != null) {
@@ -298,10 +289,7 @@ public class SparqlQueries {
     }
 
     /**
-     * Add filter to the tree, if it dosent exists already
-     * (filter exists if the truc already exist id before)
-     * <p>
-     * Add the filter to the end of it's groupGraphPattern
+     * Add filter e to the end of it's groupGraphPattern, if it dosen't exist already. Filter exists if the truc already exist in the truc's list.
      *
      * @param groupGraphPattern root of the truc
      * @param filterText        text of the filter we want to add to the tree
@@ -317,9 +305,8 @@ public class SparqlQueries {
         }
     }
 
-
     /**
-     * Find in the NEW tree the first element using the find() function of the truc structure
+     * Find in the NEW tree (that's why we can't use the already defined find function) the first parent using the find() function of the truc structure.
      *
      * @param tree      new tree
      * @param element   the truc of the tree
@@ -347,8 +334,7 @@ public class SparqlQueries {
     }
 
     /**
-     * check if the generatedQueries list containing truc
-     * when the generatedTrees still contains some "truc"
+     * Check if there are any truc left in the generatedQueries list.
      *
      * @return boolean containing the truc
      */
@@ -364,8 +350,7 @@ public class SparqlQueries {
     }
 
     /**
-     * check if the generatedTree containing this filter in order to remove redudant filter when there
-     * are multiple trucs in the same triple
+     * check if the tree contains this filter in order to remove redudant filter (when there are multiple trucs in the same triple).
      *
      * @param groupGraphPattern the groupGraphPattern root of the truc
      * @param filterText        filter string
@@ -382,11 +367,10 @@ public class SparqlQueries {
         return false;
     }
 
-
     /**
-     * check if the variable is contained in the trucs' variables. If it's like ?SimplePARQL_1 or label_2 or etc...
+     * Find the Truc from the truc's list, this SPARQL variable belongs to.
      *
-     * @param variable the variable in string format
+     * @param variable SPARQL variable, belongs to a truc  (like SimplePARQL_,label_,etc..)
      * @return boolean indicating if the query's truc contains this variable or not
      */
     public Truc find(String variable) {

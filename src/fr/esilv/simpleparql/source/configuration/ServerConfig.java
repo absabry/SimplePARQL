@@ -30,6 +30,11 @@ public class ServerConfig {
         return queryConfig;
     }
 
+    /**
+     * Read file and get each composant of server's configuration
+     * @param file configuration file
+     * @throws IOException
+     */
     private void readFile(InputStream file) throws IOException {
 
         BufferedReader br = new BufferedReader(new InputStreamReader(file));

@@ -59,6 +59,11 @@ public class BaseConfig {
         return api;
     }
 
+    /**
+     * Read file and get each composant of base's configuration
+     * @param file configuration file
+     * @throws IOException
+     */
     private void readBase(InputStream file) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(file));
         String strLine;

@@ -20,6 +20,7 @@ import java.util.Map;
  */
 
 public class Truc {
+    // TODO ajouter la langue et le truc sans la langue tout ca
     private ArrayList<Pair<ParserRuleContext, Integer>> parents;
     private String name;
     private POSITION position;
@@ -28,11 +29,11 @@ public class Truc {
     private HashMap<VARIABLES, String> variables;
 
     /**
-     * When we create a truc, we generate everything in thr constructor directly
-     * We create their parent tree to the query
-     * We compute their position in the triple
-     * We generate the variables
-     * generate their new triples
+     * When we create a truc, we generate everything in thr constructor directly <br>
+     * We create their parent tree to the query <br>
+     * We compute their position in the triple <br>
+     * We generate the variables <br>
+     * generate their new triples <br>
      */
     public Truc(ParseTree node, int counter) {
         parents = new ArrayList<>();
@@ -73,7 +74,7 @@ public class Truc {
     }
 
     /**
-     * create parent tree of the "truc" (the path up to the root (query))
+     * Create parent tree of the "truc" (the path up to the root which is query).
      *
      * @param node the truc in the orignial tree
      */
@@ -89,7 +90,7 @@ public class Truc {
     }
 
     /**
-     * compute the position of the "truc"  in it"s current triple after adding it
+     * Compute the position of the "truc" in it's current triple after adding it.
      */
     private void computePosition() {
         position = POSITION.SUBJECT;
@@ -116,7 +117,7 @@ public class Truc {
     }
 
     /**
-     * Generate the triple where are the truc
+     * Get the triple where the truc are, and generate a clone to it.
      */
     private void generateTripleComposantes() {
         if (parents.size() != 0) {
@@ -135,18 +136,17 @@ public class Truc {
     }
 
     /**
-     * Clean text we get from the triple, it may contains quotes or rafters.
-     * This functions will clean it.
+     * Clean text we get from the triple, it may contains quotes or rafters,this functions will clean it.
      *
      * @param text text to be cleaned from the characteres representing truc
      * @return same text cleaned up
      */
     private String clean(String text) {
-        return text.replace("\"", "").replace("/", "").replace("/", "");
+        return text.replace("\"", "").replace("/", "");
     }
 
     /**
-     * Generate variables like ?SPARQL_1, label_1, etc...
+     * Generate variables for this truc like ?SPARQL_1, label_1, etc...
      */
     private void generateVariables() {
         variables = new HashMap<>();
@@ -180,6 +180,11 @@ public class Truc {
         return false;
     }
 
+    /**
+     * Get the variable state by getting the constant name of the variable to display it in the JSON we send to the user.
+      * @param variable variable from the SPARQL query in string format
+     * @return VARIABLE enum (VARIABLES,LABEL,TMP1,TMP2)
+     */
     public VARIABLES getVariablePosition(String variable) {
         for (Map.Entry mapentry : variables.entrySet()) {
             if (mapentry.getValue().toString().trim().equals("?" + variable.trim())) {

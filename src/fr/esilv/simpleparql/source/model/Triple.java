@@ -1,7 +1,7 @@
 package fr.esilv.simpleparql.source.model;
 
 /**
- * repesent the triple structure (subject, predicate object)
+ * Repesent the triple structure (subject, predicate and object)
  */
 public class Triple {
     private String subject;

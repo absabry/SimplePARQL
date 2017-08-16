@@ -3,8 +3,7 @@ package fr.esilv.simpleparql.source.model;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
- * Element of the generatedQueries.
- * We keep :
+ * Element of the SPARQL generated queries. <br>
  * <strong>page</strong>to handle the split between those queries <br>
  * <strong>query </strong>the query generted,in it's tree form <br>
  */

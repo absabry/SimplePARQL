@@ -12,14 +12,13 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * override toString method for the semantic tree
- * to avoid the EOF and the joined text when displaying the tree
+ * Override toString method for the semantic tree to avoid the EOF and the joined text when displaying the tree.
+ *
+ * Example of usage : <br>
+ * TreePrinterListener listener = new TreePrinterListener(parser); <br>
+ * ParseTreeWalker.DEFAULT.walk(listener, tree); <br>
+ * logger.info(listener.toString()); <br>
  */
-/*
-        TreePrinterListener listener = new fr.esilv.simpleparql.source.model.TreePrinterListener(parser);
-        ParseTreeWalker.DEFAULT.walk(listener, tree);
-        logger.info(listener.toString());
-*/
 
 public class TreePrinterListener implements ParseTreeListener {
     private final List<String> ruleNames;
@@ -33,6 +32,10 @@ public class TreePrinterListener implements ParseTreeListener {
         this.ruleNames = ruleNames;
     }
 
+    /**
+     *  No manipulation needed, just delete the EOF tag, and add a space between each word.
+     * @param node root of the SPARQL query.
+     */
     @Override
     public void visitTerminal(TerminalNode node) {
         if (builder.length() > 0) {

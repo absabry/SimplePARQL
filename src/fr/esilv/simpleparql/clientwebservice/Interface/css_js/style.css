@@ -433,3 +433,43 @@ text-align:justify;
  left: 0;
  right:0;
 }
+
+#nextpage{
+    display:none;
+    width:35%;
+    color:white;
+    background-color:#e8503f;
+    border-radius: 8px;
+}
+
+#nextpage img {
+    float: right;
+    margin: 2px;
+}
+
+#nextpage > img,
+#nextpage > span {
+  vertical-align: middle;
+  font-size: 150%;
+  height: 25px;
+}
+
+#previouspage{
+    display:none;
+    width:35%;
+    color:white;
+    background-color:#e8503f;
+    border-radius: 8px;
+}
+
+#previouspage img {
+    float: left;
+    margin: 2px;
+}
+
+#previouspage > img,
+#previouspage > span {
+  vertical-align: middle;
+  font-size: 150%;
+  height: 25px;
+}

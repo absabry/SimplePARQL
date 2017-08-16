@@ -28,7 +28,11 @@ public class QueryConfig {
     public ArrayList<String> getPredifinedPrefixes() {
         return predifinedPrefixes;
     }
-
+    /**
+     * Read file and get each composant of query's configuration
+     * @param file configuration file
+     * @throws IOException
+     */
     private void readProprieties(InputStream file) throws IOException {
         ArrayList<String> linesOfFile = new ArrayList<>();
         Scanner input = new Scanner(file);

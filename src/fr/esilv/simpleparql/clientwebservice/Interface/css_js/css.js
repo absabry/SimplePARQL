@@ -7,6 +7,7 @@ $("#download-XML").kendoButton({enable: true});
 
 $("#clear").kendoButton({enable: true});
 
+
 $('#assist').on('change', function () {
     clearFunction();
     if ($('#assist').is(':checked')) {
@@ -23,6 +24,8 @@ $(window).load(function() {
           $(document).trigger('not_assisted');
       }
 });
+
+
 
 $(document).on('assisted', function() {
     $('#query_bloc').removeClass().addClass('assisted');
@@ -66,10 +69,14 @@ function waitFunction(){
     $("html, body").animate({ scrollTop: $(document).height() }, 500);
 }
 
+//clear the already displayed results
 function clearFunction(){
     $('#wait').empty();
     $('#query_results').empty();
     $('#idWebSocketTime').empty();
+    $("#nextpage").hide();
+    $("#previouspage").hide();
+    $("#query_results").empty();
 }
 
 /*--------------------- reformat the query to be formatted ----------------------*/
@@ -127,7 +134,6 @@ function isEscapeAfter(word){
 
 
 /* ---------------------------------------------- kendo multi select ------------------------------------------- */
-// kendo multi select
 $("#list_bases").kendoMultiSelect({
     autoClose: false,
     dataSource: {
@@ -237,7 +243,7 @@ $("#list_prefixes").kendoMultiSelect({
       dataValueField: "value"
     });
 
-$("#download_list").kendoMultiSelect({
+$("#output_list").kendoMultiSelect({
     autoClose: false,
     dataSource: {
     data: [
@@ -251,8 +257,7 @@ $("#download_list").kendoMultiSelect({
 });
 
 $("#list_bases").getKendoMultiSelect().value(["Dbpedia"]);
-$("#download_list").getKendoMultiSelect().value(["HTML"]);
-
+$("#output_list").getKendoMultiSelect().value(["HTML"]);
 
 
 /* ------------------------- tooltips style --------------------------------------*/

@@ -33,8 +33,6 @@ public class Constants {
     public static final String STR = "STR";
     public static final String AND = " && ";
     public static final String AND_VIRTUOSO = " AND ";
-    public static final String SUCCES = "Succes";
-    public static String ERROR = "ERROR ";
 
 
     /**
@@ -54,6 +52,7 @@ public class Constants {
      * Draw the syntaxic tree in a Jframe
      *
      * @param title title of the Jframe to be displayed
+     * @deprecated
      */
     public static void printTree(String tree, String title) {
         SimplePARQLParser cloned = Constants.getTreeOfText(tree);
@@ -78,20 +77,28 @@ public class Constants {
     }
 
     /**
-     * /**
-     * print the tree in logger (personalized design)
+     *
+     * Print the tree in logger (with space between words, and without EOF tag)
      *
      * @param parser the current parser in a SimplePARQLParser form
      * @param query  tree's root
      * @return the query in it's text form
      */
-
     public static String treeToString(SimplePARQLParser parser, ParserRuleContext query) {
         TreePrinterListener listener = new TreePrinterListener(parser);
         ParseTreeWalker.DEFAULT.walk(listener, query);
         return listener.toString();
     }
 
+
+    /**
+     *
+     * Print the tree in logger (personalized design with well formatted). Can be deprecated, just used in the tostring functions.
+     *
+     * @param parser the current parser in a SimplePARQLParser form
+     * @param query  tree's root
+     * @return the query in it's text form
+     */
     public static String treeToStringFormatted(SimplePARQLParser parser, ParserRuleContext query) {
         TreePrinterListenerFormatted listener = new TreePrinterListenerFormatted(parser);
         ParseTreeWalker.DEFAULT.walk(listener, query);
@@ -100,7 +107,7 @@ public class Constants {
 
 
     /**
-     * get node index in parent children
+     * Get node index in parent children
      *
      * @param node current node
      * @return the index of the node in the parent children

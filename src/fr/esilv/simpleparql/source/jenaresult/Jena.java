@@ -31,7 +31,7 @@ public class Jena {
      * @param base Base the user chose for exectuing this query
      * @param sparqlQueryString The query in string format
      * @param timeout The timeout decided for the query
-     * @return
+     * @return SPARQLResult containing all the tuples of this SPARQL query
      */
     public SPARQLResult executeSparqlQuery(String base, String sparqlQueryString, String timeout) {
         SPARQLResult SPARQLQuery = new SPARQLResult();

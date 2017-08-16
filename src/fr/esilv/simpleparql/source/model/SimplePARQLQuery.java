@@ -10,16 +10,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * order the query to have triples only
- * ?a ?b ?c;?d ?e,?f
- * the jenaresult will be:
- * ?a ?b ?c .
- * ?a ?d ?e .
- * ?a ?d ?e
+ * order the query to have triples only :<br>
+ * ?a ?b ?c;?d ?e,?f  <br>
+ * the jenaresult will be: <br>
+ * ?a ?b ?c . <br>
+ * ?a ?d ?e . <br>
+ * ?a ?d ?e. <br>
  * <p>
- * It will add the predefined prefixes indicated in the configuration of the query
+ * It will add the predefined prefixes indicated in the configuration of the query.
  * It will also replace the select clause with the select all clause.
- * The results will be filtred after treatement to return what the user wish.
+ * The results will be filtred after treatement to return what the user wish.<br>
  */
 public class SimplePARQLQuery {
     private SimplePARQLParser parser;
@@ -38,7 +38,7 @@ public class SimplePARQLQuery {
     }
 
     /**
-     * function to re order the query
+     * Main function to re-order the query.
      *
      * @param parser parser of the SimpleARQL query we get from the user's query
      * @return new SimplePARQLParser with the new triples instead of the triples "," and ";"
@@ -58,8 +58,7 @@ public class SimplePARQLQuery {
     }
 
     /**
-     * Remove all of shortcuts Sparql offer and
-     * rearrange to be triples ONLY (wthout any ";" or "," in the triple)
+     * Remove all SPARQL's shortcuts and rearrange to be triples ONLY (wthout any ";" or "," in the triple)
      *
      * @param triplesSameSubject the root of the triples composants
      * @return List of triples
@@ -79,7 +78,7 @@ public class SimplePARQLQuery {
     }
 
     /**
-     * add the new childen to the triple and remove the old one
+     * Add the new childen to the triple and remove the old one
      *
      * @param triplesSameSubject the root of the composant
      * @param triples            the new triples list, we convert it to tree then use it
@@ -102,7 +101,7 @@ public class SimplePARQLQuery {
     }
 
     /**
-     * join list of items with some delimter
+     * Join list of items with some delimter
      *
      * @param list     items of list
      * @param delimter between the items of list
@@ -128,8 +127,8 @@ public class SimplePARQLQuery {
     }
 
     /**
-     * compute the selected variables from the original SimplePAEQL query
-     * and replace the select clause of the query with the "Select * ".
+     * Compute the selected variables from the original SimplePARQL query
+     * and replace the select clause of the query with the "Select * ". <br>
      *
      * @param parser parser of the SimpleARQL query we get from the user's query
      */
@@ -154,9 +153,9 @@ public class SimplePARQLQuery {
     }
 
     /**
-     * Adding the prefixes rdf and rdfs in the begining of the query
-     * Those prefixes are mandatory for the Jena API, that's why we add it if the user forgot about them.
-     * We're adding also some other prefixes we think the user could use more than others, he can though add all other prefixes he wants to.
+     * Adding the prefixes rdf and rdfs in the begining of the query. Some of those prefixes are mandatory for the Jena API,
+     * that's why we add it if the user forgot about them. We're adding also some other prefixes we think the user could use more than others,
+     * he can though add all other prefixes he wants to.
      *
      * @param query root of the query, we kept the query and not the prologue for handling the case where the user not mention any prefixe
      */
@@ -175,7 +174,7 @@ public class SimplePARQLQuery {
     }
 
     /**
-     * check if the generatedTree containing this prefix, in order to add rdf and rdfs to the query if it's not already added
+     * Check if the generatedTree containing this prefix, in order to add  pre-defined prefixes to the query if it's not already added
      *
      * @param prologue the prefixes root of the query
      * @param prefix   prefix string
