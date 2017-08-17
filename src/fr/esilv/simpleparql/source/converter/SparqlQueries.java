@@ -72,7 +72,6 @@ public class SparqlQueries {
     }
 
     /**
-     *
      * Filter the generated query list to get the one assosicated with the page we're looking for.
      *
      * @param page The page we're looking for.
@@ -127,7 +126,7 @@ public class SparqlQueries {
         Truc trucFound = null;
         // if the truc already exists in the generated queries
         for (Truc simpleARQLTruc : simpleARQLTrucs) {
-            if (simpleARQLTruc.getName().equals(trucInTree.getText())) {
+            if (simpleARQLTruc.getText().equals(trucInTree.getText())) {
                 trucFound = new Truc(trucInTree, simpleARQLTruc.getCounter());
                 break;
             }
@@ -174,6 +173,7 @@ public class SparqlQueries {
      * Create a SimplePARQLQueryGenerator element, that will create all of the filter, triples and PAGE of the truc. <br>
      * foreach Composant item created (containg filter and triples),we clone the tree, create a new one and attach the new filter and the new triple
      * and finally we add the result to the generatedQueries List. <br>
+     *
      * @param tree original tree to get it's query and it's page
      * @param truc truc which we add it's triples and filter to the new query
      */
@@ -187,9 +187,8 @@ public class SparqlQueries {
             Pair<ParserRuleContext, Integer> groupGraphPattern = findInTree(newOneQuery, truc, SimplePARQLParser.RULE_groupGraphPattern);
             Pair<ParserRuleContext, Integer> triplesBlocks = findInTree(newOneQuery, truc, SimplePARQLParser.RULE_triplesBlock);
             addTripleToTree(triplesBlocks, element.getTriple());
-            addFilterToTree(groupGraphPattern, element.getFilter());
-            if (element.getIgnoredFilter() != null) {
-                addFilterToTree(groupGraphPattern, element.getIgnoredFilter());
+            for (String filter : element.getFilters()) {
+                addFilterToTree(groupGraphPattern, filter);
             }
 
             ParserRuleContext newQuery = Constants.getTreeOfText(Constants.treeToString(parser, newOneQuery)).query();

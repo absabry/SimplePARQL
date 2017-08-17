@@ -8,22 +8,22 @@ var SIMPLEPARQL_QUERY; // keep those informations for replacing trucs correctly
 var dictionnaryTrucs={}; // handle replacing trucs
 var pages = ["FIRST","SECOND","THIRD"]; // handle pages displayed
 var page_counter = 0; // handles pages displayed
+var queryInformations; // to change it's field page, when we click on next or previous. We can't dd
 
 // submit the form and request the Java server
 $("#query_form").submit(function( event ) {
      event.preventDefault();
      if (event.originalEvent !== undefined) {
          $('#clear').trigger('click');
+         dictionnaryTrucs={};
+         if ($('#assist').is(':checked')) {
+              queryInformations = createQueryFromAssisted();
+         }else {
+             queryInformations = createQueryFromNoAssisted();
+         }
      }
+     queryInformations.page=pages[page_counter];
      waitFunction();
-     dictionnaryTrucs={};
-     var queryInformations;
-     if ($('#assist').is(':checked')) {
-         queryInformations = createQueryFromAssisted();
-     } else {
-        queryInformations = createQueryFromNoAssisted();
-     }
-     SIMPLEPARQL_QUERY = queryInformations.query;
 
 
     var output_list = $("#output_list").data("kendoMultiSelect").value();
@@ -66,7 +66,7 @@ $("#previouspage").click(function(){
 
 /* ---------------- Get the POST fields and manipulate it before creating the socket ---------------------------*/
 
-// create JSON request when it's NOT assisted form
+// create JSON request when it's in the assisted form
 function createQueryFromAssisted(){
      var bases = $("#list_bases").data("kendoMultiSelect").value();
      var select = $('#select').val();
@@ -80,13 +80,13 @@ function createQueryFromAssisted(){
         allPrefixes += ' PREFIX ' + prefixes[i];
      }
      // keep this infomrmations, to be used when we replace the truc in the original query
-     SIMPLEPARQL_QUERY_ASSISTED= {
+     SIMPLEPARQL_QUERY_ASSISTED = {
          'select':select,
          'where':where,
          'filter':filter,
          'optional':optional
       }
-     var query= allPrefixes
+     var query = allPrefixes
                + ' SELECT ' + select
                + ' WHERE {' + where
                + (filter.trim() != ''? ' FILTER(' + filter +')' : '')
@@ -96,18 +96,17 @@ function createQueryFromAssisted(){
      var queryInformations={
                   "bases" : bases,
                   "query":query,
-                  "page" : pages[page_counter],
                   "timeout" : $('#timeout').val()
      }
      return queryInformations;
 }
 
-// create JSON request when it's assisted form
+// create JSON request when it's the not assisted form
 function createQueryFromNoAssisted(){
+     SIMPLEPARQL_QUERY = $('#query').val();
       return {
               "bases" : $("#list_bases").data("kendoMultiSelect").value(),
               "query":$('#query').val(),
-              "page" : pages[page_counter],
               "timeout" : $('#timeout').val()
       }
 }
@@ -273,25 +272,40 @@ function isJSON (something) {
 
 // html result in the web interface directly
 function htmlresult($query_div,json){
+    // add error to results , and return result
     if(json.hasOwnProperty('error')){
         addError($query_div,json.error);
         return;
     }
 
-    addBase($query_div,json.base);
+    // keep the button (next or/and prev) if they should be
+    if(!json.isSPARQL){
+            if(page_counter == 2){ $("#nextpage").hide();}
+            else{$("#nextpage").show();}
+            if(page_counter == 0){$("#previouspage").hide();}
+            else{ $("#previouspage").show();}
+    }
 
-    if(page_counter == 2){ $("#nextpage").hide();}
-    else{$("#nextpage").show();}
-    if(page_counter == 0){$("#previouspage").hide();}
-    else{ $("#previouspage").show();}
+    // if there are no result
+    if(!json.hasOwnProperty('result') || json.result.length==0){
+        var $noresult = $('<h3></h3>').addClass("center")
+                        .text("No results found in this page. Please change your SimplePARQL query or go back to previous page.");
+        $($query_div).append($noresult);
+        return;
+    }
 
+
+    addBase($query_div,json.base); //add the base in the begining
+
+    // add all the results proprety to different tables
     var counter=1;
     for (var i=0; i <json.result.length;i++){
-        if(json.result[i].results.length != 0){
+        if(json.result[i].results.length != 0){ // no result ==> no table
             addQuery($query_div,json.result[i].query,counter,json.base);
-            var $div_title = $('<div></div>').addClass('title');
+            // two tables are created to handle the table's toogle
+            var $div_title = $('<div></div>').addClass('title');// table containing the titles (ths)
             addTitle($div_title,json.result[i]);
-            var $div_results=$('<div></div>').addClass('results');
+            var $div_results=$('<div></div>').addClass('results');// table containing the results (tds)
             addResults($div_results,json.result[i]);
             $($query_div).append($div_title);
             $($query_div).append($div_results);
@@ -299,6 +313,14 @@ function htmlresult($query_div,json){
             $($query_div).append('<br/>');
             counter++;
         }
+    }
+    // when all results are empty.
+    if(counter == 1){
+        var $noresult = $('<h3></h3>').addClass("center")
+                    .text("No results found in this page. Please change your SimplePARQL query or go back to previous page.");
+         $("#nextpage").hide(); // keep it? the first page have no result, so we don't need the rest.
+        $($query_div).append($noresult);
+        return;
     }
 }
 
@@ -414,8 +436,17 @@ function addTitle($div,result){
     var $thead=$('<thead></thead>');
     var $row= $('<tr></tr>');
     for(var j=0; j<result.variables.length; j++){
-        var $title = $('<th></th>').text(result.variables[j]);
-        // add the arrow to the last title (to be able to collapse and expand results)
+        var $title = $('<th></th>');
+        if(typeof result.variables[j] == 'object' ){ // it's a SimplePARQL truc
+            $title.text(result.variables[j].name);
+            dictionnaryTrucs[result.variables[j].name]=result.variables[j];
+            dictionnaryTrucs[result.variables[j].name].used = getOriginalTruc(result.variables[j].name);
+        }
+        else{ // it's a SPARQL variable
+            $title.text(result.variables[j]);
+        }
+
+        // add the arrow to the last title (to be able to collapse and expand table results)
         if(j == result.variables.length -1){
             var imageCollapse =  $('<img></img>').addClass('collapse tooltip')
                                   .attr({'src':'images/arrow-up.png','title':'Show results.'}).addClass('pointer')
@@ -457,7 +488,7 @@ function addResults($div,result){
                 addURIElement(element,currentResult,'value');
                 addPropretyOrLabel(element,result.results[j][k]);
                 if(isUrl(currentResult)){ // if it's a label and not URI, we dont add the logo to the cell
-                    addLogoToTrucCell(element);
+                    addLogoToTrucCell(element,result.variables);
                 }
                 $row.append(element);
             }
@@ -475,7 +506,7 @@ function addResults($div,result){
 }
 
 // add the logo for coping the value to query
-function addLogoToTrucCell(element){
+function addLogoToTrucCell(element,titles){
       var img = $('<img></img>').addClass('pointer tooltip');
       img.attr({'src':'images/grab.png','title':'Click to use me!'});
       $(img).on( "click", function() {
@@ -483,10 +514,19 @@ function addLogoToTrucCell(element){
         var $th = $td.closest('.results').prev().find('th').eq($td.index());
         var value = $td.find('.value').text();
         if(isUrl(value)){value = "<"+value+">";}
-        dictionnaryTrucs[$th.text()] = value;
-        replaceTrucs();
-        resetCellsImages($td);
-        img.attr('src', 'images/after_grab.png');
+
+        if(dictionnaryTrucs[$th.text()].used == value) { // already clicked, we'll go back to the Truc
+            dictionnaryTrucs[$th.text()].used = getOriginalTruc($th.text());
+            replaceTrucs();
+            resetCellsImages($td);
+        }
+        else{
+            //Truc clicked, should replace it with new value
+            dictionnaryTrucs[$th.text()].used = value;
+            replaceTrucs();
+            resetCellsImages($td);
+            img.attr('src', 'images/after_grab.png');
+        }
       })
       .mousedown(function(){
          $(this).attr('src','images/grabbed.png' );
@@ -498,7 +538,19 @@ function addLogoToTrucCell(element){
       element.append(img);
 }
 
-
+function getOriginalTruc(text){
+    var originalText = text;
+    if(dictionnaryTrucs[text].type =="STRING"){
+        originalText = "\""+originalText+"\"";
+    }
+    else if(dictionnaryTrucs[text].type =="SLASH"){
+        originalText = "/"+originalText+"/";
+    }
+    if(dictionnaryTrucs[text].lang != null){
+        originalText = originalText+"@"+dictionnaryTrucs[text].lang;
+    }
+    return originalText;
+}
 
 /*----------------------------------- Replace trucs from the query with the URL result to the HTML results---------------------------------*/
 
@@ -532,7 +584,7 @@ function replaceTrucs(){
 function replaceToTextArea(original,id){
     var query = original;
     for (var truc in dictionnaryTrucs) {
-        query = replaceElement(query,truc,dictionnaryTrucs[truc]);
+        query = replaceElement(query,truc,dictionnaryTrucs[truc].used);
     }
     elementToTextArea(id,query);
 }
@@ -540,9 +592,9 @@ function replaceToTextArea(original,id){
 // replace element, with the corresponding one
 function replaceElement(query,trucName,trucFound){
     var index = query.indexOf(trucName);
-    var foundInQuery = getWord(index,trucName.length,query); // the truc found before adding the limiter " or
+    var foundInQuery = getWord(index,trucName.length,query); // the truc found before adding the limiter " or /
     if(!isUrl(foundInQuery) && index !=-1){
-        return query.replaceAll(wordToBeReplaced(query,foundInQuery,index,trucName),trucFound); // replace the word
+        return query.replaceAll(foundInQuery,trucFound); // replace the word
     }
     return query;
 }
@@ -555,34 +607,21 @@ String.prototype.replaceAll = function (find, replace) {
 // get word givin the index (maybe in the middle of the word)
 function getWord(index,endindex,query){
     var word = query.substring(index,index+endindex);
-    var indexBefore=index;
-    var indexAfter=index + endindex;
-    var charBefore= query.charAt(indexBefore-1);
-    while(charBefore.trim() != ''){
+    var indexBefore=index-1;
+    var indexAfter= index + endindex;
+    var charBefore= query.charAt(indexBefore);
+    while(charBefore != ' '){
         word = charBefore + word;
         indexBefore = indexBefore-1;
         charBefore = query.charAt(indexBefore);
     }
-    var charAfter= query.charAt(indexAfter);
+    var charAfter=query.charAt(indexAfter);
     while(charAfter.trim() != '' && charAfter!= '.' ){
         word = word+charAfter;
         indexAfter = indexAfter+1;
         charAfter = query.charAt(indexAfter);
     }
     return word;
-}
-
-// clean word that will be replaced
-function wordToBeReplaced(query,foundInQuery,index,trucName){
-     var beforechar = query.charAt(index-1);
-     var afterchar = query.charAt(index+trucName.length);
-     if(beforechar != ' '){
-        trucName= beforechar + trucName;
-     }
-     if(afterchar != ' ' && afterchar !='.'){
-        trucName = trucName + afterchar;
-     }
-     return trucName;
 }
 
 /*----------------------------------- Build table results---------------------------------*/

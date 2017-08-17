@@ -16,7 +16,8 @@ import java.awt.*;
 import java.util.Arrays;
 
 /**
- * .Constants used in the code
+ * Constants used in the code. This class contains some string constants used in several classes, but also some functions that is not proper
+ * to just one class, but for severals class.
  */
 public class Constants {
     public static final String VARIABLE = " ?SimplePARQL_";
@@ -33,6 +34,8 @@ public class Constants {
     public static final String STR = "STR";
     public static final String AND = " && ";
     public static final String AND_VIRTUOSO = " AND ";
+    public static final String LANGMATCHES = "langMatches";
+    public static final String LANG = "lang";
 
 
     /**
@@ -77,7 +80,6 @@ public class Constants {
     }
 
     /**
-     *
      * Print the tree in logger (with space between words, and without EOF tag)
      *
      * @param parser the current parser in a SimplePARQLParser form
@@ -92,7 +94,6 @@ public class Constants {
 
 
     /**
-     *
      * Print the tree in logger (personalized design with well formatted). Can be deprecated, just used in the tostring functions.
      *
      * @param parser the current parser in a SimplePARQLParser form

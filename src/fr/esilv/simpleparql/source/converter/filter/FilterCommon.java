@@ -34,4 +34,11 @@ public class FilterCommon {
         result += " )";
         return result;
     }
+
+    //FILTER ( langMatches  ( lang(?label_3),"en"))
+    public String createSPARQLLanguageFilter(String variable, String language) {
+        return Constants.FILTER + "( " + Constants.LANGMATCHES + "(" + Constants.LANG + "(" + variable + "),\"" + language + "\"))";
+    }
+
+
 }

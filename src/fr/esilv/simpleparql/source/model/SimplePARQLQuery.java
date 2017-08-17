@@ -26,6 +26,7 @@ public class SimplePARQLQuery {
     private ArrayList<String> selectedVariables;
     private ArrayList<String> predefinedPrefixes;
     private boolean selectAll;
+    private boolean isSPARQL;
 
     public SimplePARQLQuery(SimplePARQLParser parser, ArrayList<String> predefinedPrefixes) {
         selectAll = false;
@@ -38,6 +39,37 @@ public class SimplePARQLQuery {
     }
 
     /**
+     * Set the boolean value of isSPARQL.
+     *
+     * @param query the query's root
+     * @param parser SimplePARQL parser
+     */
+    private void setIsSPARQL(SimplePARQLParser parser, ParserRuleContext query) {
+        Collection<ParseTree> trucs = XPath.findAll(query, "//truc", parser); // search for all trucs in the query
+        isSPARQL = trucs.size() == 0;
+    }
+
+    /**
+     * Check if the query is SimplePARQL query, or a SPARQL query.
+     *
+     * @return boolean determining if the query is a SPARQL query
+     */
+    public boolean isSPARQL() {
+        return isSPARQL;
+    }
+
+    /**
+     * @return selected variables from the original query
+     */
+    public ArrayList<String> getSelectedVariables() {
+        return selectedVariables;
+    }
+
+    public boolean isSelectAll() {
+        return selectAll;
+    }
+
+    /**
      * Main function to re-order the query.
      *
      * @param parser parser of the SimpleARQL query we get from the user's query
@@ -45,6 +77,8 @@ public class SimplePARQLQuery {
      */
     private SimplePARQLParser RearrangeQuery(SimplePARQLParser parser) {
         ParserRuleContext query = parser.query();
+        setIsSPARQL(parser, query); // check if the query is a SPARQL one.
+
         addPredefinedPrefixes(parser, query);
         ArrayList<Triple> triples;
         Collection<ParseTree> triplesSameSubjects = XPath.findAll(query, "//triplesSameSubject", parser);
@@ -113,17 +147,6 @@ public class SimplePARQLQuery {
             result += object.toString() + delimter;
         }
         return result;
-    }
-
-    /**
-     * @return selected variables from the original query
-     */
-    public ArrayList<String> getSelectedVariables() {
-        return selectedVariables;
-    }
-
-    public boolean isSelectAll() {
-        return selectAll;
     }
 
     /**

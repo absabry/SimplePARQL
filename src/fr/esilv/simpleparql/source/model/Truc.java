@@ -2,9 +2,11 @@ package fr.esilv.simpleparql.source.model;
 
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import javafx.util.Pair;
+import org.antlr.runtime.BaseRecognizer;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,9 +25,11 @@ public class Truc {
     // TODO ajouter la langue et le truc sans la langue tout ca
     private ArrayList<Pair<ParserRuleContext, Integer>> parents;
     private String name;
+    private String language;
     private POSITION position;
     private int counter;
     private Triple currentTriple;
+    private TRUC_TYPE type;
     private HashMap<VARIABLES, String> variables;
 
     /**
@@ -37,12 +41,27 @@ public class Truc {
      */
     public Truc(ParseTree node, int counter) {
         parents = new ArrayList<>();
-        name = node.getText();
+        language = null;
+        intializeLanguageAndName(node);
         this.counter = counter;
         createParentTree(node);
         computePosition();
+        computeType();
         generateVariables();
         generateTripleComposantes();
+    }
+
+    /**
+     * Get the text (the name) of the truc and it's language if there is one.
+     *
+     * @param node truc's node
+     */
+    private void intializeLanguageAndName(ParseTree node) {
+        String composant[] = node.getText().split("@");
+        name = composant[0];
+        if (composant.length == 2) {
+            language = composant[1];
+        }
     }
 
     public int getCounter() {
@@ -61,12 +80,40 @@ public class Truc {
         return variables;
     }
 
-    public String getName() {
-        return name;
+    public String getLanguage() {
+        return language;
     }
 
+    /**
+     * Get truc's name without the quotes and the slash.
+     *
+     * @return the name without delimter
+     */
     public String getCleanedName() {
         return clean(name);
+    }
+
+    /**
+     * Get truc's name exactly like in the tree (with language and @ tag).
+     *
+     * @return the name without delimter
+     */
+    public String getText() {
+        return name + (language == null ? "" : "@" + language);
+    }
+
+    public TRUC_TYPE getType() {
+        return type;
+    }
+
+    /**
+     * Clean text we get from the triple, it may contains quotes or rafters,this functions will clean it.
+     *
+     * @param text text to be cleaned from the characteres representing truc
+     * @return same text cleaned up
+     */
+    private String clean(String text) {
+        return text.replace("\"", "").replace("/", "");
     }
 
     public ArrayList<Pair<ParserRuleContext, Integer>> getParents() {
@@ -98,6 +145,15 @@ public class Truc {
             position = POSITION.PREDICATE;
         } else if (find(SimplePARQLParser.RULE_object) != null) {
             position = POSITION.OBJECT;
+        }
+    }
+
+    private void computeType() {
+        type = TRUC_TYPE.WORD;
+        if (name.contains("/")) {
+            type = TRUC_TYPE.SLASH;
+        } else if (name.contains("\"")) {
+            type = TRUC_TYPE.STRING;
         }
     }
 
@@ -136,16 +192,6 @@ public class Truc {
     }
 
     /**
-     * Clean text we get from the triple, it may contains quotes or rafters,this functions will clean it.
-     *
-     * @param text text to be cleaned from the characteres representing truc
-     * @return same text cleaned up
-     */
-    private String clean(String text) {
-        return text.replace("\"", "").replace("/", "");
-    }
-
-    /**
      * Generate variables for this truc like ?SPARQL_1, label_1, etc...
      */
     private void generateVariables() {
@@ -171,18 +217,22 @@ public class Truc {
      * @return true if it's it, false if it's not
      */
     public boolean isExact() {
-        ParserRuleContext truc = parents.get(0).getKey();
+        // using the TREE, more accurate
+        /*ParserRuleContext truc = parents.get(0).getKey();
         if (truc.getChild(0) instanceof ParserRuleContext) {
             if (((ParserRuleContext) truc.getChild(0)).getRuleIndex() == SimplePARQLParser.RULE_string) {
                 return true;
             }
         }
         return false;
+        */
+        return type == TRUC_TYPE.STRING;
     }
 
     /**
      * Get the variable state by getting the constant name of the variable to display it in the JSON we send to the user.
-      * @param variable variable from the SPARQL query in string format
+     *
+     * @param variable variable from the SPARQL query in string format
      * @return VARIABLE enum (VARIABLES,LABEL,TMP1,TMP2)
      */
     public VARIABLES getVariablePosition(String variable) {
@@ -194,13 +244,12 @@ public class Truc {
         return null;
     }
 
-
     @Override
     public boolean equals(Object other) {
         if (other == null) return false;
         if (other == this) return true;
         if (!(other instanceof Truc)) return false;
-        return (name).equals(((Truc) other).getName());
+        return (getCleanedName()).equals(((Truc) other).getCleanedName());
     }
 
     public String toString() {

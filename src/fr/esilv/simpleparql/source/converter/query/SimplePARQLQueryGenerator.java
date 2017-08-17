@@ -14,12 +14,11 @@ import java.util.List;
 /**
  * Methodes to generate the SimplePARQL queries <strong>for just one truc</strong>. It use the filter interface to add the filter composant. <br>
  * We can override the methodes (PageFirst(), PageSecond() and PageThird()) to change the pages' strategy, or create a new personliazed ones.
- *
+ * <p>
  * <strong>truc</strong> The truc for which we create the queries. <br>
  * <strong>genertedComposants</strong> Generated composants for this truc. (Filter,triples and pages) <br>
  * <strong>filterGenertor</strong> The filter generator interface. <br>
  * <strong>ignoredProprieties</strong> ignored proprieties when we search for all proprieties. <br>
- *
  */
 
 public class SimplePARQLQueryGenerator {
@@ -50,11 +49,10 @@ public class SimplePARQLQueryGenerator {
      * FILTER ( CONTAINS ( STR ( ?SimplePARQL_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc Truc which we'll generate composant for it
      * @param page page which the query belongs to
      * @return generated item (triple, filter and page it belongs to)
      */
-    private Composant generateURI(Truc truc, PAGE page) {
+    private Composant generateURI(PAGE page) {
         String triples = null;
         if (truc.getPosition() == POSITION.SUBJECT) {
             triples = truc.getVariables().get(VARIABLES.VARIABLE) + " "
@@ -67,13 +65,17 @@ public class SimplePARQLQueryGenerator {
                     + truc.getVariables().get(VARIABLES.VARIABLE) + " . ";
         }
         if (triples != null) {
-            String filter;
+            ArrayList<String> filters = new ArrayList<>();
+            // main filter
             if (truc.isExact()) {
-                filter = new FilterCommon().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
+                filters.add(new FilterCommon().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.VARIABLE)));
             } else {
-                filter = new FilterDefault().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.VARIABLE));
+                filters.add(new FilterDefault().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.VARIABLE)));
             }
-            return new Composant(triples, filter, null, page);
+            if (truc.getLanguage() != null) {
+                filters.add(new FilterCommon().createSPARQLLanguageFilter(truc.getVariables().get(VARIABLES.VARIABLE), truc.getLanguage())); // languge filter if exists
+            }
+            return new Composant(triples, filters, page);
         }
         return null;
     }
@@ -87,21 +89,24 @@ public class SimplePARQLQueryGenerator {
      * FILTER ( CONTAINS ( STR ( ?label_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc current fr.esilv.simpleparql.source.model.Truc
      * @param page page which the query belongs to
      * @return generated item (triple, filter and page it belongs to)
      */
-    private Composant generatelabels(Truc truc, PAGE page) {
-        Composant result = generateURI(truc, page);
+    private Composant generatelabels(PAGE page) {
+        Composant result = generateURI(page);
         if (result != null) {
-            String filter;
+            ArrayList<String> filters = new ArrayList<>();
+            // main filter
             if (truc.isExact()) {
-                filter = new FilterCommon().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.LABEL));
+                filters.add(new FilterCommon().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.LABEL)));
             } else {
-                filter = filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.LABEL));
+                filters.add(filterGenerator.createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.LABEL)));
+            }
+            if (truc.getLanguage() != null) {
+                filters.add(new FilterCommon().createSPARQLLanguageFilter(truc.getVariables().get(VARIABLES.LABEL), truc.getLanguage())); // languge filter if exists
             }
             return new Composant(result.getTriple() + " " + truc.getVariables().get(VARIABLES.VARIABLE) + " "
-                    + Constants.RDF + truc.getVariables().get(VARIABLES.LABEL) + " . ", filter, null, page);
+                    + Constants.RDF + truc.getVariables().get(VARIABLES.LABEL) + " . ", filters, page);
         }
         return null;
     }
@@ -115,22 +120,25 @@ public class SimplePARQLQueryGenerator {
      * FILTER ( CONTAINS ( STR ( ?tmp_var2_1 ) , UCASE ( "Sh" ) ) )
      * }
      *
-     * @param truc current Truc
      * @param page page which the query belongs to
      * @return generated item (triple, filter and page it belongs to)
      */
-    private Composant generateProprieties(Truc truc, PAGE page) {
-        Composant result = generateURI(truc, page);
+    private Composant generateProprieties(PAGE page) {
+        Composant result = generateURI(page);
         if (result != null) {
-            String filter;
+            ArrayList<String> filters = new ArrayList<>();
             if (truc.isExact()) {
-                filter = new FilterCommon().createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.TMP2));
+                filters.add(new FilterCommon().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.TMP2)));
             } else {
-                filter = filterGenerator.createSPARQLFilter(truc.getCurrentTriple().get(truc.getPosition()), truc.getVariables().get(VARIABLES.TMP2));
+                filters.add(filterGenerator.createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.TMP2)));
             }
+            if (truc.getLanguage() != null) {
+                filters.add(new FilterCommon().createSPARQLLanguageFilter(truc.getVariables().get(VARIABLES.TMP2), truc.getLanguage())); // languge filter if exists
+            }
+            filters.add(new FilterCommon().removeIgnoredPropreties(truc.getVariables().get(VARIABLES.TMP1), ignoredProprieties)); // ignored proprites
             return new Composant(result.getTriple() + truc.getVariables().get(VARIABLES.VARIABLE)
                     + truc.getVariables().get(VARIABLES.TMP1) + truc.getVariables().get(VARIABLES.TMP2) + " . ",
-                    filter, new FilterCommon().removeIgnoredPropreties(truc.getVariables().get(VARIABLES.TMP1), ignoredProprieties), page);
+                    filters, page);
         }
         return null;
     }
@@ -157,14 +165,14 @@ public class SimplePARQLQueryGenerator {
     private void PageFirst() {
         if (truc.isExact()) {
             if (truc.getPosition() == POSITION.OBJECT) {
-                generatedComposants.add(generateURI(truc, PAGE.FIRST));
+                generatedComposants.add(generateURI(PAGE.FIRST));
             } else {
-                generatedComposants.add(generatelabels(truc, PAGE.FIRST));
+                generatedComposants.add(generatelabels(PAGE.FIRST));
             }
         } else {
-            generatedComposants.add(generatelabels(truc, PAGE.FIRST));
+            generatedComposants.add(generatelabels(PAGE.FIRST));
             if (truc.getPosition() == POSITION.OBJECT) {
-                generatedComposants.add(generateURI(truc, PAGE.FIRST));
+                generatedComposants.add(generateURI(PAGE.FIRST));
             }
         }
     }
@@ -174,7 +182,7 @@ public class SimplePARQLQueryGenerator {
      * If subjet then it will generatePropreties.<br>
      * If predicate then it will generateURI.<br>
      * If object then it will generatePropreties.<br>
-     *
+     * <p>
      * <strong>BUT</strong> if it's an exact query (delimited by double quotes "")
      * if it's in object position, it will not generate labels (that we haven't geenrate in the PageFirst() function search
      * <strong>otherwise</strong>
@@ -183,15 +191,15 @@ public class SimplePARQLQueryGenerator {
     private void PageSecond() {
         if (truc.isExact()) {
             if (truc.getPosition() == POSITION.OBJECT) {
-                generatedComposants.add(generatelabels(truc, PAGE.SECOND));
+                generatedComposants.add(generatelabels(PAGE.SECOND));
             } else {
-                generatedComposants.add(generateProprieties(truc, PAGE.SECOND));
+                generatedComposants.add(generateProprieties(PAGE.SECOND));
             }
         } else {
             if (truc.getPosition() == POSITION.PREDICATE) {
-                generatedComposants.add(generateURI(truc, PAGE.SECOND));
+                generatedComposants.add(generateURI(PAGE.SECOND));
             } else {
-                generatedComposants.add(generateProprieties(truc, PAGE.SECOND));
+                generatedComposants.add(generateProprieties(PAGE.SECOND));
             }
         }
     }
@@ -207,11 +215,11 @@ public class SimplePARQLQueryGenerator {
     private void PageThird() {
         if (truc.isExact()) {
             if (truc.getPosition() == POSITION.OBJECT) {
-                generatedComposants.add(generateProprieties(truc, PAGE.THIRD));
+                generatedComposants.add(generateProprieties(PAGE.THIRD));
             }
         } else {
             if (truc.getPosition() == POSITION.SUBJECT) {
-                generatedComposants.add(generateURI(truc, PAGE.THIRD));
+                generatedComposants.add(generateURI(PAGE.THIRD));
             }
         }
     }

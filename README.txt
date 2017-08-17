@@ -17,6 +17,8 @@ To change any other constants :
     The query's constants, base's constants or even Java Server constan's :  you can check the configuration file for each.
     You can find the configuration rep beside the README file
 
+For NodeJs environement, you need to install two libraires, you can do it using this line : npm install net nodejs-websocket
+
 
 
 

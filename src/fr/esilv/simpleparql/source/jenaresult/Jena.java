@@ -66,6 +66,7 @@ public class Jena {
         } catch (QueryParseException e) {
             SPARQLQuery.setError("error while parsing your SimplePARQL query");
         } catch (Exception e) {
+            System.out.println(sparqlQueryString+ " occured an error");
             SPARQLQuery.setError(e.getMessage().substring(e.getMessage().indexOf(":") + 1).replace("Server", "remote server"));
         }
         return SPARQLQuery;
