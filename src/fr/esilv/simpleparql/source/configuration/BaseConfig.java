@@ -9,7 +9,7 @@ import fr.esilv.simpleparql.source.converter.filter.FilterVirtuoso;
 import java.io.*;
 
 /**
- * Configuration file of the each base. <br>
+ * Configuration file of each base. <br>
  *
  *  <strong>name:</strong>  name of the base. <br>
  *  <strong>link:</strong> The link of the base.<br>

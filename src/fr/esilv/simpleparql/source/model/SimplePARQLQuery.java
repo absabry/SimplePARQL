@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * order the query to have triples only :<br>
+ *
+ * This class will handle the SimplePARQL query, get some informations about it and transform some parts of it before the conversion.
+ * It will order the query to have triples only. Here's a simple example of what this class do: <br>
  * ?a ?b ?c;?d ?e,?f  <br>
  * the jenaresult will be: <br>
  * ?a ?b ?c . <br>

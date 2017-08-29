@@ -5,8 +5,7 @@ import fr.esilv.simpleparql.source.model.Constants;
 import java.util.List;
 
 /**
- * Filter when it comes to the exact truc, and not the CONTAINS one. <br>
- * example : FILTER ( ?label_1 = "John Smith")
+ * Filter when it's common for all strategies, for example when it comes to the exact truc, it's the same filter.
  */
 
 public class FilterCommon {

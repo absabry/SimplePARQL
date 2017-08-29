@@ -24,6 +24,7 @@
 
 
 
+
     </script>
 </head>
 
@@ -54,9 +55,10 @@
         </p>
 
         <!-- mode of usage -->
-        <input type="checkbox" value="1" id="assist" name="assist"/> Assisted mode
+        <div>
+            <span>&nbsp; Assisted mode </span> &nbsp; <a href="#" id="assisted_toggler" class="toggler">ON</a>
+        </div>
         <br/>
-
         <!-- forms bloc -->
         <section style="display:flex;">
             <!--forms (the assisted and not assisted one) -->
@@ -72,7 +74,7 @@
                         <br/>
 
 
-                        <img id="prefixe_img" class="query_element_hidden pointer" src="images/plus.png"
+                        <img id="prefix_img" class="query_element_hidden pointer" src="images/plus.png"
                              title="prefixes field"
                              onclick="toggleForm('prefix')"/>
                         <label class="query_element pointer" onclick="toggleForm('prefix')"> prefix</label>
@@ -87,6 +89,8 @@
                         </div>
                         <label class="small"> <i> You can also add prefixes directly into the query</i></label>.
 
+
+
                         <br/>
                         <br/>
                     </section>
@@ -99,7 +103,8 @@
                         <br/>
                         <br/>
                         <label class="query_element" for="Where"><b>Where</b></label>
-                        <textarea id="where" name="Where" class="element" rows="3">/John Smith/ birth London@en.</textarea>
+                        <textarea id="where" name="Where" class="element"
+                                  rows="3">/John Smith/ birth London@en.</textarea>
 
                         <br/>
                         <br/>

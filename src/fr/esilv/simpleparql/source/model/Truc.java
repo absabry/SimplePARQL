@@ -15,14 +15,13 @@ import java.util.Map;
 /**
  * Strcutre of the truc IN SimplaPARQL <br>
  * <strong>name</strong> The name of the truc <br>
- * <strong>position</strong>position in the triple <br>
- * <strong>counter</strong>counter (when we will convert it, we'll create variables with this counter) <br>
- * <strong> currentTriple </strong>currentTriple is the complete triple where the "truc" is locted. <br>
- * <strong>variables</strong>variables is the variable we generate to this truc (?SimpleARQL_, label_,etc...) <br>
+ * <strong>position</strong> Position in the triple <br>
+ * <strong>counter</strong> Counter (when we will convert it, we'll create variables with this counter) <br>
+ * <strong> currentTriple </strong> CurrentTriple is the complete triple where the "truc" is locted. <br>
+ * <strong>variables</strong> Variables is the variable we generate to this truc (?SimpleARQL_, label_,etc...) <br>
  */
 
 public class Truc {
-    // TODO ajouter la langue et le truc sans la langue tout ca
     private ArrayList<Pair<ParserRuleContext, Integer>> parents;
     private String name;
     private String language;

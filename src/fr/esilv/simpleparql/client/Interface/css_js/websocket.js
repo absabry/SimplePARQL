@@ -8,19 +8,39 @@ var SIMPLEPARQL_QUERY; // keep those informations for replacing trucs correctly
 var dictionnaryTrucs={}; // handle replacing trucs
 var pages = ["FIRST","SECOND","THIRD"]; // handle pages displayed
 var page_counter = 0; // handles pages displayed
-var queryInformations; // to change it's field page, when we click on next or previous. We can't dd
+var queryInformations; // to change pages, when we click on next or previous.
 
 // submit the form and request the Java server
 $("#query_form").submit(function( event ) {
      event.preventDefault();
-     if (event.originalEvent !== undefined) {
-         $('#clear').trigger('click');
+     if (event.originalEvent !== undefined) { // the first time to execute the query, not previous or next page
          dictionnaryTrucs={};
-         if ($('#assist').is(':checked')) {
-              queryInformations = createQueryFromAssisted();
+         if ($('.not_assisted_form').is(":visible")) {
+              if($('#query').val().toLowerCase().indexOf('limit') == -1){ // check for the limit keyword in the query
+                  if(confirm('Are you sure you want to proceed this query without any limit?')){
+                     queryInformations = createQueryFromNoAssisted();
+                  }
+                  else{ // stop submitting form
+                      return false;
+                  }
+               }
+               else{
+                    queryInformations = createQueryFromNoAssisted();
+               }
          }else {
-             queryInformations = createQueryFromNoAssisted();
+             if($('#limit').val().trim() ==''){ // check for the limit field
+                if(confirm('Are you sure you want to proceed this query without any limit?')){
+                     queryInformations = createQueryFromAssisted();
+                }
+                else{ // stop submitting form
+                    return false;
+                }
+             }
+             else{
+                queryInformations = createQueryFromAssisted();
+             }
          }
+         $('#clear').trigger('click');
      }
      queryInformations.page=pages[page_counter];
      waitFunction();
@@ -106,7 +126,7 @@ function createQueryFromNoAssisted(){
      SIMPLEPARQL_QUERY = $('#query').val();
       return {
               "bases" : $("#list_bases").data("kendoMultiSelect").value(),
-              "query":$('#query').val(),
+              "query":  $('#query').val(),
               "timeout" : $('#timeout').val()
       }
 }
@@ -569,24 +589,26 @@ function resetCellsImages($td){
 
 // replace the truc on clicking the logo in the ceil
 function replaceTrucs(){
-    if ($('#assist').is(':checked')) {
-         (SIMPLEPARQL_QUERY_ASSISTED.select,'select');
-         replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.where,'where');
-         replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.filter,'filter');
-         replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.optional,'optional');
+    if ($('.not_assisted_form').is(":visible")) {
+         replaceToTextArea(SIMPLEPARQL_QUERY,'query');
     }
     else{
-        replaceToTextArea(SIMPLEPARQL_QUERY,'query');
+         //replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.select,'select');
+         replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.where,'where');
+         //replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.filter,'filter'); // not used now, the trucs cannot be in the filter field, but will be soon
+         //replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.optional,'optional');
     }
 }
 
 // put replaced text to the text area
 function replaceToTextArea(original,id){
     var query = original;
-    for (var truc in dictionnaryTrucs) {
-        query = replaceElement(query,truc,dictionnaryTrucs[truc].used);
+    if(query.trim() !=''){
+        for (var truc in dictionnaryTrucs) {
+            query = replaceElement(query,truc,dictionnaryTrucs[truc].used);
+        }
+        elementToTextArea(id,query);
     }
-    elementToTextArea(id,query);
 }
 
 // replace element, with the corresponding one
@@ -610,7 +632,7 @@ function getWord(index,endindex,query){
     var indexBefore=index-1;
     var indexAfter= index + endindex;
     var charBefore= query.charAt(indexBefore);
-    while(charBefore != ' '){
+    while(charBefore.trim() != ''){
         word = charBefore + word;
         indexBefore = indexBefore-1;
         charBefore = query.charAt(indexBefore);
@@ -683,3 +705,5 @@ function elementToTextArea(id,text){
     }
     document.getElementById(id).value = text;
 }
+
+

@@ -9,10 +9,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Lauch Java server to create a webservice
+ * Lauch Java server to create a webservice. <br>
  *
- * <strong>cliendID:</strong> The query having all the prefixes, select é where composants<br>
- * <strong> serverConfig:</strong> Configuration of the server from the Server.config file beside this file.
+ * <strong> cliendID:</strong> The query having all the prefixes, select é where composants<br>
+ * <strong> ServerConfig:</strong> Configuration of the server from the Server.config file beside this file.
  * The user can choose a personalized configuration file which he'll give as a parametere.
  */
 public class Server {

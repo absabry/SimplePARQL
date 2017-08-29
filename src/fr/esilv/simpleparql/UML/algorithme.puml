@@ -1,0 +1,31 @@
+@startuml
+(*)  --> "ajouter la requête à liste_results "
+If "la liste contient des trucs" then
+--> [Oui] === etape1===
+else
+--> [Non] ===FIN===
+Endif
+ === etape1=== --> cloner la liste_results dans liste_results_clone"
+ --> "parcourir liste_results_clone"
+ --> === etape3 ===
+ --> "Récupérer le premier TRUC trouvé dans les requêtes de liste_results_clone ."
+If "trouvé?" then
+--> [Oui] "générer les triplés,filtres et page du truc"
+--> "remplacer les anciens triplés
+     ajouter les nouveaux filtres
+     attribuer une page de résultat
+     ajouter le nouvel arbre dans liste_results"
+If "fin de liste_results_clone?" then
+--> [Oui] "Supprimer tous les anciens éléments de liste_results"
+else
+-->  [Non]=== etape3 ===
+Endif
+else
+--> [Non] === FIN ===
+Endif
+
+=== FIN === -->  "Fin de l'algorithme
+               Nous avons que des requêtes SPARQL
+               dans listes_results"
+ --> (*)
+@enduml

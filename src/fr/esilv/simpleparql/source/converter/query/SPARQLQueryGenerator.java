@@ -21,14 +21,14 @@ import java.util.List;
  * <strong>ignoredProprieties</strong> ignored proprieties when we search for all proprieties. <br>
  */
 
-public class SimplePARQLQueryGenerator {
+public class SPARQLQueryGenerator {
     private Truc truc;
     private ArrayList<Composant> generatedComposants;
     private FilterGenerator filterGenerator;
     private List<String> ignoredProprieties;
 
 
-    public SimplePARQLQueryGenerator(Truc truc, FilterGenerator filterGenerator, List<String> ignoredProprieties) {
+    public SPARQLQueryGenerator(Truc truc, FilterGenerator filterGenerator, List<String> ignoredProprieties) {
         this.filterGenerator = filterGenerator;
         this.truc = truc;
         generatedComposants = new ArrayList<>();
@@ -145,6 +145,7 @@ public class SimplePARQLQueryGenerator {
 
     /**
      * Main function to launch the first, second and third page.<br>
+     * Should be overrided if we want to change the strategies
      */
     private void createGeneratedTriples() {
         PageThird();

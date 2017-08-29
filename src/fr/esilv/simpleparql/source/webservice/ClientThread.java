@@ -117,7 +117,7 @@ public class ClientThread extends Thread {
                 if (SPARQLresult.getError() != null) {
                     return sendError(SPARQLresult);
                 } else {
-                    TemporaryTrucVariables trucVariables = getVariablesOfTrucs(SPARQLresult, sparqlQueries);
+                    TemporaryTrucVariables trucVariables = getVariablesOfTrucs(SPARQLresult, sparqlQueries); // toutes les variables temporaires
                     JsonArray theSelectedVariables = addVariablesTojSON(SPARQLresult, sparqlQueries, simplePARQLQuery);
                     jsonElementgeneratedElement.add("variables", theSelectedVariables);
                     JsonArray results = addResultsToJson(SPARQLresult, trucVariables, simplePARQLQuery);
@@ -231,7 +231,7 @@ public class ClientThread extends Thread {
                         jsonArray.add(jsonElementTruc);
                         elementOfArray.add(jsonArray);
                     }
-                    jsonArray = elementOfArray.get(temporaryTrucVariable.getIndexOfFirstInVariablesList()).getAsJsonArray();
+                        jsonArray = elementOfArray.get(temporaryTrucVariable.getIndexOfFirstInVariablesList()).getAsJsonArray();
                     jsonObject.addProperty("SPARQLResult", SPARQLQuery.getResponses().get(i).get(j));
                     jsonObject.addProperty("Position", temporaryTrucVariable.getPosition());
                     jsonArray.add(jsonObject);

@@ -473,3 +473,22 @@ text-align:justify;
   font-size: 150%;
   height: 25px;
 }
+
+/*toggle button to switch to the assisted mode*/
+a.toggler {
+    color:white;
+    background: green;
+    cursor: pointer;
+    border: 2px solid black;
+    border-right-width: 25px;
+    padding: 0 5px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all .5s ease;
+}
+
+a.toggler.off {
+    background: red;
+    border-right-width: 2px;
+    border-left-width: 25px;
+}

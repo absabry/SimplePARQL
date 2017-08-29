@@ -1,0 +1,232 @@
+@startuml
+
+enum fr.esilv.simpleparql.source.model.POSITION {
+SUBJECT
+PREDICATE
+OBJECT
+}
+note top of fr.esilv.simpleparql.source.model.POSITION: position in a triple.
+enum fr.esilv.simpleparql.source.model.VARIABLES {
+ VARIABLE
+ LABEL
+ TMP1
+ TMP2
+}
+note top of fr.esilv.simpleparql.source.model.VARIABLES: variables created name.
+enum fr.esilv.simpleparql.source.model.PAGE {
+FIRST
+SECOND
+THIRD
+}
+note bottom of fr.esilv.simpleparql.source.model.PAGE: result's page.
+
+enum fr.esilv.simpleparql.source.model.TRUC_TYPE {
+STRING
+WORD
+SLASH
+}
+note bottom of fr.esilv.simpleparql.source.model.TRUC_TYPE: type of the truc created.
+
+interface fr.esilv.simpleparql.source.converter.filter.FilterGenerator {
+createSPARQLFilter(truc:String, variable:String ) : String
+}
+note top of fr.esilv.simpleparql.source.converter.filter.FilterGenerator: Interface to handle strategies.
+
+class fr.esilv.simpleparql.source.converter.filter.FilterDefault{
+createSPARQLFilter(truc:String, variable:String ) : String
+}
+note bottom of fr.esilv.simpleparql.source.converter.filter.FilterDefault: Class to handle default strategy.
+
+class fr.esilv.simpleparql.source.converter.filter.FilterVirtuoso{
++createSPARQLFilter(truc:String, variable:String ) : String
+}
+note bottom of fr.esilv.simpleparql.source.converter.filter.FilterVirtuoso: Class to handle virtuoso strategy.
+
+class fr.esilv.simpleparql.source.converter.filter.FilterRegex{
++createSPARQLFilter(truc:String, variable:String ) : String
+}
+note bottom of fr.esilv.simpleparql.source.converter.filter.FilterRegex: Class to handle regex strategy.
+
+class fr.esilv.simpleparql.source.converter.filter.FilterCommon{
++createSPARQLFilter(truc:String, variable:String ) : String
++removeIgnoredPropreties(variable:String, ignored:List<String>):String
++createSPARQLLanguageFilter(variable:String, language:String):String
+}
+note top of fr.esilv.simpleparql.source.converter.filter.FilterCommon: Filters that will be the same everywhere.
+
+
+fr.esilv.simpleparql.source.converter.filter.FilterGenerator  <|.. fr.esilv.simpleparql.source.converter.filter.FilterDefault
+fr.esilv.simpleparql.source.converter.filter.FilterGenerator  <|.. fr.esilv.simpleparql.source.converter.filter.FilterVirtuoso
+fr.esilv.simpleparql.source.converter.filter.FilterGenerator  <|.. fr.esilv.simpleparql.source.converter.filter.FilterRegex
+
+note top of fr.esilv.simpleparql.source.converter.filter: generate any queries' filters.
+
+
+
+class fr.esilv.simpleparql.source.converter.query.SPARQLQueryGenerator{
+-truc:Truc
+-generatedComposants:ArrayList<Composant>
+-filterGenerator: fr.esilv.simpleparql.source.converter.filter.FilterGenerator
+- page : PAGE
++SPARQLQueryGenerator(Truc truc, fr.esilv.simpleparql.source.converter.filter.FilterGenerator filterGenerator, PAGE page)
++PageThird()
++PageSecond()
++PageFirst()
++generateRessources(Truc truc, PAGE page)
++generateProprieties(Truc truc, PAGE page)
++generatelabels(Truc truc, PAGE page)
++createGeneratedTriples()
++getGeneratedComposants()
+}
+note top of fr.esilv.simpleparql.source.converter.query.SPARQLQueryGenerator : Generate composants in order to use in SPARQLQueries.
+
+
+class fr.esilv.simpleparql.source.converter.SparqlQueries{
+- parser : SimplePARQLParser
+- simpleARQLTrucs : ArrayList<Truc>
+-counter : int
+-filterGenerator : fr.esilv.simpleparql.source.converter.filter.FilterGenerator
+-  page : PAGE
+-generatedQueries : ArrayList<SPARQLQueryGenerated>
+-{static} logger : final Logger
+-optionnal : boolean
+SparqlQueries(SimplePARQLParser parser, fr.esilv.simpleparql.source.converter.filter.FilterGenerator filterGenerator, PAGE page, boolean optionnal)
+SparqlQueries(SimplePARQLParser parser)
+SparqlQueries(SimplePARQLParser parser, fr.esilv.simpleparql.source.converter.filter.FilterGenerator filterGenerator)
+SparqlQueries(SimplePARQLParser parser, boolean optionnal)
+SparqlQueries(SimplePARQLParser parser, PAGE page)
+addFilterToTree(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText)
+addTripleToTree(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText)
+containsFilter(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText)
+containsTruc()
+createTruc(ParseTree trucInTree)
+findInTree(ParserRuleContext tree, Truc element, int ruleIndex)
+generateCartesianProductTrees(SPARQLQueryGenerated tree, Truc truc)
+getGreaterPage(PAGE page1, PAGE page2)
+mainGenerate()
+removeOptionnalTrucFromTree(SPARQLQueryGenerated tree, Truc truc)
+}
+
+note top of fr.esilv.simpleparql.source.converter.SparqlQueries: SimplePARQL SPARQL converter.
+
+
+
+
+
+
+
+
+
+
+class fr.esilv.simpleparql.source.model.Truc{
+- parents : ArrayList<Pair<ParserRuleContext, Integer>>
+- name : String
+- position : fr.esilv.simpleparql.source.model.POSITION
+- counter : int
+- currentTriple : fr.esilv.simpleparql.source.model.Triple
+- variables : HashMap<fr.esilv.simpleparql.source.model.VARIABLES, String>
++getCounter()
++getPosition()
++getCurrentTriple()
++getVariables()
++getName()
++getParents()
+-createParentTree(ParseTree node)
+-computePosition()
+-find(int ruleIndex)
+-generateTripleComposantes()
+-clean(String text)
+-generateVariables()
++isOptionnal()
++equals(Object other)
+}
+note top of fr.esilv.simpleparql.source.model.Truc : SimpleARQL new structure.
+hide fr.esilv.simpleparql.source.model.Truc members
+
+class fr.esilv.simpleparql.source.model.Triple{
+- String subject
+- String predicate
+- String object
++getSubject()
++getPredicate()
++getObject()
++get(POSITION position)
+}
+note top of fr.esilv.simpleparql.source.model.Triple : Subject,predicate,object.
+hide fr.esilv.simpleparql.source.model.Triple members
+
+class fr.esilv.simpleparql.source.model.Constants{
++{static}  VARIABLE = " ?SimplePARQL_" : final String
++{static}  VARIABLE_LABEL = " ?label_" : final String
++{static}  VARIABLE_TMP_1 = " ?tmp_var1_" : final String
++{static}  VARIABLE_TMP_2 = " ?tmp_var2_" : final String
++{static}  RDF = " rdfs:label " : final String
++{static}  FILTER = "FILTER" : final String
++{static}  CONTAINS_BIF = "bif:contains" : final String
++{static}  CONTAINS = "CONTAINS" : final String
++{static}  UCASE = "UCASE" : final String
++{static}  STR = "STR" : final String
++{static}  AND = " && " : final String
++{static} treeToString(SimplePARQLParser parser, ParserRuleContext query)
++{static} getNodeIndex(ParseTree node)
++{static} printTree(SimplePARQLParser parser, ParserRuleContext query, String title)
++{static} getTreeOfText(String text)
+}
+
+note top of fr.esilv.simpleparql.source.model.Constants : Constants used in the project.
+hide fr.esilv.simpleparql.source.model.Constants members
+
+
+class fr.esilv.simpleparql.source.model.Composant{
+-  filter : String
+-  triple : String
+-  page : PAGE
++getFilter()
++getPage()
++getTriple()
++Composant(String triple, String filter, PAGE page)
+}
+hide fr.esilv.simpleparql.source.model.Composant members
+note bottom of fr.esilv.simpleparql.source.model.Composant : Filter(s), triple and all composant of the new query
+class fr.esilv.simpleparql.source.model.SPARQLQueryGenerated{
+- page : PAGE
+- query :ParserRuleContext
++ SPARQLQueryGenerated(ParserRuleContext query, PAGE page)
++getQuery()
++getPage()
+}
+note bottom of fr.esilv.simpleparql.source.model.SPARQLQueryGenerated : Final SPARQL queries with page.
+hide fr.esilv.simpleparql.source.model.SPARQLQueryGenerated members
+
+class fr.esilv.simpleparql.source.model.SimplePARQLQuery{
+- parser : SimplePARQLParser
++SimplePARQLQuery(SimplePARQLParser parser)
++getParser()
+-{static} RearrangeQuery(SimplePARQLParser parser)
+-{static} getComposantesOfTriples(ParseTree triplesSameSubject)
+-{static} createNewChildren(ParseTree triplesSameSubject, ArrayList<Triple> triples)
+-{static} join(ArrayList<Triple> list, String delimter)
+}
+note bottom of fr.esilv.simpleparql.source.model.SimplePARQLQuery : Delete ; and  , from query.
+hide fr.esilv.simpleparql.source.model.SimplePARQLQuery members
+
+
+class fr.esilv.simpleparql.source.model.TreePrintListener{
+- parser : SimplePARQLParser
+- ruleNames:final List<String>
+- builder : final StringBuilder
++visitTerminal(TerminalNode node)
++visitErrorNode(ErrorNode node)
++enterEveryRule(ParserRuleContext ctx)
++exitEveryRule(ParserRuleContext ctx)
+}
+note bottom of fr.esilv.simpleparql.source.model.TreePrintListener : Override displaying tree'smembers.
+hide fr.esilv.simpleparql.source.model.TreePrintListener members
+
+
+fr.esilv.simpleparql.source.model -- fr.esilv.simpleparql.source.converter.SparqlQueries : < use
+fr.esilv.simpleparql.source.converter.filter -- fr.esilv.simpleparql.source.converter.SparqlQueries : < use
+fr.esilv.simpleparql.source.converter.query -- fr.esilv.simpleparql.source.converter.SparqlQueries : < use
+fr.esilv.simpleparql.source.converter.SparqlQueries -[hidden]-->  fr.esilv.simpleparql.source.converter.query
+fr.esilv.simpleparql.source.converter.SparqlQueries -[hidden]-->  fr.esilv.simpleparql.source.converter.filter
+@enduml

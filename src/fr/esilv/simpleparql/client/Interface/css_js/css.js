@@ -1,4 +1,5 @@
 
+/*-------------------------------------------------- Kendu buttons -----------------------------------------------*/
 $("#send").kendoButton({enable: true});
 
 $("#download").kendoButton({enable: true});
@@ -7,26 +8,33 @@ $("#download-XML").kendoButton({enable: true});
 
 $("#clear").kendoButton({enable: true});
 
+/*-------------------------------------------------loading events --------------------------------------------------------*/
 
-$('#assist').on('change', function () {
-    clearFunction();
-    if ($('#assist').is(':checked')) {
-        $(document).trigger('assisted');
-    } else {
-        $(document).trigger('not_assisted');
-    }
+// on toggle assisted mode buttton
+$(document).ready(function(){
+    $('#assisted_toggler').click(function(){
+        clearFunction();
+        $(this).toggleClass('off');
+        if($(this).hasClass('off')){
+            $(this).text("OFF");
+            $(document).trigger('not_assisted');
+        }
+        else{
+         $(this).text("ON");
+         $(document).trigger('assisted');
+        }
+    });
 });
-
+// on load, if he's reloading after assisted mode, it should be kept there
 $(window).load(function() {
-      if ($('#assist').is(':checked')) {
-          $(document).trigger('assisted');
-      } else {
+      if ($('#assisted_toggler').hasClass('off')) {
           $(document).trigger('not_assisted');
+      } else {
+          $(document).trigger('assisted');
       }
 });
 
-
-
+// fire the assisted mode
 $(document).on('assisted', function() {
     $('#query_bloc').removeClass().addClass('assisted');
     $('.not_assisted_form').hide();
@@ -35,6 +43,7 @@ $(document).on('assisted', function() {
     });
 });
 
+// fire the not assisted mode
 $(document).on('not_assisted', function() {
      $('#query_bloc').removeClass().addClass('not_assisted');
       $(".assisted_form").each(function(){

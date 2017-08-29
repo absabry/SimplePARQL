@@ -3,7 +3,7 @@ package fr.esilv.simpleparql.source.converter;
 import com.google.common.collect.Iterables;
 import fr.esilv.simpleparql.source.converter.filter.FilterDefault;
 import fr.esilv.simpleparql.source.converter.filter.FilterGenerator;
-import fr.esilv.simpleparql.source.converter.query.SimplePARQLQueryGenerator;
+import fr.esilv.simpleparql.source.converter.query.SPARQLQueryGenerator;
 import fr.esilv.simpleparql.source.model.*;
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import fr.esilv.simpleparql.source.configuration.QueryConfig;
@@ -26,7 +26,7 @@ import java.util.Map;
  * <strong>parser:</strong> SimplePARQL parser from the ANTLR tree <br>
  * <strong>counter:</strong>Counter of truc in the tree. The first one will be 0, then 1 etc..<br>
  * <strong>filterGenerator:</strong> filter geenrator for this base <br>
- * <strong>optionnal:</strong> convert the Truc in the optional field<br>
+ * <strong>optional:</strong> convert the Truc in the optional field<br>
  * <strong>ignoredConfig: List of proprties we want to exlude from our request</strong><br>
  */
 public class SparqlQueries {
@@ -37,12 +37,12 @@ public class SparqlQueries {
     private SimplePARQLParser parser;
     private int counter = 0;
     private FilterGenerator filterGenerator;
-    private boolean optionnal;
+    private boolean optional;
     private ArrayList<String> ignoredConfig;
 
-    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, boolean optionnal, QueryConfig ignoredConfig) throws IOException {
+    public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, boolean optional, QueryConfig ignoredConfig) throws IOException {
         this.filterGenerator = filterGenerator;
-        this.optionnal = optionnal;
+        this.optional = optional;
         simpleARQLTrucs = new ArrayList<>();
         generatedQueries = new ArrayList<>();
         this.parser = parser;
@@ -92,7 +92,7 @@ public class SparqlQueries {
      * 1.We clone the array of queries <br>
      * 2.Then we browse to find (in the old tree) all truc <br>
      * 3.We create structure Truc <br>
-     * 4.Finally we generate cartesian product of the truc, after checking the optionnal field (we can disable trucs from the optionnal composant) <br>
+     * 4.Finally we generate cartesian product of the truc, after checking the optional field (we can disable trucs from the optional composant) <br>
      */
     private void generatedSPARQLQueries() throws IOException {
         ArrayList<SPARQLQueryGenerated> oldGeneratedTrees = new ArrayList<>();
@@ -101,7 +101,7 @@ public class SparqlQueries {
             Collection<ParseTree> trucs = XPath.findAll(oldGenereatedTree.getQuery(), "//truc", parser);
             if (trucs.size() > 0) {
                 Truc trucFound = createTruc(Iterables.get(trucs, 0));
-                if (trucFound.isOptionnal() && !optionnal) {
+                if (trucFound.isOptionnal() && !optional) {
                     simpleARQLTrucs.remove(trucFound);
                     removeOptionnalTrucFromTree(oldGenereatedTree, trucFound);
                 } else {
@@ -170,7 +170,7 @@ public class SparqlQueries {
     }
 
     /**
-     * Create a SimplePARQLQueryGenerator element, that will create all of the filter, triples and PAGE of the truc. <br>
+     * Create a SPARQLQueryGenerator element, that will create all of the filter, triples and PAGE of the truc. <br>
      * foreach Composant item created (containg filter and triples),we clone the tree, create a new one and attach the new filter and the new triple
      * and finally we add the result to the generatedQueries List. <br>
      *
@@ -179,8 +179,8 @@ public class SparqlQueries {
      */
     private void generateCartesianProductTrees(SPARQLQueryGenerated tree, Truc truc) throws IOException {
         // we create the QueryConfig here to handle the closed stream after each using, and so,
-        // we create a QueryConfig object foreach SimplePARQLQueryGenerator
-        SimplePARQLQueryGenerator generateQuery = new SimplePARQLQueryGenerator(truc, filterGenerator, ignoredConfig);
+        // we create a QueryConfig object foreach SPARQLQueryGenerator
+        SPARQLQueryGenerator generateQuery = new SPARQLQueryGenerator(truc, filterGenerator, ignoredConfig);
         for (Composant element : generateQuery.getGeneratedComposants()) {
             SimplePARQLParser newOne = Constants.getTreeOfText(Constants.treeToString(parser, tree.getQuery()));
             ParserRuleContext newOneQuery = newOne.query();
@@ -212,9 +212,9 @@ public class SparqlQueries {
     }
 
     /**
-     * Remove the TRIPLES node that contains truc in an <strong>optionnal context </strong>, when we set optinonal to false. <br>
+     * Remove the TRIPLES node that contains truc in an <strong>optional context </strong>, when we set optinonal to false. <br>
      *
-     * @param tree the tree which we'll delete the optionnal from it
+     * @param tree the tree which we'll delete the optional from it
      * @param truc remove from the tree
      */
     private void removeOptionnalTrucFromTree(SPARQLQueryGenerated tree, Truc truc) {
@@ -229,7 +229,7 @@ public class SparqlQueries {
                 tripleBlocksParent.children.set(triplesBlocks.getValue(), lastChild);  // replace the old child with the last child
             } else {
                 if (tripleBlocksParent instanceof SimplePARQLParser.GroupGraphPatternContext && countTripleBlocks(triplesBlocks.getKey()) == 0) {
-                    // we've to delete the optionnal node because it will be empty after deleting the triple of TRUC
+                    // we've to delete the optional node because it will be empty after deleting the triple of TRUC
                     if (graphPatternNotTriples != null) {
                         graphPatternNotTriples.getKey().getParent().children.set(graphPatternNotTriples.getValue(), new ParserRuleContext());
                     }
