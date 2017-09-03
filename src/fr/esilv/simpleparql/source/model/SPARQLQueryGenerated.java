@@ -24,6 +24,16 @@ public class SPARQLQueryGenerated {
         return page;
     }
 
+    @Override
+    public boolean equals(Object object) {
+        boolean sameSame = false;
+
+        if (object != null && object instanceof SPARQLQueryGenerated) {
+            sameSame = this.getQuery().getText().equals(((SPARQLQueryGenerated) object).getQuery().getText());
+        }
+        return sameSame;
+    }
+
     public String toString() {
         return "Page: " + page + "\n" + query.getText();
     }

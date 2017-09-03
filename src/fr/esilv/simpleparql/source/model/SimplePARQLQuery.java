@@ -80,7 +80,6 @@ public class SimplePARQLQuery {
     private SimplePARQLParser RearrangeQuery(SimplePARQLParser parser) {
         ParserRuleContext query = parser.query();
         setIsSPARQL(parser, query); // check if the query is a SPARQL one.
-
         addPredefinedPrefixes(parser, query);
         ArrayList<Triple> triples;
         Collection<ParseTree> triplesSameSubjects = XPath.findAll(query, "//triplesSameSubject", parser);
@@ -114,7 +113,8 @@ public class SimplePARQLQuery {
     }
 
     /**
-     * Add the new childen to the triple and remove the old one
+     * Add the new childen to the triple and remove the old one.
+     * This will be used when shortcuts are found and should be removed to create normal triples.
      *
      * @param triplesSameSubject the root of the composant
      * @param triples            the new triples list, we convert it to tree then use it
@@ -122,17 +122,19 @@ public class SimplePARQLQuery {
     private void createNewChildren(ParseTree triplesSameSubject, ArrayList<Triple> triples) {
         ParserRuleContext triplesBlocks = (ParserRuleContext) triplesSameSubject.getParent();
         int triplesBlocksIndex = Constants.getNodeIndex(triplesBlocks);
-        ParseTree lastChild = triplesBlocks.getChild(triplesBlocks.getChildCount() - 1);
+        ParseTree triplesBlocksLastChild = triplesBlocks.getChild(triplesBlocks.getChildCount() - 1);
         ParserRuleContext newTriplesBlock = Constants.getTreeOfText(join(triples, "\n")).triplesBlock();
-        if (lastChild.getClass() == SimplePARQLParser.TriplesBlockContext.class) {
+        if (triplesBlocksLastChild.getClass() == SimplePARQLParser.TriplesBlockContext.class) {
             triplesBlocks.getParent().children.set(triplesBlocksIndex, newTriplesBlock);
             ParseTree child = newTriplesBlock;
+            // get the last triple of this recusrive rules
             while (child.getChild(child.getChildCount() - 1) instanceof ParserRuleContext) {
                 child = child.getChild(child.getChildCount() - 1);
             }
-            ((ParserRuleContext) child).addChild((ParserRuleContext) lastChild);
+            // add the last child of the newtriplebloc when it's free
+            ((ParserRuleContext) child).addChild((ParserRuleContext) triplesBlocksLastChild);
         } else {
-            triplesBlocks.getParent().children.set(triplesBlocksIndex, newTriplesBlock);
+            triplesBlocks.getParent().children.set(triplesBlocksIndex, newTriplesBlock); // add it directly
         }
     }
 
@@ -161,9 +163,10 @@ public class SimplePARQLQuery {
         selectedVariables = new ArrayList<>();
         ParserRuleContext newSelectQuery = Constants.getTreeOfText("SELECT * ").selectQuery(); // new select query
         ParserRuleContext query = parser.query();
-        ParserRuleContext selectQuery = (ParserRuleContext) Iterables.get(XPath.findAll(query, "//selectQuery", parser), 0); // there are just one leaf of selectQuery in the query
+        ParserRuleContext selectQuery = (ParserRuleContext) Iterables.get(XPath.findAll(query, "//selectQuery", parser), 0); // there is only one leaf of selectQuery in the query
 
         for (ParseTree variable : selectQuery.children) {
+
             if (!variable.getText().toUpperCase().equals("SELECT") && !variable.getText().toUpperCase().equals("DISTINCT")) {
                 if (variable.getText().trim().equals("*")) {
                     selectAll = true;

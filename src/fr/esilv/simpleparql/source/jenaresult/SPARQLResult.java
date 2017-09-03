@@ -51,8 +51,8 @@ public class SPARQLResult {
         String result = "";
         result += "Variables: " + variables + "\n";
         result += responses.size() + " responses generated";
-        for (int i = 0; i < responses.size(); i++) {
-            result += responses.get(i) + "\n";
+        for (ArrayList<String> response : responses) {
+            result += response + "\n";
         }
         return result;
     }

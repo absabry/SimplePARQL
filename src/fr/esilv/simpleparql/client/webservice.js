@@ -44,8 +44,8 @@ function handleConnection (conn) {
      });
 
      client.on('error', function(ex) {
-       console.log("handled error");
-       conn.sendText(JSON.stringify({'error':ex}));
+       console.log("handled error...");
+       conn.sendText(JSON.stringify([{'error':ex}])); //send it as an array to be like the regular json result
      });
 	}
 

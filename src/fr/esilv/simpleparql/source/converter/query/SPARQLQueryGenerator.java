@@ -8,7 +8,6 @@ import fr.esilv.simpleparql.source.model.Truc;
 import fr.esilv.simpleparql.source.model.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -33,7 +32,6 @@ public class SPARQLQueryGenerator {
         this.truc = truc;
         generatedComposants = new ArrayList<>();
         this.ignoredProprieties = ignoredProprieties;
-
         createGeneratedTriples();
     }
 
@@ -53,18 +51,18 @@ public class SPARQLQueryGenerator {
      * @return generated item (triple, filter and page it belongs to)
      */
     private Composant generateURI(PAGE page) {
-        String triples = null;
+        ArrayList<String> triples = new ArrayList<>();
         if (truc.getPosition() == POSITION.SUBJECT) {
-            triples = truc.getVariables().get(VARIABLES.VARIABLE) + " "
-                    + truc.getCurrentTriple().getPredicate() + " " + truc.getCurrentTriple().getObject() + " . ";
+            triples.add(truc.getVariables().get(VARIABLES.VARIABLE) + " "
+                    + truc.getCurrentTriple().getPredicate() + " " + truc.getCurrentTriple().getObject() + " . ");
         } else if (truc.getPosition() == POSITION.PREDICATE) {
-            triples = truc.getCurrentTriple().getSubject() + " " + truc.getVariables().get(VARIABLES.VARIABLE) + " "
-                    + truc.getCurrentTriple().getObject() + " . ";
+            triples.add(truc.getCurrentTriple().getSubject() + " " + truc.getVariables().get(VARIABLES.VARIABLE) + " "
+                    + truc.getCurrentTriple().getObject() + " . ");
         } else if (truc.getPosition() == POSITION.OBJECT) {
-            triples = truc.getCurrentTriple().getSubject() + " " + truc.getCurrentTriple().getPredicate() + " "
-                    + truc.getVariables().get(VARIABLES.VARIABLE) + " . ";
+            triples.add(truc.getCurrentTriple().getSubject() + " " + truc.getCurrentTriple().getPredicate() + " "
+                    + truc.getVariables().get(VARIABLES.VARIABLE) + " . ");
         }
-        if (triples != null) {
+        if (triples.size() != 0) {
             ArrayList<String> filters = new ArrayList<>();
             // main filter
             if (truc.isExact()) {
@@ -73,7 +71,7 @@ public class SPARQLQueryGenerator {
                 filters.add(new FilterDefault().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.VARIABLE)));
             }
             if (truc.getLanguage() != null) {
-                filters.add(new FilterCommon().createSPARQLLanguageFilter(truc.getVariables().get(VARIABLES.VARIABLE), truc.getLanguage())); // languge filter if exists
+                filters.add(new FilterCommon().createSPARQLLanguageFilter(truc.getVariables().get(VARIABLES.VARIABLE), truc.getLanguage()));
             }
             return new Composant(triples, filters, page);
         }
@@ -95,6 +93,10 @@ public class SPARQLQueryGenerator {
     private Composant generatelabels(PAGE page) {
         Composant result = generateURI(page);
         if (result != null) {
+            ArrayList<String> triples = new ArrayList<>();
+            triples.addAll(result.getTriples());
+            triples.add(truc.getVariables().get(VARIABLES.VARIABLE) + " "
+                    + Constants.RDF + truc.getVariables().get(VARIABLES.LABEL) + " . ");
             ArrayList<String> filters = new ArrayList<>();
             // main filter
             if (truc.isExact()) {
@@ -103,10 +105,9 @@ public class SPARQLQueryGenerator {
                 filters.add(filterGenerator.createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.LABEL)));
             }
             if (truc.getLanguage() != null) {
-                filters.add(new FilterCommon().createSPARQLLanguageFilter(truc.getVariables().get(VARIABLES.LABEL), truc.getLanguage())); // languge filter if exists
+                filters.add(new FilterCommon().createSPARQLLanguageFilter(truc.getVariables().get(VARIABLES.LABEL), truc.getLanguage()));
             }
-            return new Composant(result.getTriple() + " " + truc.getVariables().get(VARIABLES.VARIABLE) + " "
-                    + Constants.RDF + truc.getVariables().get(VARIABLES.LABEL) + " . ", filters, page);
+            return new Composant(triples, filters, page);
         }
         return null;
     }
@@ -126,6 +127,10 @@ public class SPARQLQueryGenerator {
     private Composant generateProprieties(PAGE page) {
         Composant result = generateURI(page);
         if (result != null) {
+            ArrayList<String> triples = new ArrayList<>();
+            triples.addAll(result.getTriples());
+            triples.add(truc.getVariables().get(VARIABLES.VARIABLE)
+                    + truc.getVariables().get(VARIABLES.TMP1) + truc.getVariables().get(VARIABLES.TMP2) + " . ");
             ArrayList<String> filters = new ArrayList<>();
             if (truc.isExact()) {
                 filters.add(new FilterCommon().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.TMP2)));
@@ -133,12 +138,12 @@ public class SPARQLQueryGenerator {
                 filters.add(filterGenerator.createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.TMP2)));
             }
             if (truc.getLanguage() != null) {
-                filters.add(new FilterCommon().createSPARQLLanguageFilter(truc.getVariables().get(VARIABLES.TMP2), truc.getLanguage())); // languge filter if exists
+                filters.add(new FilterCommon().createSPARQLLanguageFilter(truc.getVariables().get(VARIABLES.TMP2), truc.getLanguage()));
             }
-            filters.add(new FilterCommon().removeIgnoredPropreties(truc.getVariables().get(VARIABLES.TMP1), ignoredProprieties)); // ignored proprites
-            return new Composant(result.getTriple() + truc.getVariables().get(VARIABLES.VARIABLE)
-                    + truc.getVariables().get(VARIABLES.TMP1) + truc.getVariables().get(VARIABLES.TMP2) + " . ",
-                    filters, page);
+            filters.add(new FilterCommon().removeIgnoredPropreties(truc.getVariables().get(VARIABLES.TMP1), ignoredProprieties));
+            return new Composant(triples, filters, page);
+
+
         }
         return null;
     }

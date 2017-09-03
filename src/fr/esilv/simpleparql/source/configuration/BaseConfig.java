@@ -44,7 +44,7 @@ public class BaseConfig {
                 return new FilterRegex();
             case "VIRTUOSO":
                 return new FilterVirtuoso();
-            case "OTHER":
+            case "DEFAULT":
                 return new FilterDefault();
             default:
                 return null;

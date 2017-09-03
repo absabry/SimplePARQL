@@ -45,7 +45,6 @@ $("#query_form").submit(function( event ) {
      queryInformations.page=pages[page_counter];
      waitFunction();
 
-
     var output_list = $("#output_list").data("kendoMultiSelect").value();
      callSocket(queryInformations, function (s) {
             var jsonResults = JSON.parse(s);
@@ -292,59 +291,62 @@ function isJSON (something) {
 
 // html result in the web interface directly
 function htmlresult($query_div,json){
-    // add error to results , and return result
-    if(json.hasOwnProperty('error')){
-        addError($query_div,json.error);
-        return;
-    }
 
-    // keep the button (next or/and prev) if they should be
-    if(!json.isSPARQL){
-            if(page_counter == 2){ $("#nextpage").hide();}
-            else{$("#nextpage").show();}
-            if(page_counter == 0){$("#previouspage").hide();}
-            else{ $("#previouspage").show();}
-    }
+    for(var base_counter=0 ; base_counter<json.length; base_counter++){
 
-    // if there are no result
-    if(!json.hasOwnProperty('result') || json.result.length==0){
-        var $noresult = $('<h3></h3>').addClass("center")
-                        .text("No results found in this page. Please change your SimplePARQL query or go back to previous page.");
-        $($query_div).append($noresult);
-        return;
-    }
-
-
-    addBase($query_div,json.base); //add the base in the begining
-
-    // add all the results proprety to different tables
-    var counter=1;
-    for (var i=0; i <json.result.length;i++){
-        if(json.result[i].results.length != 0){ // no result ==> no table
-            addQuery($query_div,json.result[i].query,counter,json.base);
-            // two tables are created to handle the table's toogle
-            var $div_title = $('<div></div>').addClass('title');// table containing the titles (ths)
-            addTitle($div_title,json.result[i]);
-            var $div_results=$('<div></div>').addClass('results');// table containing the results (tds)
-            addResults($div_results,json.result[i]);
-            $($query_div).append($div_title);
-            $($query_div).append($div_results);
-            $($query_div).append('<hr>');
-            $($query_div).append('<br/>');
-            counter++;
+        // add error to results , and return result
+        if(json[base_counter].hasOwnProperty('error')){
+            addError($query_div,json[base_counter].error);
+            continue;
         }
-    }
-    // when all results are empty.
-    if(counter == 1){
-        var $noresult = $('<h3></h3>').addClass("center")
-                    .text("No results found in this page. Please change your SimplePARQL query or go back to previous page.");
-         $("#nextpage").hide(); // keep it? the first page have no result, so we don't need the rest.
-        $($query_div).append($noresult);
-        return;
+
+        // keep the button (next or/and prev) if they should be
+        if(!json[base_counter].isSPARQL){
+                if(page_counter == 2){ $("#nextpage").hide();}
+                else{$("#nextpage").show();}
+                if(page_counter == 0){$("#previouspage").hide();}
+                else{ $("#previouspage").show();}
+        }
+
+        // if there are no result
+        if(!json[base_counter].hasOwnProperty('result') || json[base_counter].result.length==0){
+            var $noresult = $('<h3></h3>').addClass("center")
+                            .text("No results found in this page. Please change your SimplePARQL query or go back to previous page.");
+            $($query_div).append($noresult);
+            continue;
+        }
+
+        addBase($query_div,json[base_counter].base); //add the base in the begining
+
+        // add all the results proprety to different tables
+        var counter=1;
+        for (var i=0; i <json[base_counter].result.length;i++){
+            if(json[base_counter].result[i].results.length != 0){ // no result ==> no table
+                addQuery($query_div,json[base_counter].result[i].query,counter,json[base_counter].base);
+                // two tables are created to handle the table's toogle
+                var $div_title = $('<div></div>').addClass('title');// table containing the titles (ths)
+                addTitle($div_title,json[base_counter].result[i]);
+                var $div_results=$('<div></div>').addClass('results');// table containing the results (tds)
+                addResults($div_results,json[base_counter].result[i]);
+                $($query_div).append($div_title);
+                $($query_div).append($div_results);
+                $($query_div).append('<hr>');
+                $($query_div).append('<br/>');
+                counter++;
+            }
+        }
+        // when all results are empty.
+        if(counter == 1){
+            var $noresult = $('<h3></h3>').addClass("center")
+                        .text("No results found in this page. Please change your SimplePARQL query or go back to previous page.");
+             $("#nextpage").hide(); // keep it? the first page have no result, so we don't need the rest.
+            $($query_div).append($noresult);
+            continue;
+        }
     }
 }
 
-// add error (if there are one) to the html page
+// add error (if there is one) to the html page
 function addError($query_div,error){
     var $error = $('<h3></h3>').addClass('error');
     if(isJSON(error)){

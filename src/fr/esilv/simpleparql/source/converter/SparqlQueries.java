@@ -71,6 +71,10 @@ public class SparqlQueries {
         return simpleARQLTrucs;
     }
 
+    public ArrayList<SPARQLQueryGenerated> getGeneratedQueries() {
+        return generatedQueries;
+    }
+
     /**
      * Filter the generated query list to get the one assosicated with the page we're looking for.
      *
@@ -95,21 +99,24 @@ public class SparqlQueries {
      * 4.Finally we generate cartesian product of the truc, after checking the optional field (we can disable trucs from the optional composant) <br>
      */
     private void generatedSPARQLQueries() throws IOException {
+        // clone generated tree
         ArrayList<SPARQLQueryGenerated> oldGeneratedTrees = new ArrayList<>();
         oldGeneratedTrees.addAll(generatedQueries);
+
         for (SPARQLQueryGenerated oldGenereatedTree : oldGeneratedTrees) {
             Collection<ParseTree> trucs = XPath.findAll(oldGenereatedTree.getQuery(), "//truc", parser);
             if (trucs.size() > 0) {
-                Truc trucFound = createTruc(Iterables.get(trucs, 0));
-                if (trucFound.isOptionnal() && !optional) {
-                    simpleARQLTrucs.remove(trucFound);
-                    removeOptionnalTrucFromTree(oldGenereatedTree, trucFound);
+                Truc truc = createTruc(Iterables.get(trucs, 0));
+                if (truc.isOptionnal() && !optional) {
+                    simpleARQLTrucs.remove(truc);
+                    removeOptionnalTrucFromTree(oldGenereatedTree, truc);
                 } else {
-                    generateCartesianProductTrees(oldGenereatedTree, trucFound);
+                    generateCartesianProductTrees(oldGenereatedTree, truc);
                 }
             }
         }
-        generatedQueries.removeAll(oldGeneratedTrees);
+        generatedQueries.removeAll(oldGeneratedTrees); // remove old tree from the edited one
+        // recursive call if the list still containing at least one truc
         if (containsTruc()) {
             generatedSPARQLQueries();
         }
@@ -171,29 +178,47 @@ public class SparqlQueries {
 
     /**
      * Create a SPARQLQueryGenerator element, that will create all of the filter, triples and PAGE of the truc. <br>
-     * foreach Composant item created (containg filter and triples),we clone the tree, create a new one and attach the new filter and the new triple
+     * we'll just remove the truc and remplace it with the variable corresponding to the truc. <br>
+     * foreach Composant item created (containg filter and triples), we clone the tree, create a new one and attach the new filter and the new triple
      * and finally we add the result to the generatedQueries List. <br>
      *
      * @param tree original tree to get it's query and it's page
      * @param truc truc which we add it's triples and filter to the new query
      */
     private void generateCartesianProductTrees(SPARQLQueryGenerated tree, Truc truc) throws IOException {
-        // we create the QueryConfig here to handle the closed stream after each using, and so,
-        // we create a QueryConfig object foreach SPARQLQueryGenerator
+        // geenrate queries of this truc only
         SPARQLQueryGenerator generateQuery = new SPARQLQueryGenerator(truc, filterGenerator, ignoredConfig);
+        // add those just generated composants to all queries in the generatedQueries (not the clone of generatedQueries)
         for (Composant element : generateQuery.getGeneratedComposants()) {
             SimplePARQLParser newOne = Constants.getTreeOfText(Constants.treeToString(parser, tree.getQuery()));
             ParserRuleContext newOneQuery = newOne.query();
             Pair<ParserRuleContext, Integer> groupGraphPattern = findInTree(newOneQuery, truc, SimplePARQLParser.RULE_groupGraphPattern);
             Pair<ParserRuleContext, Integer> triplesBlocks = findInTree(newOneQuery, truc, SimplePARQLParser.RULE_triplesBlock);
-            addTripleToTree(triplesBlocks, element.getTriple());
-            for (String filter : element.getFilters()) {
-                addFilterToTree(groupGraphPattern, filter);
+            String triples = ""; // all triples to be added to the tree
+            for (String triple : element.getTriples()) {
+                // check if the triple already exists in the query,
+                // would be true when there are more than one truc,
+                // and this isn"t the first one
+                if (groupGraphPattern != null && !containsTriple(groupGraphPattern.getKey(), triple.replace(".", ""))) {
+                    triples += triple + "\n";
+                }
             }
-
+            // add the triples if there is at least one
+            if (!triples.equals("")) {
+                addTripleToTree(triplesBlocks, triples);
+            }
+            boolean filterAddIt = true;
+            for (String filter : element.getFilters()) {
+                boolean tmp = addFilterToTree(groupGraphPattern, filter);
+                if (!tmp)  // if one filter already exists, we will not check it's page (to not influence the results)
+                    filterAddIt = false;
+            }
             ParserRuleContext newQuery = Constants.getTreeOfText(Constants.treeToString(parser, newOneQuery)).query();
-            PAGE greater = getGreaterPage(element.getPage(), tree.getPage());
-            generatedQueries.add(new SPARQLQueryGenerated(newQuery, greater));
+            PAGE greater = tree.getPage();
+            if (filterAddIt)
+                greater = getGreaterPage(element.getPage(), tree.getPage()); // check for which page the query will belong to
+
+            addToGeneratedQueries(new SPARQLQueryGenerated(newQuery, greater));
         }
     }
 
@@ -205,6 +230,12 @@ public class SparqlQueries {
      * @return the greater page of page1 and page2
      */
     private PAGE getGreaterPage(PAGE page1, PAGE page2) {
+        if (page1 == null) {
+            return page2;
+        }
+        if (page2 == null) {
+            return page1;
+        }
         if (page1.compareTo(page2) > 0) {
             return page1;
         }
@@ -218,10 +249,9 @@ public class SparqlQueries {
      * @param truc remove from the tree
      */
     private void removeOptionnalTrucFromTree(SPARQLQueryGenerated tree, Truc truc) {
-        SimplePARQLParser newOne = Constants.getTreeOfText(Constants.treeToString(parser, tree.getQuery()));
-        ParserRuleContext newOneQuery = newOne.query();
-        Pair<ParserRuleContext, Integer> triplesBlocks = findInTree(newOneQuery, truc, SimplePARQLParser.RULE_triplesBlock);
-        Pair<ParserRuleContext, Integer> graphPatternNotTriples = findInTree(newOneQuery, truc, SimplePARQLParser.RULE_graphPatternNotTriples);
+        ParserRuleContext clonedQuery = Constants.getTreeOfText(Constants.treeToString(parser, tree.getQuery())).query();
+        Pair<ParserRuleContext, Integer> triplesBlocks = findInTree(clonedQuery, truc, SimplePARQLParser.RULE_triplesBlock);
+        Pair<ParserRuleContext, Integer> graphPatternNotTriples = findInTree(clonedQuery, truc, SimplePARQLParser.RULE_graphPatternNotTriples);
         if (triplesBlocks != null) {
             ParserRuleContext tripleBlocksParent = triplesBlocks.getKey().getParent();
             ParseTree lastChild = triplesBlocks.getKey().children.get(triplesBlocks.getKey().children.size() - 1);
@@ -229,7 +259,7 @@ public class SparqlQueries {
                 tripleBlocksParent.children.set(triplesBlocks.getValue(), lastChild);  // replace the old child with the last child
             } else {
                 if (tripleBlocksParent instanceof SimplePARQLParser.GroupGraphPatternContext && countTripleBlocks(triplesBlocks.getKey()) == 0) {
-                    // we've to delete the optional node because it will be empty after deleting the triple of TRUC
+                    // we have to delete the optional node because it will be empty after deleting the triple of TRUC
                     if (graphPatternNotTriples != null) {
                         graphPatternNotTriples.getKey().getParent().children.set(graphPatternNotTriples.getValue(), new ParserRuleContext());
                     }
@@ -239,8 +269,20 @@ public class SparqlQueries {
             }
 
 
-            ParserRuleContext newQuery = Constants.getTreeOfText(Constants.treeToString(parser, newOneQuery)).query(); // create the new tree
-            generatedQueries.add(new SPARQLQueryGenerated(newQuery, tree.getPage()));
+            ParserRuleContext newQuery = Constants.getTreeOfText(Constants.treeToString(parser, clonedQuery)).query(); // create the new tree
+            addToGeneratedQueries(new SPARQLQueryGenerated(newQuery, tree.getPage()));
+        }
+    }
+
+    /**
+     * Add element to the final list, with some inspection..
+     * he cannot add it if it's already (exactly) contained in the queries.
+     *
+     * @param sparqlQueryGenerated element we want to add to the list
+     */
+    private void addToGeneratedQueries(SPARQLQueryGenerated sparqlQueryGenerated) {
+        if (!generatedQueries.contains(sparqlQueryGenerated)) {
+            generatedQueries.add(sparqlQueryGenerated);
         }
     }
 
@@ -274,15 +316,18 @@ public class SparqlQueries {
         ParseTree newTriplesForTrucs = Constants.getTreeOfText(triplesText).triplesBlock();
         if (triplesBlocks != null) {
             ParseTree lastChild = triplesBlocks.getKey().getChild(triplesBlocks.getKey().getChildCount() - 1);
+            // usally, this is true when there is two or more triples in the block
             if (lastChild.getClass() == SimplePARQLParser.TriplesBlockContext.class) {
-                triplesBlocks.getKey().getParent().children.set(triplesBlocks.getValue(), newTriplesForTrucs);
+                triplesBlocks.getKey().getParent().children.set(triplesBlocks.getValue(), newTriplesForTrucs); // replace the last child with the new triple
                 ParseTree child = newTriplesForTrucs;
+                // get the last triple of this block
                 while (child.getChild(child.getChildCount() - 1) instanceof ParserRuleContext) {
                     child = child.getChild(child.getChildCount() - 1);
                 }
+                //add the lastchild to the last triple block, after adding newTriplesForTrucs
                 ((ParserRuleContext) child).addChild((ParserRuleContext) lastChild);
             } else {
-                triplesBlocks.getKey().getParent().children.set(triplesBlocks.getValue(), newTriplesForTrucs);
+                triplesBlocks.getKey().getParent().children.set(triplesBlocks.getValue(), newTriplesForTrucs); // add it directly
             }
         }
     }
@@ -292,16 +337,21 @@ public class SparqlQueries {
      *
      * @param groupGraphPattern root of the truc
      * @param filterText        text of the filter we want to add to the tree
+     * @return boolean, indicating if the filter is added to the query.
      */
-    private void addFilterToTree(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText) {
-        if (!containsFilter(groupGraphPattern, filterText) && groupGraphPattern != null) {
+    private boolean addFilterToTree(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText) {
+        if (groupGraphPattern != null && !containsFilter(groupGraphPattern.getKey(), filterText)) {
             SimplePARQLParser.GraphPatternNotTriplesContext graphPatternNotTriplesContext
                     = new SimplePARQLParser.GraphPatternNotTriplesContext(groupGraphPattern.getKey(), 1);
+            // keep the closed brackets to use it later
             ParseTree closedBrackets = groupGraphPattern.getKey().getChild(groupGraphPattern.getKey().getChildCount() - 1);
+            // replace closed bracket with the new graph pattern
             groupGraphPattern.getKey().children.set(groupGraphPattern.getKey().getChildCount() - 1, graphPatternNotTriplesContext);
             groupGraphPattern.getKey().addChild((TerminalNodeImpl) closedBrackets);
             graphPatternNotTriplesContext.addChild(Constants.getTreeOfText(filterText).filter());
+            return true;
         }
+        return false;
     }
 
     /**
@@ -314,15 +364,18 @@ public class SparqlQueries {
      */
     private Pair<ParserRuleContext, Integer> findInTree(ParserRuleContext tree, Truc element, int ruleIndex) {
         ArrayList<Pair<ParserRuleContext, Integer>> tempList = new ArrayList<>();
-        Pair<ParserRuleContext, Integer> truc = new Pair<>(tree, -1);
-        tempList.add(truc);
+        Pair<ParserRuleContext, Integer> tempElement = new Pair<>(tree, -1);
+        tempList.add(tempElement);
 
+        // clone parent list of the truc, from end to begining to add the query at first position, and truc at last position
         for (int i = element.getParents().size() - 1; i > 0; i--) {
             Pair<ParserRuleContext, Integer> next = element.getParents().get(i - 1);
-            truc = new Pair<>((ParserRuleContext) truc.getKey().getChild(next.getValue()), next.getValue());
-            tempList.add(truc);
+            tempElement = new Pair<>((ParserRuleContext) tempElement.getKey().getChild(next.getValue()), next.getValue());
+            tempList.add(tempElement);
         }
 
+        // get first leaf having the rule index we're searching for
+        // in reverse mode, to begin with the truc to his ancestors
         for (int i = tempList.size() - 1; i >= 0; i--) {
             Pair<ParserRuleContext, Integer> temp = tempList.get(i);
             if (temp.getKey().getRuleIndex() == ruleIndex) {
@@ -349,20 +402,38 @@ public class SparqlQueries {
     }
 
     /**
-     * check if the tree contains this filter in order to remove redudant filter (when there are multiple trucs in the same triple).
+     * check if the tree contains this filter in order to remove redudant filter (when there are multiple trucs in the same query).
      *
      * @param groupGraphPattern the groupGraphPattern root of the truc
      * @param filterText        filter string
      * @return boolean indicating if the query contains this filter or not
      */
-    private boolean containsFilter(Pair<ParserRuleContext, Integer> groupGraphPattern, String filterText) {
-        Collection<ParseTree> filters = XPath.findAll(groupGraphPattern.getKey(), "//filter", parser);
+    private boolean containsFilter(ParserRuleContext groupGraphPattern, String filterText) {
+        Collection<ParseTree> filters = XPath.findAll(groupGraphPattern, "//filter", parser);
+        filterText = filterText.replace(" ", ""); // ignore spaces in the comparaison, filter comming from the query is without any spaces
         for (ParseTree filter : filters) {
-            filterText = filterText.replace(" ", ""); // ignore spaces in the comparaison, filter comming from the query is without any spaces
-            if (filter.getText().contains(filterText)) {
+            if (filter.getText().replace(" ", "").contains(filterText)) {
                 return true;
             }
         }
+        return false;
+    }
+
+    /**
+     * check if the tree contains this triplet in order to remove redudant triplet (when there are multiple trucs in the same query).
+     *
+     * @param groupGraphPattern the groupGraphPattern root of the truc
+     * @param triplesText       one triplet text (without the point)
+     * @return boolean indicating if the query contains this filter or not
+     */
+    private boolean containsTriple(ParserRuleContext groupGraphPattern, String triplesText) {
+        Collection<ParseTree> triples = XPath.findAll(groupGraphPattern, "//triplesSameSubject", parser);
+        triplesText = triplesText.replace(" ", ""); // ignore spaces in the comparaison, filter comming from the query is without any spaces
+        for (ParseTree triple : triples) {
+            if (triple.getText().replace(" ", "").contains(triplesText))
+                return true;
+        }
+
         return false;
     }
 

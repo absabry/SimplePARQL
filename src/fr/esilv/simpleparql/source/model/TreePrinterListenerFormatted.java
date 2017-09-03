@@ -18,6 +18,9 @@ import java.util.List;
  * TreePrinterListenerFormatted listener = new TreePrinterListenerFormatted(parser); <br>
  * ParseTreeWalker.DEFAULT.walk(listener, tree); <br>
  * logger.info(listener.toString()); <br>
+ *
+ *
+ * @deprecated
  */
 
 

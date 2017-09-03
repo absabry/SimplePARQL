@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.source.webservice;
+package fr.esilv.simpleparql.source.server;
 
 import fr.esilv.simpleparql.source.configuration.ServerConfig;
 import org.apache.log4j.Logger;
@@ -9,7 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Lauch Java server to create a webservice. <br>
+ * Lauch Java server to create a server. <br>
  *
  * <strong> cliendID:</strong> The query having all the prefixes, select é where composants<br>
  * <strong> ServerConfig:</strong> Configuration of the server from the Server.config file beside this file.
@@ -24,9 +24,9 @@ public class Server {
         org.apache.log4j.BasicConfigurator.configure();
 
         if (args.length != 0) {
-            serverConfig = new ServerConfig(new FileInputStream(args[0]));
+            serverConfig = new ServerConfig(new FileInputStream(args[0])); // get the server configuration file from parameter
         } else {
-            serverConfig = new ServerConfig(Server.class.getResourceAsStream("Server.config"));
+            serverConfig = new ServerConfig(Server.class.getResourceAsStream("Server.config")); //configuration file by default
         }
         runServer();
     }
@@ -39,6 +39,7 @@ public class Server {
     private static void runServer() throws IOException {
         ServerSocket serverSocket = new ServerSocket(serverConfig.getPort());
         logger.debug("Server up & ready for connections...");
+        // serveur loop will not stop until admin stop it himself
         while (true) {
             Socket client = serverSocket.accept();
             new ClientThread(clientID, client, serverConfig.getBasesConfig(), serverConfig.getQueryConfig()).start();

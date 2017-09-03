@@ -475,7 +475,7 @@ text-align:justify;
 }
 
 /*toggle button to switch to the assisted mode*/
-a.toggler {
+#assisted_toggler {
     color:white;
     background: green;
     cursor: pointer;
@@ -487,7 +487,7 @@ a.toggler {
     transition: all .5s ease;
 }
 
-a.toggler.off {
+#assisted_toggler.off {
     background: red;
     border-right-width: 2px;
     border-left-width: 25px;

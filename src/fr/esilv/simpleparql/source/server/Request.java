@@ -1,4 +1,4 @@
-package fr.esilv.simpleparql.source.webservice;
+package fr.esilv.simpleparql.source.server;
 
 import fr.esilv.simpleparql.source.model.PAGE;
 

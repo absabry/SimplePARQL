@@ -2,10 +2,7 @@ package fr.esilv.simpleparql.source.model;
 
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import javafx.util.Pair;
-import org.antlr.runtime.BaseRecognizer;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
@@ -40,14 +37,14 @@ public class Truc {
      */
     public Truc(ParseTree node, int counter) {
         parents = new ArrayList<>();
+        this.counter = counter;
         language = null;
         intializeLanguageAndName(node);
-        this.counter = counter;
         createParentTree(node);
         computePosition();
         computeType();
         generateVariables();
-        generateTripleComposantes();
+        generateCurrentTripleComposantes();
     }
 
     /**
@@ -127,11 +124,11 @@ public class Truc {
     private void createParentTree(ParseTree node) {
         int ruleTriplesBlock = SimplePARQLParser.RULE_query;
         int ruleIndex = -1;
-        while (ruleIndex != ruleTriplesBlock) {
-            ParserRuleContext elementNode = (ParserRuleContext) node;
+        while (ruleIndex != ruleTriplesBlock) { // get parents till the query
+            ParserRuleContext elementNode = (ParserRuleContext) node; // convert it to get it's rule index
             ruleIndex = elementNode.getRuleIndex();
             parents.add(new Pair<>(elementNode, Constants.getNodeIndex(node)));
-            node = node.getParent();
+            node = node.getParent(); // the itteration
         }
     }
 
@@ -146,7 +143,9 @@ public class Truc {
             position = POSITION.OBJECT;
         }
     }
-
+    /**
+     * Compute the type of the "truc".
+     */
     private void computeType() {
         type = TRUC_TYPE.WORD;
         if (name.contains("/")) {
@@ -157,7 +156,7 @@ public class Truc {
     }
 
     /**
-     * Find in the parents of "truc" the ParseRuleContext when want <br>
+     * Find the closest item in the parents of "truc" having the rule context we're looking for <br>
      *
      * @param ruleIndex rule index you're searching for
      * @return FIRST node having the ruleIndex found in the tree
@@ -172,9 +171,9 @@ public class Truc {
     }
 
     /**
-     * Get the triple where the truc are, and generate a clone to it.
+     * Get the triple where the truc are, and generate a clone of this triple to be used on demand.
      */
-    private void generateTripleComposantes() {
+    private void generateCurrentTripleComposantes() {
         if (parents.size() != 0) {
             Pair<ParserRuleContext, Integer> triplesSameSubject = find(SimplePARQLParser.RULE_triplesSameSubject);
             if (triplesSameSubject != null) {
@@ -229,7 +228,8 @@ public class Truc {
     }
 
     /**
-     * Get the variable state by getting the constant name of the variable to display it in the JSON we send to the user.
+     * Get the variable type having the constant name of the variable.
+     * This will be displayed in the JSON we send to the user.
      *
      * @param variable variable from the SPARQL query in string format
      * @return VARIABLE enum (VARIABLES,LABEL,TMP1,TMP2)

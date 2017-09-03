@@ -32,7 +32,7 @@ public class FilterVirtuoso implements FilterGenerator {
             }
             counter++;
         }
-        result += " \"))";
+        result += "\"))";
         return result;
     }
 }
