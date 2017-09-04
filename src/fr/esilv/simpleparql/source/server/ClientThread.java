@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Create a thread for each user that connects to the server. This will create a multiclient server that will not be influenced by other clients.
@@ -229,23 +230,25 @@ public class ClientThread extends Thread {
      * @return JSON Array to be added to the Json SPARQLResult
      */
     private JsonArray addResultsToJson(SPARQLResult SPARQLQuery, TemporaryTrucVariables trucVariables, SimplePARQLQuery queryOrdered) {
+
         JsonArray results = new JsonArray();
         JsonArray tuple;
         for (int i = 0; i < SPARQLQuery.getResponses().size(); i++) {
             tuple = new JsonArray();
             for (int j = 0; j < SPARQLQuery.getVariables().size(); j++) {
                 JsonObject jsonObject = new JsonObject();
+
                 if (trucVariables.contains(j)) { // we know it's a temporary Truc variable.
                     JsonArray trucResult;
                     TemporaryTrucVariable temporaryTrucVariable = trucVariables.getTemporaryTrucVariable(j);
                     if (temporaryTrucVariable.isMajor()) { // première variable de ce "truc"
                         trucResult = new JsonArray();
-                        JsonObject jsonElementTruc = new JsonObject();
-                        jsonElementTruc.addProperty("Variable", temporaryTrucVariable.getTruc().getCleanedName());
-                        trucResult.add(jsonElementTruc);
+                        JsonObject variableObject = new JsonObject();
+                        variableObject.addProperty("Variable", temporaryTrucVariable.getTruc().getCleanedName());
+                        trucResult.add(variableObject);
                         tuple.add(trucResult);
                     }
-                    trucResult = tuple.get(temporaryTrucVariable.getIndexOfFirstInVariablesList()).getAsJsonArray();
+                    trucResult = getTrucArrayFromTuple(tuple, temporaryTrucVariable.getTruc().getCleanedName()); //  get the array of this truc from the tuple
                     jsonObject.addProperty("SPARQLResult", SPARQLQuery.getResponses().get(i).get(j));
                     jsonObject.addProperty("Position", temporaryTrucVariable.getPosition());
                     trucResult.add(jsonObject);
@@ -260,6 +263,26 @@ public class ClientThread extends Thread {
             results.add(tuple);
         }
         return results;
+    }
+
+    /**
+     *
+     * Get the JSON array of this truc, from the tuple JSON array.
+     *
+     * @param tuple    tuples in jsona array format
+     * @param variable truc's name in the tuple
+     * @return truc array belonging to the truc named "variable"
+     */
+    private JsonArray getTrucArrayFromTuple(JsonArray tuple, String variable) {
+        for (int i = 0; i < tuple.size(); i++) {
+            if (tuple.get(i) instanceof JsonArray) { // truc in the tuple will always be an array
+                JsonArray currentTrucArray = tuple.get(i).getAsJsonArray();
+                String thisTrucName = currentTrucArray.get(0).getAsJsonObject().get("Variable").getAsString(); // get the truc name in the first object of the array
+                if (thisTrucName.equals(variable))
+                    return currentTrucArray;
+            }
+        }
+        return null;
     }
 
     /**

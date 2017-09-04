@@ -63,4 +63,12 @@ public class TemporaryTrucVariables {
         return null;
     }
 
+    public String toString() {
+        String result = "";
+        for (TemporaryTrucVariable temp : temporaryTrucVariables) {
+            result += temp.toString();
+        }
+        return result;
+    }
+
 }
