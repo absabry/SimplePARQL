@@ -9,6 +9,7 @@ var dictionnaryTrucs={}; // handle replacing trucs
 var pages = ["FIRST","SECOND","THIRD"]; // handle pages displayed
 var page_counter = 0; // handles pages displayed
 var queryInformations; // to change pages, when we click on next or previous.
+var noResultsAllBases = false;
 
 // submit the form and request the Java server
 $("#query_form").submit(function( event ) {
@@ -61,6 +62,7 @@ $("#query_form").submit(function( event ) {
 $("#clear").click(function(){
     clearFunction();
     page_counter=0;
+    noResultsAllBases=false;
     if(mySocket != undefined && mySocket.readyState != mySocket.CLOSED && mySocket.readyState != mySocket.CLOSING ){
          mySocket.send('stop');
          mySocket.close();
@@ -122,7 +124,24 @@ function createQueryFromAssisted(){
 
 // create JSON request when it's the not assisted form
 function createQueryFromNoAssisted(){
+     var query = $('#query').val();
+     // add escape before the closing accolades if it does not exist..
+     // some bugs are generated when this escape isn't here...
+     var escapeBefore= true;
+     for(var i=0; i< query.length; i++){
+        if(query[i]=='}'){
+            if(query[i-1] != ' ' && query[i-1] != "." && query[i-1] !="\n"){
+                escapeBefore=false;
+                break;
+            }
+        }
+     }
+     // add the escape if needed
+     if(!escapeBefore){
+        $('#query').val(query.replace("}", " }"));
+     }
      SIMPLEPARQL_QUERY = $('#query').val();
+
       return {
               "bases" : $("#list_bases").data("kendoMultiSelect").value(),
               "query":  $('#query').val(),
@@ -199,6 +218,9 @@ function getResults(format,jsonResults){
     }
     else if(format == 'HTML'){
         htmlresult("#query_results",jsonResults);
+         if(!noResultsAllBases){
+            $("#nextpage").hide(); // keep it? the first page have no result for all bases, so we don't need the rest.
+         }
     }
 }
 
@@ -339,9 +361,11 @@ function htmlresult($query_div,json){
         if(counter == 1){
             var $noresult = $('<h3></h3>').addClass("center")
                         .text("No results found in this page. Please change your SimplePARQL query or go back to previous page.");
-             $("#nextpage").hide(); // keep it? the first page have no result, so we don't need the rest.
             $($query_div).append($noresult);
             continue;
+        }
+        else{
+            noResultsAllBases = true;
         }
     }
 }
@@ -592,13 +616,14 @@ function resetCellsImages($td){
 // replace the truc on clicking the logo in the ceil
 function replaceTrucs(){
     if ($('.not_assisted_form').is(":visible")) {
-         replaceToTextArea(SIMPLEPARQL_QUERY,'query');
+        replaceToTextArea(SIMPLEPARQL_QUERY,'query');
+        console.log($("#query").val());
     }
     else{
-         //replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.select,'select');
+         replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.select,'select');
          replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.where,'where');
          //replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.filter,'filter'); // not used now, the trucs cannot be in the filter field, but will be soon
-         //replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.optional,'optional');
+         replaceToTextArea(SIMPLEPARQL_QUERY_ASSISTED.optional,'optional');
     }
 }
 
@@ -641,6 +666,7 @@ function getWord(index,endindex,query){
     }
     var charAfter=query.charAt(indexAfter);
     while(charAfter.trim() != '' && charAfter!= '.' ){
+    // after the truc we can found a point, space or closing accolades
         word = word+charAfter;
         indexAfter = indexAfter+1;
         charAfter = query.charAt(indexAfter);

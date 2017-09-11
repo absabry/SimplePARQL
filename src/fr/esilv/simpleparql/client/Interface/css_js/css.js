@@ -108,6 +108,9 @@ function reformatQuery(query){
             brokeLine = true;
        }
     }
+    result = result.replaceAll("  "," ");
+    result = result.replaceAll(" \"", "\n");
+    result = result.replaceAll("\n\n", "\n");
     return deleteFirstSpacesOrBreak(result);
 }
 
