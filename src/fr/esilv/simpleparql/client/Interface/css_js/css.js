@@ -151,10 +151,11 @@ $("#list_bases").kendoMultiSelect({
     dataSource: {
     data: [
         {value: "Dbpedia", Name:"DBpedia (v)"},
+        {value: "Wikidata", Name:"Wikidata"},
         {value: "Utpl_Linked_Open_Data", Name:"UTPL Linked Open Data (v)"},
-        {value: "National_Library_of_Francel", Name:"National Library of France (v)"},
+        {value: "National_Library_of_France", Name:"National Library of France (v)"},
         {value: "Linked_Stat", Name:"Linked Stat (v)"},
-        {value: "European_Council_Council_of_the_European_Union", Name:"European Council Council of the European Union"},
+        {value: "European_Council_of_the_European_Union", Name:"European Council of the European Union"},
         {value: "oxford", Name:"Oxford"},
         {value: "European_Central_Bank", Name:"European Central Bank"},
         {value: "DisGeNet", Name:"DisGeNet (v)" },

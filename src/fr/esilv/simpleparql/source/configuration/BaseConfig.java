@@ -20,7 +20,9 @@ import java.io.*;
 public class BaseConfig {
 
     private String name;
+    private String status;
     private String link;
+    private String plateforme;
     private String filter;
     private boolean optionnal;
     private String api;
@@ -34,8 +36,16 @@ public class BaseConfig {
         return name;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     public String getLink() {
         return link;
+    }
+
+    public String getPlateforme() {
+        return plateforme;
     }
 
     public FilterGenerator getFilter() {
@@ -75,10 +85,19 @@ public class BaseConfig {
                 case "#":
                     break;
                 case "name":
-                    name = line[1];
+                    name = "";
+                    for(int i=1;i<line.length;i++){
+                        name += " " + line[i];
+                    }
+                    break;
+                case "status":
+                    status = line[1];
                     break;
                 case "link":
                     link = line[1];
+                    break;
+                case "plateforme":
+                    plateforme = line[1];
                     break;
                 case "filter":
                     filter = line[1];
@@ -89,6 +108,7 @@ public class BaseConfig {
                 case "api":
                     api = line[1];
                     break;
+
                 default:
                     break;
             }

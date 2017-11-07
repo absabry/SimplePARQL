@@ -388,7 +388,7 @@ function addBase($query_div,base){
             .text('Results for the base ')
             .append('<b>'+base.name+'</b>')
             .append(' You can found it here: ');
-            addURIElement($base,base.link);
+            addURIElement($base,base.plateforme);
             $($query_div).append($base);
 }
 
@@ -437,7 +437,7 @@ function addLogoToQuery($query,base){
     $($openBase).on( "click", function() {
         var msg = copyToClipboard($(this).parent().parent()); // to get the query text from the <p> tag (this.parent is <div>, and then it's <p>)
         setTimeout(function() {
-            window.open(base.link);
+            window.open(base.plateforme);
         }, 1000);
         $(this).tooltipster('content', msg);
     })

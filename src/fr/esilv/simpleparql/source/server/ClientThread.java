@@ -98,12 +98,15 @@ public class ClientThread extends Thread {
         JsonArray result = new JsonArray(); // contains results of all bases
         for (String base : request.getBases()) {
             JsonObject json = new JsonObject(); // contains results of this base
+            BaseConfig config = getFile(base);
+
+            if(config == null){json.addProperty("error", "Can't reach "+ base +" configuration file.");result.add(json); continue;}
+            if(Objects.equals(config.getStatus(), "DOWN")){json.addProperty("error",  config.getName() +" is DOWN.");result.add(json); continue;}
 
             //is SPARQL field
             json.addProperty("isSPARQL", simplePARQLQuery.isSPARQL());
 
             //base field
-            BaseConfig config = getFile(base);
             addBaseInformations(json, config);
 
             // results field
@@ -118,10 +121,10 @@ public class ClientThread extends Thread {
                 String query = Constants.treeToString(parser, generatedElement.getQuery());
                 jsonElementgeneratedElement.addProperty("query", query);
                 SPARQLResult SPARQLresult = new Jena().executeSparqlQuery(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF), request.getTimeout());
-                // if any error occured in sparqm query's execution,
+                // if any error occured in sparql query's execution,
                 // the json element will be deleted and replaced with this error
                 if (SPARQLresult.getError() != null) {
-                    json = error(SPARQLresult);
+                    json = error(SPARQLresult,config.getName());
                     break;
                 } else {
                     TemporaryTrucVariables trucVariables = getVariablesOfTrucs(SPARQLresult, sparqlQueries); //  get temp variables generated in the query
@@ -150,6 +153,8 @@ public class ClientThread extends Thread {
     private void addBaseInformations(JsonObject json, BaseConfig config) {
         JsonObject baseInformations = new JsonObject();
         baseInformations.addProperty("name", config.getName());
+        baseInformations.addProperty("name", config.getName());
+        baseInformations.addProperty("plateforme", config.getPlateforme());
         baseInformations.addProperty("link", config.getLink());
         baseInformations.addProperty("api", config.getApi());
         json.add("base", baseInformations);
@@ -160,9 +165,9 @@ public class ClientThread extends Thread {
      *
      * @param SPARQLQuery SPARQLResult structure of the SPARQL query
      */
-    private JsonObject error(SPARQLResult SPARQLQuery) {
+    private JsonObject error(SPARQLResult SPARQLQuery,String base) {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("error", SPARQLQuery.getError());
+        jsonObject.addProperty("error", "[Endpoint"+base+"] "+ SPARQLQuery.getError());
         return jsonObject;
     }
 
