@@ -101,7 +101,6 @@ public class ClientThread extends Thread {
             BaseConfig config = getFile(base);
 
             if(config == null){json.addProperty("error", "Can't reach "+ base +" configuration file.");result.add(json); continue;}
-            if(Objects.equals(config.getStatus(), "DOWN")){json.addProperty("error",  config.getName() +" is DOWN.");result.add(json); continue;}
 
             //is SPARQL field
             json.addProperty("isSPARQL", simplePARQLQuery.isSPARQL());

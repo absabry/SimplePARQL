@@ -724,7 +724,12 @@ function addURIElement(element,text,classAdded){
 }
 
 // check if text is url (basic form)
-function isUrl(s) { return s.toLowerCase().startsWith('http') || s.toLowerCase().startsWith('<http');}
+function isUrl(s) {
+if (s==null){
+ return false;
+}
+return s.toLowerCase().startsWith('http') || s.toLowerCase().startsWith('<http');
+}
 
 // replace truc in the textarea (assisted and not_assisted mode)
 function elementToTextArea(id,text){

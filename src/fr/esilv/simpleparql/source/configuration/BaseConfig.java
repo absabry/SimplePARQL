@@ -20,7 +20,6 @@ import java.io.*;
 public class BaseConfig {
 
     private String name;
-    private String status;
     private String link;
     private String plateforme;
     private String filter;
@@ -34,10 +33,6 @@ public class BaseConfig {
 
     public String getName() {
         return name;
-    }
-
-    public String getStatus() {
-        return status;
     }
 
     public String getLink() {
@@ -89,9 +84,6 @@ public class BaseConfig {
                     for(int i=1;i<line.length;i++){
                         name += " " + line[i];
                     }
-                    break;
-                case "status":
-                    status = line[1];
                     break;
                 case "link":
                     link = line[1];
