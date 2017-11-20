@@ -12,7 +12,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.xpath.XPath;
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ import java.util.Map;
  */
 public class SparqlQueries {
 
-    private final static Logger logger = Logger.getLogger(SparqlQueries.class);
     private ArrayList<Truc> simpleARQLTrucs;
     private ArrayList<SPARQLQueryGenerated> generatedQueries;
     private SimplePARQLParser parser;

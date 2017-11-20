@@ -34,7 +34,7 @@ import java.util.Objects;
  * <strong> queryConfig</strong>configuration query's file. <br>
  */
 public class ClientThread extends Thread {
-    private final static Logger logger = Logger.getLogger(ClientThread.class);
+    private Logger logger;
     private Socket socket;
     private int client;
     private String address;
@@ -48,6 +48,7 @@ public class ClientThread extends Thread {
         this.baseConfig = baseConfig;
         this.queryConfig = queryConfig;
         address = socket.getInetAddress().getHostAddress();
+        logger = Server.logger;
     }
 
     /**
@@ -60,10 +61,8 @@ public class ClientThread extends Thread {
             String message = bufferedReader.readLine();
             Request request = new Gson().fromJson(message, Request.class);
             JsonArray result = launch(request);
-            // begin debug
             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             logger.debug(gson.toJson(result));
-            // end debug
             output.flush();
             output.write(result.toString() + null); // add null to mark the end of the json
             output.flush();
@@ -71,7 +70,7 @@ public class ClientThread extends Thread {
             socket.close();
         } catch (SocketException socketException) {
             if (socketException.getMessage().equals("Connection reset ")) {
-                logger.debug("#" + client + "," + address + " has brutally quit the room.");
+                logger.info("#" + client + "," + address + " has brutally quit the room.");
             }
         } catch (IOException | JSONException e) {
             e.printStackTrace();

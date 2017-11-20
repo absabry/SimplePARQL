@@ -16,7 +16,7 @@ import java.net.Socket;
  * The user can choose a personalized configuration file which he'll give as a parametere.
  */
 public class Server {
-    private final static Logger logger = Logger.getLogger(Server.class);
+    public final static Logger logger = Logger.getLogger(Server.class);
     private static int clientID = 0;
     private static ServerConfig serverConfig;
 
@@ -28,6 +28,7 @@ public class Server {
         } else {
             serverConfig = new ServerConfig(Server.class.getResourceAsStream("Server.config")); //configuration file by default
         }
+        Logger.getRootLogger().setLevel(serverConfig.getLevel());
         runServer();
     }
 
@@ -38,12 +39,13 @@ public class Server {
      */
     private static void runServer() throws IOException {
         ServerSocket serverSocket = new ServerSocket(serverConfig.getPort());
-        logger.debug("Server up & ready for connections...");
+        logger.debug(serverConfig.getLevel());
+        logger.info("Server up & ready for connections...");
         // serveur loop will not stop until admin stop it himself
         while (true) {
             Socket client = serverSocket.accept();
             new ClientThread(clientID, client, serverConfig.getBasesConfig(), serverConfig.getQueryConfig()).start();
-            logger.debug("#" + clientID + " just connected from " + client.getRemoteSocketAddress().toString());
+            logger.info("#" + clientID + " just connected from " + client.getRemoteSocketAddress().toString());
             clientID++;
         }
     }

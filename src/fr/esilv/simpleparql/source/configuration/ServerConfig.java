@@ -2,17 +2,20 @@ package fr.esilv.simpleparql.source.configuration;
 
 import java.io.*;
 
+import org.apache.log4j.Level;
+
 /**
  * Configuration file of the server between the client and the server. <br>
- *
- *  <strong>port:</strong>  Port used to communicate between the client and the server. <br>
- *  <strong>basesConfig:</strong> The repository containing the configuration files of each base. <br>
- *  <strong>queryConfig:</strong> The configuration file of the query. <br>
+ * <p>
+ * <strong>port:</strong>  Port used to communicate between the client and the server. <br>
+ * <strong>basesConfig:</strong> The repository containing the configuration files of each base. <br>
+ * <strong>queryConfig:</strong> The configuration file of the query. <br>
  */
 public class ServerConfig {
     private int port;
     private String basesConfig;
     private QueryConfig queryConfig;
+    private Level level;
 
     public ServerConfig(InputStream file) throws IOException {
         readFile(file);
@@ -30,8 +33,28 @@ public class ServerConfig {
         return queryConfig;
     }
 
+    public Level getLevel() {
+        return level;
+    }
+
+    private Level convertToLevel(String level) {
+        switch (level) {
+            case "ERROR":
+                return Level.ERROR;
+            case "DEBUG":
+                return Level.DEBUG;
+            case "INFO":
+                return Level.INFO;
+            case "WARNING":
+                return Level.WARN;
+            default:
+                return null;
+        }
+    }
+
     /**
      * Read file and get each composant of server's configuration
+     *
      * @param file configuration file
      * @throws IOException
      */
@@ -54,6 +77,9 @@ public class ServerConfig {
                     break;
                 case "queryconfig":
                     queryConfig = new QueryConfig(new FileInputStream(line[1]));
+                    break;
+                case "level":
+                    level = convertToLevel(line[1]);
                     break;
                 default:
                     break;
