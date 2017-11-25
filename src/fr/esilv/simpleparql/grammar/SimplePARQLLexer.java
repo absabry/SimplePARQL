@@ -1,4 +1,4 @@
-// Generated from C:/Users/Abdel/Desktop/Stage_A4/SimplePARQL/SimplePARQL/src/fr/esilv/simpleparql/grammar\SimplePARQL.g4 by ANTLR 4.7
+// Generated from C:/Users/HP/IdeaProjects/SimplePARQL/src/fr/esilv/simpleparql/grammar\SimplePARQL.g4 by ANTLR 4.7
 package fr.esilv.simpleparql.grammar;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -29,9 +29,9 @@ public class SimplePARQLLexer extends Lexer {
 		DOUBLE=66, INTEGER_POSITIVE=67, DECIMAL_POSITIVE=68, DOUBLE_POSITIVE=69, 
 		INTEGER_NEGATIVE=70, DECIMAL_NEGATIVE=71, DOUBLE_NEGATIVE=72, EXPONENT=73, 
 		DIGIT=74, URI=75, VAR=76, NIL=77, TRUC_WORD=78, VARNAME=79, PNAME_LN=80, 
-		PN_LOCAL=81, STRING_LITERAL1=82, STRING_LITERAL2=83, TRUC_SLASH=84, ECHAR=85, 
-		ANON=86, LANGTAG=87, BLANK_NODE_LABEL=88, PNAME_NS=89, PN_PREFIX=90, PN_CHARS_UNDERSCORE=91, 
-		HTTP=92, WS=93;
+		PN_LOCAL=81, STRING_LITERAL1=82, STRING_LITERAL2=83, TRUC_SEVERALWORDS=84, 
+		ECHAR=85, ANON=86, LANGTAG=87, BLANK_NODE_LABEL=88, PNAME_NS=89, PN_PREFIX=90, 
+		PN_CHARS_UNDERSCORE=91, HTTP=92, WS=93;
 	public static String[] channelNames = {
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
 	};
@@ -52,11 +52,11 @@ public class SimplePARQLLexer extends Lexer {
 		"INTEGER", "DECIMAL", "DOUBLE", "INTEGER_POSITIVE", "DECIMAL_POSITIVE", 
 		"DOUBLE_POSITIVE", "INTEGER_NEGATIVE", "DECIMAL_NEGATIVE", "DOUBLE_NEGATIVE", 
 		"EXPONENT", "DIGIT", "URI", "VAR", "NIL", "TRUC_WORD", "VARNAME", "PNAME_LN", 
-		"PN_LOCAL", "STRING_LITERAL1", "STRING_LITERAL2", "TRUC_SLASH", "ECHAR", 
-		"ANON", "LANGTAG", "BLANK_NODE_LABEL", "PNAME_NS", "PN_PREFIX", "PN_CHARS", 
-		"PN_CHARS_UNDERSCORE", "PN_CHARS_BASE", "HTTP", "A", "B", "C", "D", "E", 
-		"F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", 
-		"T", "U", "V", "W", "X", "Y", "Z", "WS"
+		"PN_LOCAL", "STRING_LITERAL1", "STRING_LITERAL2", "TRUC_SEVERALWORDS", 
+		"ECHAR", "ANON", "LANGTAG", "BLANK_NODE_LABEL", "PNAME_NS", "PN_PREFIX", 
+		"PN_CHARS", "PN_CHARS_UNDERSCORE", "PN_CHARS_BASE", "HTTP", "A", "B", 
+		"C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", 
+		"Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "WS"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
@@ -75,9 +75,9 @@ public class SimplePARQLLexer extends Lexer {
 		"By", "INTEGER", "DECIMAL", "DOUBLE", "INTEGER_POSITIVE", "DECIMAL_POSITIVE", 
 		"DOUBLE_POSITIVE", "INTEGER_NEGATIVE", "DECIMAL_NEGATIVE", "DOUBLE_NEGATIVE", 
 		"EXPONENT", "DIGIT", "URI", "VAR", "NIL", "TRUC_WORD", "VARNAME", "PNAME_LN", 
-		"PN_LOCAL", "STRING_LITERAL1", "STRING_LITERAL2", "TRUC_SLASH", "ECHAR", 
-		"ANON", "LANGTAG", "BLANK_NODE_LABEL", "PNAME_NS", "PN_PREFIX", "PN_CHARS_UNDERSCORE", 
-		"HTTP", "WS"
+		"PN_LOCAL", "STRING_LITERAL1", "STRING_LITERAL2", "TRUC_SEVERALWORDS", 
+		"ECHAR", "ANON", "LANGTAG", "BLANK_NODE_LABEL", "PNAME_NS", "PN_PREFIX", 
+		"PN_CHARS_UNDERSCORE", "HTTP", "WS"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 

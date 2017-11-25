@@ -1,6 +1,6 @@
 package fr.esilv.simpleparql.source.model;
 
-;
+
 import fr.esilv.simpleparql.grammar.SimplePARQLLexer;
 import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import org.antlr.v4.gui.TreeViewer;

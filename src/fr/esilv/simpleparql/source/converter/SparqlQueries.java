@@ -1,17 +1,19 @@
 package fr.esilv.simpleparql.source.converter;
 
 import com.google.common.collect.Iterables;
+import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import fr.esilv.simpleparql.source.converter.filter.FilterDefault;
 import fr.esilv.simpleparql.source.converter.filter.FilterGenerator;
 import fr.esilv.simpleparql.source.converter.query.SPARQLQueryGenerator;
 import fr.esilv.simpleparql.source.model.*;
-import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import fr.esilv.simpleparql.source.configuration.QueryConfig;
+import fr.esilv.simpleparql.source.server.Server;
 import javafx.util.Pair;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.xpath.XPath;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,6 +39,7 @@ public class SparqlQueries {
     private FilterGenerator filterGenerator;
     private boolean optional;
     private ArrayList<String> ignoredConfig;
+    private Logger logger;
 
     public SparqlQueries(SimplePARQLParser parser, FilterGenerator filterGenerator, boolean optional, QueryConfig ignoredConfig) throws IOException {
         this.filterGenerator = filterGenerator;
@@ -47,6 +50,7 @@ public class SparqlQueries {
         this.ignoredConfig = ignoredConfig.getIgnoredProprieties();
         ParserRuleContext query = this.parser.query();
         generatedQueries.add(new SPARQLQueryGenerated(query, PAGE.FIRST));
+        logger = Server.logger;
         if (containsTruc()) {
             generatedSPARQLQueries();
         }
@@ -100,16 +104,48 @@ public class SparqlQueries {
         // clone generated tree
         ArrayList<SPARQLQueryGenerated> oldGeneratedTrees = new ArrayList<>();
         oldGeneratedTrees.addAll(generatedQueries);
-
+        logger.debug("begin generate function");
         for (SPARQLQueryGenerated oldGenereatedTree : oldGeneratedTrees) {
-            Collection<ParseTree> trucs = XPath.findAll(oldGenereatedTree.getQuery(), "//truc", parser);
+            logger.debug("current tree is: ");
+            logger.debug(oldGenereatedTree);
+            Collection<ParseTree> trucs = XPath.findAll(oldGenereatedTree.getQuery(), "//trucSujet", parser);
             if (trucs.size() > 0) {
+                logger.debug("We're in trucSujet");
                 Truc truc = createTruc(Iterables.get(trucs, 0));
                 if (truc.isOptionnal() && !optional) {
                     simpleARQLTrucs.remove(truc);
                     removeOptionnalTrucFromTree(oldGenereatedTree, truc);
                 } else {
                     generateCartesianProductTrees(oldGenereatedTree, truc);
+                }
+            } else {
+                logger.debug("We're not in trucSujet");
+                trucs = XPath.findAll(oldGenereatedTree.getQuery(), "//trucPredicat", parser);
+                if (trucs.size() > 0) {
+                    logger.debug("We're in trucPredicat");
+                    Truc truc = createTruc(Iterables.get(trucs, 0));
+                    if (truc.isOptionnal() && !optional) {
+                        simpleARQLTrucs.remove(truc);
+                        removeOptionnalTrucFromTree(oldGenereatedTree, truc);
+                    } else {
+                        generateCartesianProductTrees(oldGenereatedTree, truc);
+                    }
+                } else {
+                    logger.debug("We're not in trucPredicat");
+                    trucs = XPath.findAll(oldGenereatedTree.getQuery(), "//trucObject", parser);
+                    if (trucs.size() > 0) {
+                        logger.debug("We're in trucObject");
+                        Truc truc = createTruc(Iterables.get(trucs, 0));
+                        if (truc.isOptionnal() && !optional) {
+                            simpleARQLTrucs.remove(truc);
+                            removeOptionnalTrucFromTree(oldGenereatedTree, truc);
+                        } else {
+                            generateCartesianProductTrees(oldGenereatedTree, truc);
+                        }
+                    }
+                    else{
+                        logger.debug("We're not in trucObject");
+                    }
                 }
             }
         }
@@ -392,7 +428,9 @@ public class SparqlQueries {
         ArrayList<SPARQLQueryGenerated> checkList = new ArrayList<>();
         checkList.addAll(generatedQueries);
         for (SPARQLQueryGenerated tree : checkList) {
-            if (XPath.findAll(tree.getQuery(), "//truc", parser).size() > 0) {
+            if (XPath.findAll(tree.getQuery(), "//trucSujet", parser).size() > 0
+                    || XPath.findAll(tree.getQuery(), "//trucPredicat", parser).size() > 0
+                    || XPath.findAll(tree.getQuery(), "//trucObject", parser).size() > 0) {
                 return true;
             }
         }

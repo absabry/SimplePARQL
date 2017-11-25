@@ -10,7 +10,7 @@ prefixDecl
     : Prefix PNAME_NS /* prefixname:*/ URI
     ;
 selectQuery
-    : Select Distinct? ( VAR+ | '*' | truc )
+    : Select Distinct? ( VAR+ | '*' | trucSujet) // trucSujet est juste mis ici par défaut, il peut être les deux autres également !
     ;
 
 whereClause
@@ -118,7 +118,7 @@ triplesBlock
     : triplesSameSubject ( '.' triplesBlock? )? // le point est obligatoire quand y a un triplé qui le suit, sinon mettre un point est optionnel (PAS DE FAUTE QUAND ON LE MET!)
     ;
 triplesSameSubject
-    : varOrTerm propertyListNotEmpty | triplesNode propertyListNotEmpty?
+    : varOrTermSujet propertyListNotEmpty | triplesNode propertyListNotEmpty?
     ;
 graphPatternNotTriples
     : optionalGraphPattern | groupOrUnionGraphPattern | filter | bind
@@ -150,23 +150,32 @@ object
     : graphNode
     ;
 verb
-    : varOrIRIreforTruc
+    : varOrIRIref
+    | trucPredicat
     | 'a'
     ;
-varOrIRIreforTruc
-    : VAR | iriRef | truc
+varOrIRIref
+    : VAR | iriRef
     ;
 graphNode
-    : varOrTerm | triplesNode
+    : varOrTermObject | triplesNode
     ;
-varOrTerm
+
+
+varOrTermObject
     : VAR
+    | trucObject
+    | graphTerm
+    ;
+
+varOrTermSujet
+    : VAR
+    | trucSujet
     | graphTerm
     ;
 
 graphTerm
     : iriRef
-    | truc
     | rdfLiteral
     | numericLiteral
     | booleanLiteral
@@ -191,8 +200,16 @@ string
 groupOrUnionGraphPattern
     : groupGraphPattern ( Union groupGraphPattern )*
     ;
-truc
-    : (TRUC_WORD(LANGTAG)? | TRUC_SLASH(LANGTAG)?  | string(LANGTAG)? )
+trucSujet
+    : (TRUC_WORD(LANGTAG)? | TRUC_SEVERALWORDS(LANGTAG)?  | string(LANGTAG)? )
+    ;
+
+trucPredicat
+    : (TRUC_WORD(LANGTAG)? | TRUC_SEVERALWORDS(LANGTAG)?  | string(LANGTAG)? )
+    ;
+
+trucObject
+    : (TRUC_WORD(LANGTAG)? | TRUC_SEVERALWORDS(LANGTAG)?)
     ;
 
 solutionModifier
@@ -337,7 +354,7 @@ STRING_LITERAL1
 STRING_LITERAL2
     : '"'  ( ~('\u0022' | '\u005C' | '\u000A' | '\u000D' ) | ECHAR )* '"'
     ;
-TRUC_SLASH
+TRUC_SEVERALWORDS
     : '/' ('A'..'Z' | 'a'..'z' | ' ' | ECHAR)+ '/'
     ;
 

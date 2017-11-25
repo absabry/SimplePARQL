@@ -589,7 +589,7 @@ function getOriginalTruc(text){
     if(dictionnaryTrucs[text].type =="STRING"){
         originalText = "\""+originalText+"\"";
     }
-    else if(dictionnaryTrucs[text].type =="SLASH"){
+    else if(dictionnaryTrucs[text].type =="SEVERALWORDS"){
         originalText = "/"+originalText+"/";
     }
     if(dictionnaryTrucs[text].lang != null){

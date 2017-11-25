@@ -149,7 +149,7 @@ public class Truc {
     private void computeType() {
         type = TRUC_TYPE.WORD;
         if (name.contains("/")) {
-            type = TRUC_TYPE.SLASH;
+            type = TRUC_TYPE.SEVERALWORDS;
         } else if (name.contains("\"")) {
             type = TRUC_TYPE.STRING;
         }

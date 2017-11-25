@@ -1,4 +1,4 @@
-// Generated from C:/Users/Abdel/Desktop/Stage_A4/SimplePARQL/SimplePARQL/src/fr/esilv/simpleparql/grammar\SimplePARQL.g4 by ANTLR 4.7
+// Generated from C:/Users/HP/IdeaProjects/SimplePARQL/src/fr/esilv/simpleparql/grammar\SimplePARQL.g4 by ANTLR 4.7
 package fr.esilv.simpleparql.grammar;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -460,13 +460,13 @@ public class SimplePARQLBaseListener implements SimplePARQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterVarOrIRIreforTruc(SimplePARQLParser.VarOrIRIreforTrucContext ctx) { }
+	@Override public void enterVarOrIRIref(SimplePARQLParser.VarOrIRIrefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitVarOrIRIreforTruc(SimplePARQLParser.VarOrIRIreforTrucContext ctx) { }
+	@Override public void exitVarOrIRIref(SimplePARQLParser.VarOrIRIrefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -484,13 +484,25 @@ public class SimplePARQLBaseListener implements SimplePARQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterVarOrTerm(SimplePARQLParser.VarOrTermContext ctx) { }
+	@Override public void enterVarOrTermObject(SimplePARQLParser.VarOrTermObjectContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitVarOrTerm(SimplePARQLParser.VarOrTermContext ctx) { }
+	@Override public void exitVarOrTermObject(SimplePARQLParser.VarOrTermObjectContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterVarOrTermSujet(SimplePARQLParser.VarOrTermSujetContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVarOrTermSujet(SimplePARQLParser.VarOrTermSujetContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -568,13 +580,37 @@ public class SimplePARQLBaseListener implements SimplePARQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTruc(SimplePARQLParser.TrucContext ctx) { }
+	@Override public void enterTrucSujet(SimplePARQLParser.TrucSujetContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitTruc(SimplePARQLParser.TrucContext ctx) { }
+	@Override public void exitTrucSujet(SimplePARQLParser.TrucSujetContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTrucPredicat(SimplePARQLParser.TrucPredicatContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTrucPredicat(SimplePARQLParser.TrucPredicatContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTrucObject(SimplePARQLParser.TrucObjectContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTrucObject(SimplePARQLParser.TrucObjectContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

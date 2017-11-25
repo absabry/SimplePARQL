@@ -169,17 +169,9 @@ public class SPARQLQueryGenerator {
      * it will generate labels exactly like when it's not an exact truc.<br>
      */
     private void PageFirst() {
-        if (truc.isExact()) {
-            if (truc.getPosition() == POSITION.OBJECT) {
-                generatedComposants.add(generateURI(PAGE.FIRST));
-            } else {
-                generatedComposants.add(generatelabels(PAGE.FIRST));
-            }
-        } else {
-            generatedComposants.add(generatelabels(PAGE.FIRST));
-            if (truc.getPosition() == POSITION.OBJECT) {
-                generatedComposants.add(generateURI(PAGE.FIRST));
-            }
+        generatedComposants.add(generatelabels(PAGE.FIRST));
+        if (truc.getPosition() == POSITION.OBJECT) {
+            generatedComposants.add(generateURI(PAGE.FIRST));
         }
     }
 
@@ -195,18 +187,10 @@ public class SPARQLQueryGenerator {
      * it will generate proprieties. <br>
      */
     private void PageSecond() {
-        if (truc.isExact()) {
-            if (truc.getPosition() == POSITION.OBJECT) {
-                generatedComposants.add(generatelabels(PAGE.SECOND));
-            } else {
-                generatedComposants.add(generateProprieties(PAGE.SECOND));
-            }
+        if (truc.getPosition() == POSITION.PREDICATE) {
+            generatedComposants.add(generateURI(PAGE.SECOND));
         } else {
-            if (truc.getPosition() == POSITION.PREDICATE) {
-                generatedComposants.add(generateURI(PAGE.SECOND));
-            } else {
-                generatedComposants.add(generateProprieties(PAGE.SECOND));
-            }
+            generatedComposants.add(generateProprieties(PAGE.SECOND));
         }
     }
 
@@ -219,14 +203,8 @@ public class SPARQLQueryGenerator {
      * if it's in object position we'll not generate propreties which e haven't generate in PageSecond() function . <br>
      */
     private void PageThird() {
-        if (truc.isExact()) {
-            if (truc.getPosition() == POSITION.OBJECT) {
-                generatedComposants.add(generateProprieties(PAGE.THIRD));
-            }
-        } else {
-            if (truc.getPosition() == POSITION.SUBJECT) {
-                generatedComposants.add(generateURI(PAGE.THIRD));
-            }
+        if (truc.getPosition() == POSITION.SUBJECT) {
+            generatedComposants.add(generateURI(PAGE.THIRD));
         }
     }
 

@@ -12,6 +12,8 @@ import com.hp.hpl.jena.sparql.syntax.ElementVisitorBase;
 import com.hp.hpl.jena.sparql.syntax.ElementWalker;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.util.FileManager;
+import fr.esilv.simpleparql.source.server.Server;
+import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -26,6 +28,7 @@ import java.util.*;
  */
 public class Jena {
 
+    Logger logger = Server.logger;
     /**
      * Execute SPARQL query using Jena API.
      * @param base Base the user chose for exectuing this query
@@ -64,9 +67,11 @@ public class Jena {
             }
             qexec.close();
         } catch (QueryParseException e) {
-            SPARQLQuery.setError("error while parsing your SimplePARQL query");
+            logger.debug(e);
+            SPARQLQuery.setError("error while parsing your SimplePARQL query\n"+e.getMessage().substring(e.getMessage().indexOf(" ") + 1));
         } catch (Exception e) {
-            System.out.println(sparqlQueryString+ " occured an error");
+            logger.debug(e);
+            logger.debug(sparqlQueryString+ " occured an error");
             SPARQLQuery.setError(e.getMessage().substring(e.getMessage().indexOf(":") + 1).replace("Server", "remote server"));
         }
         return SPARQLQuery;

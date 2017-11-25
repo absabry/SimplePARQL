@@ -4,9 +4,9 @@ import com.google.gson.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import fr.esilv.simpleparql.source.configuration.BaseConfig;
 import fr.esilv.simpleparql.source.configuration.QueryConfig;
-import fr.esilv.simpleparql.grammar.SimplePARQLParser;
 import fr.esilv.simpleparql.source.converter.SparqlQueries;
 import fr.esilv.simpleparql.source.jenaresult.TemporaryTrucVariable;
 import fr.esilv.simpleparql.source.jenaresult.TemporaryTrucVariables;
@@ -21,8 +21,9 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Objects;
+import java.util.Date;
 
 /**
  * Create a thread for each user that connects to the server. This will create a multiclient server that will not be influenced by other clients.
@@ -41,14 +42,16 @@ public class ClientThread extends Thread {
 
     private String baseConfig;
     private QueryConfig queryConfig;
+    private BufferedWriter stats;
 
-    ClientThread(int client, Socket socket, String baseConfig, QueryConfig queryConfig) {
+    ClientThread(int client, Socket socket, String baseConfig, QueryConfig queryConfig, BufferedWriter stats) {
         this.socket = socket;
         this.client = client;
         this.baseConfig = baseConfig;
         this.queryConfig = queryConfig;
         address = socket.getInetAddress().getHostAddress();
         logger = Server.logger;
+        this.stats = stats;
     }
 
     /**
@@ -61,6 +64,8 @@ public class ClientThread extends Thread {
             String message = bufferedReader.readLine();
             Request request = new Gson().fromJson(message, Request.class);
             JsonArray result = launch(request);
+            logger.debug("Here's the SimplePARQL query: ");
+            logger.debug(request.getQuery());
             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             logger.debug(gson.toJson(result));
             output.flush();
@@ -95,11 +100,16 @@ public class ClientThread extends Thread {
         String treeString = Constants.treeToString(parser, parser.query());  // prepared tree in text format
 
         JsonArray result = new JsonArray(); // contains results of all bases
+        boolean error = false;
         for (String base : request.getBases()) {
             JsonObject json = new JsonObject(); // contains results of this base
-            BaseConfig config = getFile(base);
+            BaseConfig config = getBaseConfigurationFile(base);
 
-            if(config == null){json.addProperty("error", "Can't reach "+ base +" configuration file.");result.add(json); continue;}
+            if (config == null) {
+                json.addProperty("error", "Can't reach " + base + " configuration file.");
+                result.add(json);
+                continue;
+            }
 
             //is SPARQL field
             json.addProperty("isSPARQL", simplePARQLQuery.isSPARQL());
@@ -110,6 +120,9 @@ public class ClientThread extends Thread {
             // results field
             JsonArray jsonElementBase = new JsonArray();
             SparqlQueries sparqlQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), config.isOptionnal(), queryConfig);
+            logger.debug("Here are the generated sparql trucs and queries");
+            logger.debug(sparqlQueries.getSimpleARQLTrucs());
+            logger.debug(sparqlQueries.getGeneratedQueries());
 
             // travel the SPARQL query geenrated, filtered by the wanted page
             for (SPARQLQueryGenerated generatedElement : sparqlQueries.getGeneratedQueries(request.getPage())) {
@@ -122,7 +135,8 @@ public class ClientThread extends Thread {
                 // if any error occured in sparql query's execution,
                 // the json element will be deleted and replaced with this error
                 if (SPARQLresult.getError() != null) {
-                    json = error(SPARQLresult,config.getName());
+                    json = error(SPARQLresult, config.getName());
+                    error = true;
                     break;
                 } else {
                     TemporaryTrucVariables trucVariables = getVariablesOfTrucs(SPARQLresult, sparqlQueries); //  get temp variables generated in the query
@@ -139,7 +153,26 @@ public class ClientThread extends Thread {
             }
             result.add(json);
         }
+        if (!error && request.getPage()==PAGE.FIRST) {
+            updateLogFile(request);
+        }
         return result;
+    }
+
+    /**
+     *
+     * update the log file, used to stock the simple aprql queries exectued from all users.
+     *
+     * @param request   request  got from the client
+     */
+    private void updateLogFile(Request request) throws IOException {
+        stats.newLine();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        stats.append(dateFormat.format(new Date())); // now in the pattern format
+        stats.newLine();
+        stats.append(request.getQuery());
+        stats.newLine();
+        stats.flush();
     }
 
     /**
@@ -163,9 +196,9 @@ public class ClientThread extends Thread {
      *
      * @param SPARQLQuery SPARQLResult structure of the SPARQL query
      */
-    private JsonObject error(SPARQLResult SPARQLQuery,String base) {
+    private JsonObject error(SPARQLResult SPARQLQuery, String base) {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("error", "[Endpoint"+base+"] "+ SPARQLQuery.getError());
+        jsonObject.addProperty("error", "[Endpoint" + base + "] " + SPARQLQuery.getError());
         return jsonObject;
     }
 
@@ -269,7 +302,6 @@ public class ClientThread extends Thread {
     }
 
     /**
-     *
      * Get the JSON array of this truc, from the tuple JSON array.
      *
      * @param tuple    tuples in jsona array format
@@ -345,7 +377,7 @@ public class ClientThread extends Thread {
      * @return BaseConfig object that contains all informations about this base
      * @throws IOException
      */
-    private BaseConfig getFile(String base) throws IOException {
+    private BaseConfig getBaseConfigurationFile(String base) throws IOException {
         File file = new File(baseConfig);
         if (file.listFiles() != null) {
             for (File f : file.listFiles()) {

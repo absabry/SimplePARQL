@@ -16,6 +16,7 @@ public class ServerConfig {
     private String basesConfig;
     private QueryConfig queryConfig;
     private Level level;
+    private String stats;
 
     public ServerConfig(InputStream file) throws IOException {
         readFile(file);
@@ -35,6 +36,10 @@ public class ServerConfig {
 
     public Level getLevel() {
         return level;
+    }
+
+    public String getStats(){
+        return stats;
     }
 
     private Level convertToLevel(String level) {
@@ -80,6 +85,9 @@ public class ServerConfig {
                     break;
                 case "level":
                     level = convertToLevel(line[1]);
+                    break;
+                case "statslog":
+                    stats = line[1];
                     break;
                 default:
                     break;

@@ -1,4 +1,4 @@
-// Generated from C:/Users/Abdel/Desktop/Stage_A4/SimplePARQL/SimplePARQL/src/fr/esilv/simpleparql/grammar\SimplePARQL.g4 by ANTLR 4.7
+// Generated from C:/Users/HP/IdeaProjects/SimplePARQL/src/fr/esilv/simpleparql/grammar\SimplePARQL.g4 by ANTLR 4.7
 package fr.esilv.simpleparql.grammar;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -378,15 +378,15 @@ public interface SimplePARQLListener extends ParseTreeListener {
 	 */
 	void exitVerb(SimplePARQLParser.VerbContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SimplePARQLParser#varOrIRIreforTruc}.
+	 * Enter a parse tree produced by {@link SimplePARQLParser#varOrIRIref}.
 	 * @param ctx the parse tree
 	 */
-	void enterVarOrIRIreforTruc(SimplePARQLParser.VarOrIRIreforTrucContext ctx);
+	void enterVarOrIRIref(SimplePARQLParser.VarOrIRIrefContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SimplePARQLParser#varOrIRIreforTruc}.
+	 * Exit a parse tree produced by {@link SimplePARQLParser#varOrIRIref}.
 	 * @param ctx the parse tree
 	 */
-	void exitVarOrIRIreforTruc(SimplePARQLParser.VarOrIRIreforTrucContext ctx);
+	void exitVarOrIRIref(SimplePARQLParser.VarOrIRIrefContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SimplePARQLParser#graphNode}.
 	 * @param ctx the parse tree
@@ -398,15 +398,25 @@ public interface SimplePARQLListener extends ParseTreeListener {
 	 */
 	void exitGraphNode(SimplePARQLParser.GraphNodeContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SimplePARQLParser#varOrTerm}.
+	 * Enter a parse tree produced by {@link SimplePARQLParser#varOrTermObject}.
 	 * @param ctx the parse tree
 	 */
-	void enterVarOrTerm(SimplePARQLParser.VarOrTermContext ctx);
+	void enterVarOrTermObject(SimplePARQLParser.VarOrTermObjectContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SimplePARQLParser#varOrTerm}.
+	 * Exit a parse tree produced by {@link SimplePARQLParser#varOrTermObject}.
 	 * @param ctx the parse tree
 	 */
-	void exitVarOrTerm(SimplePARQLParser.VarOrTermContext ctx);
+	void exitVarOrTermObject(SimplePARQLParser.VarOrTermObjectContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SimplePARQLParser#varOrTermSujet}.
+	 * @param ctx the parse tree
+	 */
+	void enterVarOrTermSujet(SimplePARQLParser.VarOrTermSujetContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SimplePARQLParser#varOrTermSujet}.
+	 * @param ctx the parse tree
+	 */
+	void exitVarOrTermSujet(SimplePARQLParser.VarOrTermSujetContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SimplePARQLParser#graphTerm}.
 	 * @param ctx the parse tree
@@ -468,15 +478,35 @@ public interface SimplePARQLListener extends ParseTreeListener {
 	 */
 	void exitGroupOrUnionGraphPattern(SimplePARQLParser.GroupOrUnionGraphPatternContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SimplePARQLParser#truc}.
+	 * Enter a parse tree produced by {@link SimplePARQLParser#trucSujet}.
 	 * @param ctx the parse tree
 	 */
-	void enterTruc(SimplePARQLParser.TrucContext ctx);
+	void enterTrucSujet(SimplePARQLParser.TrucSujetContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SimplePARQLParser#truc}.
+	 * Exit a parse tree produced by {@link SimplePARQLParser#trucSujet}.
 	 * @param ctx the parse tree
 	 */
-	void exitTruc(SimplePARQLParser.TrucContext ctx);
+	void exitTrucSujet(SimplePARQLParser.TrucSujetContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SimplePARQLParser#trucPredicat}.
+	 * @param ctx the parse tree
+	 */
+	void enterTrucPredicat(SimplePARQLParser.TrucPredicatContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SimplePARQLParser#trucPredicat}.
+	 * @param ctx the parse tree
+	 */
+	void exitTrucPredicat(SimplePARQLParser.TrucPredicatContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SimplePARQLParser#trucObject}.
+	 * @param ctx the parse tree
+	 */
+	void enterTrucObject(SimplePARQLParser.TrucObjectContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SimplePARQLParser#trucObject}.
+	 * @param ctx the parse tree
+	 */
+	void exitTrucObject(SimplePARQLParser.TrucObjectContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SimplePARQLParser#solutionModifier}.
 	 * @param ctx the parse tree

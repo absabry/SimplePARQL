@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- *
  * This class will handle the SimplePARQL query, get some informations about it and transform some parts of it before the conversion.
  * It will order the query to have triples only. Here's a simple example of what this class do: <br>
  * ?a ?b ?c;?d ?e,?f  <br>
@@ -43,12 +42,14 @@ public class SimplePARQLQuery {
     /**
      * Set the boolean value of isSPARQL.
      *
-     * @param query the query's root
+     * @param query  the query's root
      * @param parser SimplePARQL parser
      */
     private void setIsSPARQL(SimplePARQLParser parser, ParserRuleContext query) {
-        Collection<ParseTree> trucs = XPath.findAll(query, "//truc", parser); // search for all trucs in the query
-        isSPARQL = trucs.size() == 0;
+        Collection<ParseTree> trucSujet = XPath.findAll(query, "//trucSujet", parser); // search for all trucs in the query
+        Collection<ParseTree> trucPredicat = XPath.findAll(query, "//trucPredicat", parser); // search for all trucs in the query
+        Collection<ParseTree> trucObject = XPath.findAll(query, "//trucObject", parser); // search for all trucs in the query
+        isSPARQL = trucSujet.size() == 0 && trucPredicat.size() == 0 && trucObject.size() == 0;
     }
 
     /**
