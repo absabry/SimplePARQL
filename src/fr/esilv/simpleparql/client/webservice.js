@@ -5,7 +5,10 @@ var clientPort = 2222;
 var host = "localhost";
 
 function handleConnection (conn) {
+     console.log('\n\n\n')
+     console.log("---------------------------------------------------------------------");
      console.log("New connection" );
+     console.log("---------------------------------------------------------------------");
      var client = new net.Socket();
      client.setEncoding('utf8');
 
@@ -29,13 +32,20 @@ function handleConnection (conn) {
 
 
 	 var msg='';
+	 /* NEW ONE */
      client.on('data', function (data) {
          msg += data.toString();
-         if(msg.length > 3 && data.substring(data.length-4)=="null"){
-             var message = msg.substring(0,msg.length-4); //to delete the null of the message
+         if(msg.length > 3 && (data.substring(data.length-4)=="Iend"
+             || data.substring(data.length-4)=="Eend"|| data.substring(data.length-4)=="Rend")){
+             console.log("One message has just been sent to client!");
+             console.log(data.substring(data.length-4,data.length))
+             conn.sendText(msg);
+             msg='';
+         }
+         if(msg=="null"){
+             conn.sendText(msg);
+             console.log("Message is fully sent to the client (widgets messages). We'll close connection between the client and the server right now.");
              client.destroy();
-             conn.sendText(message);
-             console.log("Message sent to client!");
          }
      });
 

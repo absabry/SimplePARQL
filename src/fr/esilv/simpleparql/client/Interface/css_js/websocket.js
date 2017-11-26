@@ -48,11 +48,9 @@ $("#query_form").submit(function( event ) {
 
     var output_list = $("#output_list").data("kendoMultiSelect").value();
      callSocket(queryInformations, function (s) {
-            var jsonResults = JSON.parse(s);
-            if(jsonResults != undefined){
-                for(var i in output_list){
-                     getResults(output_list[i],jsonResults);
-                }
+            //var jsonResults = JSON.parse(s);
+            for(var i in output_list){
+                 getResults(output_list[i],s);
             }
             $('#wait').empty();
      });
@@ -164,15 +162,62 @@ function cleanArray(array){
 
 // create the websocket
 function callSocket (s, callback) {
+    var msg='';
+    var allBases = []
+    var currentBase;
+    var baseIndex = -1;
     var whenstart = new Date();
     mySocket = new WebSocket (urlMySocket)
     mySocket.onopen = function (evt) {
         mySocket.send(JSON.stringify(s)+"\n");
     };
     mySocket.onmessage = function (evt) {
-        $("#idWebSocketTime").text ("The call to the server took " + secondsSince (whenstart) + " secs to perform this query.");
-        callback (evt.data);
-        mySocket.close ();
+        msg += evt.data;
+        if(msg.length > 3){
+            switch(evt.data.substring(evt.data.length-4)){
+                case "Iend":
+                     baseIndex +=1;
+                     currentBase = {}; // intialize a new json object to this base
+                     var message = msg.substring(0,msg.length-4); //to delete the end message
+                     currentBase =  JSON.parse(message);
+                     currentBase.result  = [];
+                     allBases.push(currentBase);
+                     //conn.sendText(message);
+                     console.log("One message has just been received! [Informations part]");
+                     //console.log(msg);
+                     msg ='';
+                     //console.log(allBases);
+                    break;
+                case "Eend":
+                     var message = msg.substring(0,msg.length-4); //to delete the end message
+                     //conn.sendText(message);
+                     console.log("One message has just been received! [Error part}");
+                     //console.log(msg);
+                     allBases[baseIndex] = JSON.parse(message);
+                     msg ='';
+                     //console.log(allBases);
+                    break;
+                case "Rend":
+                    var message = msg.substring(0,msg.length-4); //to delete the end message
+                    //conn.sendText(message);
+                    console.log("One message has just been received! [Part from results]");
+                    //console.log(msg);
+                    results = JSON.parse(message)
+                    currentBase.result.push(results);
+                    msg ='';
+                    //console.log(allBases);
+                    break;
+                default :
+                    break;
+            }
+        }
+        if(evt.data=="null"){
+            console.log("Datas received! We'll close connection with the web serivce.");
+            console.log(allBases);
+            callback (allBases);
+            mySocket.close ();
+        }
+
     };
     mySocket.onerror = function (event) {
         var result = $('<h3></h3>').addClass('error')
@@ -182,6 +227,7 @@ function callSocket (s, callback) {
     };
     mySocket.onclose = function(event){
         // detect when the socket is closing
+        $("#idWebSocketTime").text ("The call to the server took " + secondsSince (whenstart) + " secs to perform this query.");
         console.log("Socket closed");
     }
 }

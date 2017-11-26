@@ -19,3 +19,168 @@ select * where {?a ?b "Paris"@en. } LIMIT 100
 
 2017/11/25 16:09:42
 select * where {?a ?b "Paris"@en. } LIMIT 100
+
+2017/11/25 16:33:07
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 16:33:26
+SELECT * WHERE { /John Smith/ "birth place"@en London@en.} LIMIT 20
+
+2017/11/25 16:34:56
+SELECT * WHERE { /John Smith/ "birth place" London@en.} LIMIT 20
+
+2017/11/25 16:35:32
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 17:40:03
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 22:41:59
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 22:44:31
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 22:45:10
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 22:46:36
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 22:47:33
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 22:49:12
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 22:58:08
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 22:58:49
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 22:59:55
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 23:01:29
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 23:02:01
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 23:57:37
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 23:58:03
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/25 23:58:42
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:00:05
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:00:24
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:01:00
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:09:03
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:11:07
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:11:21
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:12:18
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:21:17
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:38:42
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:39:42
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:44:03
+SELECT * WHERE { ?a ?b ?c.} LIMIT 20
+
+2017/11/26 00:46:02
+SELECT * WHERE { ?a ?b ?c.} LIMIT 20
+
+2017/11/26 00:47:27
+SELECT * WHERE { ?a ?b /London/.} LIMIT 20
+
+2017/11/26 00:49:01
+SELECT * WHERE { ?a ?b /London/.} LIMIT 20
+
+2017/11/26 00:49:59
+SELECT * WHERE { ?a ?b /London/.} LIMIT 20
+
+2017/11/26 00:51:46
+SELECT * WHERE { ?a ?b London.} LIMIT 20
+
+2017/11/26 00:54:16
+SELECT * WHERE { ?a ?b London.} LIMIT 20
+
+2017/11/26 00:55:13
+SELECT * WHERE { ?a ?b London.} LIMIT 20
+
+2017/11/26 00:55:45
+SELECT * WHERE { ?a ?b London.} LIMIT 20
+
+2017/11/26 00:56:59
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 00:57:34
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 01:00:12
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 01:02:08
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 01:03:42
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 01:09:24
+SELECT * WHERE { ?a ?b ?c.} LIMIT 20
+
+2017/11/26 01:28:18
+SELECT * WHERE { ?a ?b ?c.} LIMIT 20
+
+2017/11/26 01:29:16
+SELECT * WHERE { ?a ?b ?c.} LIMIT 20
+
+2017/11/26 01:30:20
+SELECT * WHERE { ?a ?b ?c.} LIMIT 20
+
+2017/11/26 01:38:17
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 02:15:40
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 02:16:28
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 02:17:27
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 02:19:05
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 02:21:14
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 02:23:38
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20
+
+2017/11/26 02:25:28
+SELECT * WHERE { /John Smith/ birth London@en.} LIMIT 20

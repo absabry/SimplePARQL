@@ -59,6 +59,7 @@ public class ClientThread extends Thread {
      */
     public void run() {
         try {
+            /* OLDONE
             PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String message = bufferedReader.readLine();
@@ -73,6 +74,18 @@ public class ClientThread extends Thread {
             output.flush();
             output.close();
             socket.close();
+            */
+            /* NEWONE */
+            PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String message = bufferedReader.readLine();
+            Request request = new Gson().fromJson(message, Request.class);
+            logger.debug("Here's the SimplePARQL query: ");
+            logger.debug(request.getQuery());
+            launchNew(request, output);
+            sendToWebService("null", "END", output);
+            output.close();
+            socket.close();
         } catch (SocketException socketException) {
             if (socketException.getMessage().equals("Connection reset ")) {
                 logger.info("#" + client + "," + address + " has brutally quit the room.");
@@ -83,15 +96,95 @@ public class ClientThread extends Thread {
     }
 
     /**
-     * Main function that call Jena results, the converter and the request from the client
-     *
-     * @param request request of client
-     * @return JsonObject that will be send to the client using the websocket. The object is composed of three objects.
-     * The first one is a boolean if it was a SimplePARQL query or not the second one (and so the even objects) is the base informations,
+     * Main function that call Jena results, the converter and the request from the client. In the end the
+     * jsonObject that will be sent to the client using the websocket. The object is composed of three objects.
      * the second one (and also all the odd objects) is the  SimplePARQL query's result of the base of the previous object.
+     * All of this, will be produced for every base.
+     *
+     * @param request request of the client
+     * @param output  writer message to the client
+     *                The first one is a boolean if it was a SimplePARQL query or not the second one (and so the even objects) is the base informations
      * @throws IOException
      * @throws JSONException
      */
+    private void launchNew(Request request, PrintWriter output) throws IOException, JSONException {
+        CharStream codeStream = CharStreams.fromString(request.getQuery()); // query text
+        SimplePARQLParser queryFromUser = Constants.getTreeOfText(codeStream.toString()); // parse query to SimplePARQL tree
+        SimplePARQLQuery simplePARQLQuery = new SimplePARQLQuery(queryFromUser, queryConfig.getPredifinedPrefixes()); // clean and pre-proceess tasks
+        SimplePARQLParser parser = simplePARQLQuery.getParser();
+        String treeString = Constants.treeToString(parser, parser.query());  // prepared tree in text format
+
+        //JsonArray result = new JsonArray(); // contains results of all bases
+        boolean error = false;
+        for (String base : request.getBases()) {
+            BaseConfig config = getBaseConfigurationFile(base);
+
+            if (config == null) {
+                JsonObject temp = new JsonObject();
+                temp.addProperty("error", "Can't reach " + base + " configuration file.");
+                sendToWebService(temp.toString() + "Eend", "Error", output);
+                continue;
+            }
+
+            // send informations to the client directly!
+            JsonObject temp = new JsonObject();
+            temp.addProperty("isSPARQL", simplePARQLQuery.isSPARQL());
+            addBaseInformations(temp, config);
+            sendToWebService(temp.toString() + "Iend", "Informations", output);
+
+            SparqlQueries sparqlQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), config.isOptionnal(), queryConfig);
+            logger.debug("Here are the generated sparql trucs and queries");
+            logger.debug(sparqlQueries.getSimpleARQLTrucs());
+            logger.debug(sparqlQueries.getGeneratedQueries());
+
+            // travel the SPARQL query geenrated, filtered by the wanted page
+            for (SPARQLQueryGenerated generatedElement : sparqlQueries.getGeneratedQueries(request.getPage())) {
+                JsonObject jsonElementgeneratedElement = new JsonObject();
+                // add the sparql query
+                String query = Constants.treeToString(parser, generatedElement.getQuery());
+                jsonElementgeneratedElement.addProperty("query", query);
+                SPARQLResult SPARQLresult = new Jena().executeSparqlQuery(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF), request.getTimeout());
+                // if any error occured in sparql query's execution,
+                // the json element will be deleted and replaced with this error
+                if (SPARQLresult.getError() != null) {
+                    temp = error(SPARQLresult, config.getName());
+                    sendToWebService(temp.toString() + "Eend", "Error", output);
+                    error = true;
+                    break;
+                } else {
+                    TemporaryTrucVariables trucVariables = getVariablesOfTrucs(SPARQLresult, sparqlQueries); //  get temp variables generated in the query
+                    // add variables field
+                    JsonArray variables = addVariablesTojSON(SPARQLresult, sparqlQueries, simplePARQLQuery);
+                    jsonElementgeneratedElement.add("variables", variables);
+                    // add all tuples (results)
+                    JsonArray results = addResultsToJson(SPARQLresult, trucVariables, simplePARQLQuery);
+                    results = sortResults(variables, results); // without sorting result, tuples wont be organized!! ?b could have ?a results for example.
+                    jsonElementgeneratedElement.add("results", results);
+                }
+                sendToWebService(jsonElementgeneratedElement.toString() + "Rend", "Query Result", output);
+            }
+        }
+        if (!error && request.getPage() == PAGE.FIRST) {
+            // on essaye de generer la requete une seule fois par utilisatoin (qui est donc quand il demande la premiere page seulement)
+            updateLogFile(request);
+        }
+    }
+
+    /**
+     * Send text to the web service
+     *
+     * @param text   text to be sent to the client
+     * @param type   type of this text, can be error, informations or query results.
+     * @param output writer to the web service
+     */
+    private void sendToWebService(String text, String type, PrintWriter output) {
+        output.flush();
+        output.write(text);
+        output.flush();
+        logger.debug("Here's the message we sent to the webservice [" + type + "]");
+        logger.debug(text);
+    }
+
     private JsonArray launch(Request request) throws IOException, JSONException {
         CharStream codeStream = CharStreams.fromString(request.getQuery()); // query text
         SimplePARQLParser queryFromUser = Constants.getTreeOfText(codeStream.toString()); // parse query to SimplePARQL tree
@@ -149,21 +242,20 @@ public class ClientThread extends Thread {
                     jsonElementgeneratedElement.add("results", results);
                     jsonElementBase.add(jsonElementgeneratedElement);
                 }
-                json.add("result", jsonElementBase);
             }
+            json.add("result", jsonElementBase);
             result.add(json);
         }
-        if (!error && request.getPage()==PAGE.FIRST) {
+        if (!error && request.getPage() == PAGE.FIRST) {
             updateLogFile(request);
         }
         return result;
     }
 
     /**
-     *
      * update the log file, used to stock the simple aprql queries exectued from all users.
      *
-     * @param request   request  got from the client
+     * @param request request  got from the client
      */
     private void updateLogFile(Request request) throws IOException {
         stats.newLine();
