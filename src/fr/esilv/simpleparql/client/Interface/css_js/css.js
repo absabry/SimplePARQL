@@ -1,12 +1,10 @@
 
 /*-------------------------------------------------- Kendu buttons -----------------------------------------------*/
 $("#send").kendoButton({enable: true});
-
 $("#download").kendoButton({enable: true});
-
 $("#download-XML").kendoButton({enable: true});
-
 $("#clear").kendoButton({enable: true});
+$("#stop").kendoButton({enable: true});
 
 /*-------------------------------------------------loading events --------------------------------------------------------*/
 
@@ -81,7 +79,6 @@ function waitFunction(){
 //clear the already displayed results
 function clearFunction(){
     $('#wait').empty();
-    $('#query_results').empty();
     $('#idWebSocketTime').empty();
     $("#nextpage").hide();
     $("#previouspage").hide();

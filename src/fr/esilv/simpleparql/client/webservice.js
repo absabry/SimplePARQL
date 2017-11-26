@@ -38,7 +38,7 @@ function handleConnection (conn) {
          if(msg.length > 3 && (data.substring(data.length-4)=="Iend"
              || data.substring(data.length-4)=="Eend"|| data.substring(data.length-4)=="Rend")){
              console.log("One message has just been sent to client!");
-             console.log(data.substring(data.length-4,data.length))
+             console.log('['+data.substring(data.length-4,data.length)+']')
              conn.sendText(msg);
              msg='';
          }
@@ -51,11 +51,12 @@ function handleConnection (conn) {
 
      client.on('close', function() {
          console.log('Client of Java Server disconnected!');
+         conn.close();
      });
 
      client.on('error', function(ex) {
        console.log("handled error...");
-       conn.sendText(JSON.stringify([{'error':ex}])); //send it as an array to be like the regular json result
+       conn.sendText(JSON.stringify({'error':ex})+"Eend"); //should keep the same protocol used to the server, to be handled as an error.
      });
 	}
 

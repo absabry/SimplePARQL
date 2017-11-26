@@ -9,7 +9,7 @@ var dictionnaryTrucs={}; // handle replacing trucs
 var pages = ["FIRST","SECOND","THIRD"]; // handle pages displayed
 var page_counter = 0; // handles pages displayed
 var queryInformations; // to change pages, when we click on next or previous.
-var noResultsAllBases = false;
+var haveResult = false;
 
 // submit the form and request the Java server
 $("#query_form").submit(function( event ) {
@@ -48,7 +48,6 @@ $("#query_form").submit(function( event ) {
 
     var output_list = $("#output_list").data("kendoMultiSelect").value();
      callSocket(queryInformations, function (s) {
-            //var jsonResults = JSON.parse(s);
             for(var i in output_list){
                  getResults(output_list[i],s);
             }
@@ -60,11 +59,19 @@ $("#query_form").submit(function( event ) {
 $("#clear").click(function(){
     clearFunction();
     page_counter=0;
-    noResultsAllBases=false;
+    haveResult=false;
     if(mySocket != undefined && mySocket.readyState != mySocket.CLOSED && mySocket.readyState != mySocket.CLOSING ){
          mySocket.send('stop');
          mySocket.close();
     }
+});
+
+$("#stop").click(function(){
+    if(mySocket != undefined && mySocket.readyState != mySocket.CLOSED && mySocket.readyState != mySocket.CLOSING ){
+         mySocket.send('stop');
+         mySocket.close();
+    }
+    $('#wait').empty();
 });
 
 // get the next page results
@@ -162,75 +169,140 @@ function cleanArray(array){
 
 // create the websocket
 function callSocket (s, callback) {
-    var msg='';
-    var allBases = []
-    var currentBase;
-    var baseIndex = -1;
-    var whenstart = new Date();
+    var html = $("#output_list").data("kendoMultiSelect").value().indexOf("HTML") >= 0;  // HTML is checked or not
+    $query_div = "#query_results"; // result's div, if html is checked
+    var counter = {};  // should be an object to be passed by ref in javascript functions.
+    counter.value=-1;  // to count the queries that have found at leasr ONE result
+    var allBases = []; // final json
+    var currentBase; // json object representing the current base
+    var baseIndex = -1; //current base index, to create the final json object
+    var whenstart = new Date(); // to compute server time to give all response
+    var msg=''; // message concatened till the protocol end (Iend,Eend,etc...)
     mySocket = new WebSocket (urlMySocket)
-    mySocket.onopen = function (evt) {
+
+    mySocket.onopen = function (evt) { // send client's request to the web service
         mySocket.send(JSON.stringify(s)+"\n");
     };
+
     mySocket.onmessage = function (evt) {
         msg += evt.data;
         if(msg.length > 3){
             switch(evt.data.substring(evt.data.length-4)){
-                case "Iend":
+                case "Iend": // Informations part of this [new] base
+                     console.log("have result informations " + haveResult)
                      baseIndex +=1;
+                     if(counter.value != -1){ // to not check the first time we visit this bloc..!
+                       noResultInPreviousBase(counter); // no results found in the previous base... Will be used also in the last event, to handle the last base
+                     }
+                     console.log("have result informations " + haveResult)
+                     counter.value = 1; // counter is back to 1 for the beggining of the new base
                      currentBase = {}; // intialize a new json object to this base
                      var message = msg.substring(0,msg.length-4); //to delete the end message
-                     currentBase =  JSON.parse(message);
-                     currentBase.result  = [];
-                     allBases.push(currentBase);
-                     //conn.sendText(message);
+                     currentBase =  JSON.parse(message); // informations got, will be the first items of the current base object
+                     currentBase.result  = []; // initialize the results
+                     allBases.push(currentBase); // add the current base to the final object
                      console.log("One message has just been received! [Informations part]");
-                     //console.log(msg);
+                     if(html){
+                        informationToInterface(msg,currentBase);
+                     }
                      msg ='';
-                     //console.log(allBases);
                     break;
-                case "Eend":
+                case "Eend": // Error part of this base
                      var message = msg.substring(0,msg.length-4); //to delete the end message
-                     //conn.sendText(message);
-                     console.log("One message has just been received! [Error part}");
-                     //console.log(msg);
-                     allBases[baseIndex] = JSON.parse(message);
+                     console.log("One message has just been received! [Error part]");
+                     currentBase = JSON.parse(message);
+                     allBases[baseIndex] = currentBase
+                     if (html){ // add an error if one occurs instead of results
+                        addError($query_div,currentBase.error);
+                     }
                      msg ='';
-                     //console.log(allBases);
                     break;
-                case "Rend":
+                case "Rend": // Results part of this base
                     var message = msg.substring(0,msg.length-4); //to delete the end message
-                    //conn.sendText(message);
-                    console.log("One message has just been received! [Part from results]");
-                    //console.log(msg);
-                    results = JSON.parse(message)
-                    currentBase.result.push(results);
-                    msg ='';
-                    //console.log(allBases);
+                    console.log("One message has just been received! [Part from result]");
+                    result =  JSON.parse(message) // get ONE SPARQL query generated.
+                    currentBase.result.push(result);
+                    if(html){
+                        queryResultToInterface(result,msg,currentBase,counter); // append results to the interface
+                    }
+                    msg='';
                     break;
-                default :
+                default:
                     break;
             }
         }
-        if(evt.data=="null"){
+        if(evt.data=="null"){ // after sending all datas
+            console.log("have result " + haveResult)
+            noResultInPreviousBase(counter); // no results found in the last base... Was handled after each base in the informations part!
+            console.log("have result " + haveResult)
             console.log("Datas received! We'll close connection with the web serivce.");
             console.log(allBases);
-            callback (allBases);
+            $('#wait').empty();
+            if(!haveResult){
+                $("#nextpage").hide(); // keep it? the first page have no result for all bases, so we don't need the rest.
+                var $noresultAtALL = $('<h3></h3>').addClass("cente error")
+                                    .text("No results found in ANY base you've selected. Please change your SimplePARQL query, or choose another bases.");
+                $($query_div).append($noresultAtALL);
+            }
+            callback (allBases); // save in JSON or XML format
             mySocket.close ();
         }
-
     };
+
     mySocket.onerror = function (event) {
         var result = $('<h3></h3>').addClass('error')
                     .text("There was an error with your websocket. [Maybe the webservice isn't connected to the server..?]");
-        $("#query_results").append(result);
+        $($query_div).append(result);
         $('#wait').empty();
     };
+
     mySocket.onclose = function(event){
         // detect when the socket is closing
         $("#idWebSocketTime").text ("The call to the server took " + secondsSince (whenstart) + " secs to perform this query.");
         console.log("Socket closed");
     }
 }
+
+// send informations of the base to the interface
+function informationToInterface(msg, currentBase){
+    if(!currentBase.isSPARQL){
+            if(page_counter == 2){ $("#nextpage").hide();}
+            else{$("#nextpage").show();}
+            if(page_counter == 0){$("#previouspage").hide();}
+            else{ $("#previouspage").show();}
+    }
+    addBase($query_div,currentBase.base);
+}
+
+//send query results to the interface
+function queryResultToInterface(result,msg,currentBase, counter){
+    if(result.results.length != 0){ // no result ==> no table
+       addQuery($query_div,result.query,counter.value,currentBase.base);
+       // two tables are created to handle the table's toogle
+       var $div_title = $('<div></div>').addClass('title');// table containing the titles (ths)
+       addTitle($div_title,result);
+       var $div_results=$('<div></div>').addClass('results');// table containing the results (tds)
+       addResults($div_results,result);
+       $($query_div).append($div_title);
+       $($query_div).append($div_results);
+       $($query_div).append('<hr>');
+       $($query_div).append('<br/>');
+       counter.value++;
+    }
+}
+
+// handle when we dont find any results in one base...
+function noResultInPreviousBase(counter){
+    if(counter.value == 1){
+        var $noresult = $('<h3></h3>').addClass("center")
+                    .text("No results found in this base.");
+        $($query_div).append($noresult);
+    }
+    else{
+        haveResult = true; // to hide the next button, if we dont have any result in the page (all bases included)!
+    }
+}
+
 
 // compute the seconds since launching the websocket
 function secondsSince (when) {
@@ -261,12 +333,6 @@ function getResults(format,jsonResults){
         .click(function() {
            $(this).remove()
         })[0].click()
-    }
-    else if(format == 'HTML'){
-        htmlresult("#query_results",jsonResults);
-         if(!noResultsAllBases){
-            $("#nextpage").hide(); // keep it? the first page have no result for all bases, so we don't need the rest.
-         }
     }
 }
 
@@ -354,65 +420,6 @@ function isJSON (something) {
         return true;
     } catch (e) {
         return false;
-    }
-}
-
-// html result in the web interface directly
-function htmlresult($query_div,json){
-
-    for(var base_counter=0 ; base_counter<json.length; base_counter++){
-
-        // add error to results , and return result
-        if(json[base_counter].hasOwnProperty('error')){
-            addError($query_div,json[base_counter].error);
-            continue;
-        }
-
-        // keep the button (next or/and prev) if they should be
-        if(!json[base_counter].isSPARQL){
-                if(page_counter == 2){ $("#nextpage").hide();}
-                else{$("#nextpage").show();}
-                if(page_counter == 0){$("#previouspage").hide();}
-                else{ $("#previouspage").show();}
-        }
-
-        // if there are no result
-        if(!json[base_counter].hasOwnProperty('result') || json[base_counter].result.length==0){
-            var $noresult = $('<h3></h3>').addClass("center")
-                            .text("No results found in this page. Please change your SimplePARQL query or go back to previous page.");
-            $($query_div).append($noresult);
-            continue;
-        }
-
-        addBase($query_div,json[base_counter].base); //add the base in the begining
-
-        // add all the results proprety to different tables
-        var counter=1;
-        for (var i=0; i <json[base_counter].result.length;i++){
-            if(json[base_counter].result[i].results.length != 0){ // no result ==> no table
-                addQuery($query_div,json[base_counter].result[i].query,counter,json[base_counter].base);
-                // two tables are created to handle the table's toogle
-                var $div_title = $('<div></div>').addClass('title');// table containing the titles (ths)
-                addTitle($div_title,json[base_counter].result[i]);
-                var $div_results=$('<div></div>').addClass('results');// table containing the results (tds)
-                addResults($div_results,json[base_counter].result[i]);
-                $($query_div).append($div_title);
-                $($query_div).append($div_results);
-                $($query_div).append('<hr>');
-                $($query_div).append('<br/>');
-                counter++;
-            }
-        }
-        // when all results are empty.
-        if(counter == 1){
-            var $noresult = $('<h3></h3>').addClass("center")
-                        .text("No results found in this page. Please change your SimplePARQL query or go back to previous page.");
-            $($query_div).append($noresult);
-            continue;
-        }
-        else{
-            noResultsAllBases = true;
-        }
     }
 }
 
