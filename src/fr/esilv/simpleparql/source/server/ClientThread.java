@@ -82,7 +82,7 @@ public class ClientThread extends Thread {
             Request request = new Gson().fromJson(message, Request.class);
             logger.debug("Here's the SimplePARQL query: ");
             logger.debug(request.getQuery());
-            launchNew(request, output);
+            launch(request, output);
             sendToWebService("null", "END", output);
             output.close();
             socket.close();
@@ -107,67 +107,75 @@ public class ClientThread extends Thread {
      * @throws IOException
      * @throws JSONException
      */
-    private void launchNew(Request request, PrintWriter output) throws IOException, JSONException {
-        CharStream codeStream = CharStreams.fromString(request.getQuery()); // query text
-        SimplePARQLParser queryFromUser = Constants.getTreeOfText(codeStream.toString()); // parse query to SimplePARQL tree
-        SimplePARQLQuery simplePARQLQuery = new SimplePARQLQuery(queryFromUser, queryConfig.getPredifinedPrefixes()); // clean and pre-proceess tasks
-        SimplePARQLParser parser = simplePARQLQuery.getParser();
-        String treeString = Constants.treeToString(parser, parser.query());  // prepared tree in text format
+    private void launch(Request request, PrintWriter output) throws IOException, JSONException {
+        //try {
+            CharStream codeStream = CharStreams.fromString(request.getQuery()); // query text
+            SimplePARQLParser queryFromUser = Constants.getTreeOfText(codeStream.toString()); // parse query to SimplePARQL tree
+            SimplePARQLQuery simplePARQLQuery = new SimplePARQLQuery(queryFromUser, queryConfig.getPredifinedPrefixes()); // clean and pre-proceess tasks
+            SimplePARQLParser parser = simplePARQLQuery.getParser();
+            String treeString = Constants.treeToString(parser, parser.query());  // prepared tree in text format
 
-        //JsonArray result = new JsonArray(); // contains results of all bases
-        boolean error = false;
-        for (String base : request.getBases()) {
-            BaseConfig config = getBaseConfigurationFile(base);
+            //JsonArray result = new JsonArray(); // contains results of all bases
+            boolean error = false;
+            for (String base : request.getBases()) {
+                BaseConfig config = getBaseConfigurationFile(base);
 
-            if (config == null) {
-                JsonObject temp = new JsonObject();
-                temp.addProperty("error", "Can't reach " + base + " configuration file.");
-                sendToWebService(temp.toString() + "Eend", "Error", output);
-                continue;
-            }
-
-            // send informations to the client directly!
-            JsonObject temp = new JsonObject();
-            temp.addProperty("isSPARQL", simplePARQLQuery.isSPARQL());
-            addBaseInformations(temp, config);
-            sendToWebService(temp.toString() + "Iend", "Informations", output);
-
-            SparqlQueries sparqlQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), config.isOptionnal(), queryConfig);
-            logger.debug("Here are the generated sparql trucs and queries");
-            logger.debug(sparqlQueries.getSimpleARQLTrucs());
-            logger.debug(sparqlQueries.getGeneratedQueries());
-
-            // travel the SPARQL query geenrated, filtered by the wanted page
-            for (SPARQLQueryGenerated generatedElement : sparqlQueries.getGeneratedQueries(request.getPage())) {
-                JsonObject jsonElementgeneratedElement = new JsonObject();
-                // add the sparql query
-                String query = Constants.treeToString(parser, generatedElement.getQuery());
-                jsonElementgeneratedElement.addProperty("query", query);
-                SPARQLResult SPARQLresult = new Jena().executeSparqlQuery(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF), request.getTimeout());
-                // if any error occured in sparql query's execution,
-                // the json element will be deleted and replaced with this error
-                if (SPARQLresult.getError() != null) {
-                    temp = error(SPARQLresult, config.getName());
+                if (config == null) {
+                    JsonObject temp = new JsonObject();
+                    temp.addProperty("error", "Can't reach " + base + " configuration file.");
                     sendToWebService(temp.toString() + "Eend", "Error", output);
-                    error = true;
-                    break;
-                } else {
-                    TemporaryTrucVariables trucVariables = getVariablesOfTrucs(SPARQLresult, sparqlQueries); //  get temp variables generated in the query
-                    // add variables field
-                    JsonArray variables = addVariablesTojSON(SPARQLresult, sparqlQueries, simplePARQLQuery);
-                    jsonElementgeneratedElement.add("variables", variables);
-                    // add all tuples (results)
-                    JsonArray results = addResultsToJson(SPARQLresult, trucVariables, simplePARQLQuery);
-                    results = sortResults(variables, results); // without sorting result, tuples wont be organized!! ?b could have ?a results for example.
-                    jsonElementgeneratedElement.add("results", results);
+                    continue;
                 }
-                sendToWebService(jsonElementgeneratedElement.toString() + "Rend", "Query Result", output);
+
+                // send informations to the client directly!
+                JsonObject temp = new JsonObject();
+                temp.addProperty("isSPARQL", simplePARQLQuery.isSPARQL());
+                addBaseInformations(temp, config);
+                sendToWebService(temp.toString() + "Iend", "Informations", output);
+
+                SparqlQueries sparqlQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), config.isOptionnal(), queryConfig);
+                logger.debug("Here are the generated sparql trucs and queries");
+                logger.debug(sparqlQueries.getSimpleARQLTrucs());
+                logger.debug(sparqlQueries.getGeneratedQueries());
+
+                // travel the SPARQL query geenrated, filtered by the wanted page
+                for (SPARQLQueryGenerated generatedElement : sparqlQueries.getGeneratedQueries(request.getPage())) {
+                    JsonObject jsonElementgeneratedElement = new JsonObject();
+                    // add the sparql query
+                    String query = Constants.treeToString(parser, generatedElement.getQuery());
+                    jsonElementgeneratedElement.addProperty("query", query);
+                    SPARQLResult SPARQLresult = new Jena().executeSparqlQuery(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF), request.getTimeout());
+                    // if any error occured in sparql query's execution,
+                    // the json element will be deleted and replaced with this error
+                    if (SPARQLresult.getError() != null) {
+                        temp = error(SPARQLresult, config.getName());
+                        sendToWebService(temp.toString() + "Eend", "Error", output);
+                        error = true;
+                        break;
+                    } else {
+                        TemporaryTrucVariables trucVariables = getVariablesOfTrucs(SPARQLresult, sparqlQueries); //  get temp variables generated in the query
+                        // add variables field
+                        JsonArray variables = addVariablesTojSON(SPARQLresult, sparqlQueries, simplePARQLQuery);
+                        jsonElementgeneratedElement.add("variables", variables);
+                        // add all tuples (results)
+                        JsonArray results = addResultsToJson(SPARQLresult, trucVariables, simplePARQLQuery);
+                        results = sortResults(variables, results); // without sorting result, tuples wont be organized!! ?b could have ?a results for example.
+                        jsonElementgeneratedElement.add("results", results);
+                    }
+                    sendToWebService(jsonElementgeneratedElement.toString() + "Rend", "Query Result", output);
+                }
             }
-        }
-        if (!error && request.getPage() == PAGE.FIRST) {
-            // on essaye de generer la requete une seule fois par utilisatoin (qui est donc quand il demande la premiere page seulement)
-            updateLogFile(request);
-        }
+            if (!error && request.getPage() == PAGE.FIRST) {
+                // on essaye de generer la requete une seule fois par utilisatoin (qui est donc quand il demande la premiere page seulement)
+                updateLogFile(request);
+            }
+/*        }
+        catch (Exception e){
+            logger.debug(e);
+            JsonObject temp = new JsonObject();
+            temp.addProperty("error", "An error occuered while handilng your query:"+e.getMessage());
+            sendToWebService(temp.toString() + "Eend", "Error", output);
+        }*/
     }
 
     /**
@@ -185,74 +193,7 @@ public class ClientThread extends Thread {
         logger.debug(text);
     }
 
-    private JsonArray launch(Request request) throws IOException, JSONException {
-        CharStream codeStream = CharStreams.fromString(request.getQuery()); // query text
-        SimplePARQLParser queryFromUser = Constants.getTreeOfText(codeStream.toString()); // parse query to SimplePARQL tree
-        SimplePARQLQuery simplePARQLQuery = new SimplePARQLQuery(queryFromUser, queryConfig.getPredifinedPrefixes()); // clean and pre-proceess tasks
-        SimplePARQLParser parser = simplePARQLQuery.getParser();
-        String treeString = Constants.treeToString(parser, parser.query());  // prepared tree in text format
-
-        JsonArray result = new JsonArray(); // contains results of all bases
-        boolean error = false;
-        for (String base : request.getBases()) {
-            JsonObject json = new JsonObject(); // contains results of this base
-            BaseConfig config = getBaseConfigurationFile(base);
-
-            if (config == null) {
-                json.addProperty("error", "Can't reach " + base + " configuration file.");
-                result.add(json);
-                continue;
-            }
-
-            //is SPARQL field
-            json.addProperty("isSPARQL", simplePARQLQuery.isSPARQL());
-
-            //base field
-            addBaseInformations(json, config);
-
-            // results field
-            JsonArray jsonElementBase = new JsonArray();
-            SparqlQueries sparqlQueries = new SparqlQueries(Constants.getTreeOfText(treeString), config.getFilter(), config.isOptionnal(), queryConfig);
-            logger.debug("Here are the generated sparql trucs and queries");
-            logger.debug(sparqlQueries.getSimpleARQLTrucs());
-            logger.debug(sparqlQueries.getGeneratedQueries());
-
-            // travel the SPARQL query geenrated, filtered by the wanted page
-            for (SPARQLQueryGenerated generatedElement : sparqlQueries.getGeneratedQueries(request.getPage())) {
-
-                JsonObject jsonElementgeneratedElement = new JsonObject();
-                // add the sparql query
-                String query = Constants.treeToString(parser, generatedElement.getQuery());
-                jsonElementgeneratedElement.addProperty("query", query);
-                SPARQLResult SPARQLresult = new Jena().executeSparqlQuery(config.getLink(), query.replace(Constants.CONTAINS_BIF, Constants.JENA_BIF), request.getTimeout());
-                // if any error occured in sparql query's execution,
-                // the json element will be deleted and replaced with this error
-                if (SPARQLresult.getError() != null) {
-                    json = error(SPARQLresult, config.getName());
-                    error = true;
-                    break;
-                } else {
-                    TemporaryTrucVariables trucVariables = getVariablesOfTrucs(SPARQLresult, sparqlQueries); //  get temp variables generated in the query
-                    // add variables field
-                    JsonArray variables = addVariablesTojSON(SPARQLresult, sparqlQueries, simplePARQLQuery);
-                    jsonElementgeneratedElement.add("variables", variables);
-                    // add all tuples (results)
-                    JsonArray results = addResultsToJson(SPARQLresult, trucVariables, simplePARQLQuery);
-                    results = sortResults(variables, results); // without sorting result, tuples wont be organized!! ?b could have ?a results for example.
-                    jsonElementgeneratedElement.add("results", results);
-                    jsonElementBase.add(jsonElementgeneratedElement);
-                }
-            }
-            json.add("result", jsonElementBase);
-            result.add(json);
-        }
-        if (!error && request.getPage() == PAGE.FIRST) {
-            updateLogFile(request);
-        }
-        return result;
-    }
-
-    /**
+   /**
      * update the log file, used to stock the simple aprql queries exectued from all users.
      *
      * @param request request  got from the client

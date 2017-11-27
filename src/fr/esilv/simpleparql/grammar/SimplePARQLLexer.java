@@ -197,7 +197,7 @@ public class SimplePARQLLexer extends Lexer {
 		"\2\u00e5\2\u00e7\2\u00e9\2\u00eb\2\u00ed\2\u00ef\2\u00f1\2\u00f3_\3\2"+
 		"&\4\2GGgg\4\2--//\13\2\"\"$$))>>@@^^``bb}\177\6\2C\\c|\u0302\u0371\u2041"+
 		"\u2042\5\2\u00b9\u00b9\u0302\u0371\u2041\u2042\6\2\f\f\17\17))^^\6\2\f"+
-		"\f\17\17$$^^\5\2\"\"C\\c|\t\2$$))ddhhppttvv\17\2C\\c|\u00c2\u00d8\u00da"+
+		"\f\17\17$$^^\5\2\"\"B\\c|\t\2$$))ddhhppttvv\17\2C\\c|\u00c2\u00d8\u00da"+
 		"\u00f8\u00fa\u0301\u0372\u037f\u0381\u2001\u200e\u200f\u2072\u2191\u2c02"+
 		"\u2ff1\u3003\ud801\uf902\ufdd1\ufdf2\uffff\4\2CCcc\4\2DDdd\4\2EEee\4\2"+
 		"FFff\4\2HHhh\4\2IIii\4\2JJjj\4\2KKkk\4\2LLll\4\2MMmm\4\2NNnn\4\2OOoo\4"+

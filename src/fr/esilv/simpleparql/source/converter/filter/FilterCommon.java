@@ -9,8 +9,12 @@ import java.util.List;
  */
 
 public class FilterCommon {
-    public String createSPARQLFilter(String truc, String variable) {
-        return Constants.FILTER + "( " + variable + "=" + "\"" + truc + "\")";
+    public String createSPARQLFilter(String truc, String variable, String internalLanguage) {
+        // internal language is added for writing this way :
+        //FILTER ( ?label_4 = "birth place"@en )
+        // instead of
+        // FILTER ( ?label_4 = "birth place@en" )
+        return Constants.FILTER + "( " + variable + "=" + "\"" + truc + "\"" + (internalLanguage != null ? "@"+internalLanguage : "") + ")";
     }
 
     /**

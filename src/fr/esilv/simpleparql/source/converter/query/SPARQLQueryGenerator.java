@@ -66,7 +66,7 @@ public class SPARQLQueryGenerator {
             ArrayList<String> filters = new ArrayList<>();
             // main filter
             if (truc.isExact()) {
-                filters.add(new FilterCommon().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.VARIABLE)));
+                filters.add(new FilterCommon().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.VARIABLE),truc.getInternalLanguage()));
             } else {
                 filters.add(new FilterDefault().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.VARIABLE)));
             }
@@ -100,7 +100,7 @@ public class SPARQLQueryGenerator {
             ArrayList<String> filters = new ArrayList<>();
             // main filter
             if (truc.isExact()) {
-                filters.add(new FilterCommon().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.LABEL)));
+                filters.add(new FilterCommon().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.LABEL),truc.getInternalLanguage()));
             } else {
                 filters.add(filterGenerator.createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.LABEL)));
             }
@@ -133,7 +133,7 @@ public class SPARQLQueryGenerator {
                     + truc.getVariables().get(VARIABLES.TMP1) + truc.getVariables().get(VARIABLES.TMP2) + " . ");
             ArrayList<String> filters = new ArrayList<>();
             if (truc.isExact()) {
-                filters.add(new FilterCommon().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.TMP2)));
+                filters.add(new FilterCommon().createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.TMP2),truc.getInternalLanguage()));
             } else {
                 filters.add(filterGenerator.createSPARQLFilter(truc.getCleanedName(), truc.getVariables().get(VARIABLES.TMP2)));
             }

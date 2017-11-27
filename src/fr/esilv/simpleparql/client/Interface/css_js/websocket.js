@@ -173,6 +173,7 @@ function callSocket (s, callback) {
     $query_div = "#query_results"; // result's div, if html is checked
     var counter = {};  // should be an object to be passed by ref in javascript functions.
     counter.value=-1;  // to count the queries that have found at leasr ONE result
+    var errorInBase = false;
     var allBases = []; // final json
     var currentBase; // json object representing the current base
     var baseIndex = -1; //current base index, to create the final json object
@@ -191,12 +192,13 @@ function callSocket (s, callback) {
                 case "Iend": // Informations part of this [new] base
                      console.log("have result informations " + haveResult)
                      baseIndex +=1;
-                     if(counter.value != -1){ // to not check the first time we visit this bloc..!
+                     if(counter.value != -1 && !errorInBase){ // to not check the first time we visit this bloc..!
                        noResultInPreviousBase(counter); // no results found in the previous base... Will be used also in the last event, to handle the last base
                      }
                      console.log("have result informations " + haveResult)
                      counter.value = 1; // counter is back to 1 for the beggining of the new base
                      currentBase = {}; // intialize a new json object to this base
+                     errorInBase = false;
                      var message = msg.substring(0,msg.length-4); //to delete the end message
                      currentBase =  JSON.parse(message); // informations got, will be the first items of the current base object
                      currentBase.result  = []; // initialize the results
@@ -208,6 +210,7 @@ function callSocket (s, callback) {
                      msg ='';
                     break;
                 case "Eend": // Error part of this base
+                     errorInBase = true;
                      var message = msg.substring(0,msg.length-4); //to delete the end message
                      console.log("One message has just been received! [Error part]");
                      currentBase = JSON.parse(message);
@@ -232,17 +235,17 @@ function callSocket (s, callback) {
             }
         }
         if(evt.data=="null"){ // after sending all datas
-            console.log("have result " + haveResult)
-            noResultInPreviousBase(counter); // no results found in the last base... Was handled after each base in the informations part!
-            console.log("have result " + haveResult)
             console.log("Datas received! We'll close connection with the web serivce.");
             console.log(allBases);
             $('#wait').empty();
-            if(!haveResult){
-                $("#nextpage").hide(); // keep it? the first page have no result for all bases, so we don't need the rest.
-                var $noresultAtALL = $('<h3></h3>').addClass("cente error")
-                                    .text("No results found in ANY base you've selected. Please change your SimplePARQL query, or choose another bases.");
-                $($query_div).append($noresultAtALL);
+            if(!errorInBase){
+                noResultInPreviousBase(counter); // no results found in the last base... Was handled after each base in the informations part!
+                if(!haveResult){
+                    $("#nextpage").hide(); // keep it? the first page have no result for all bases, so we don't need the rest.
+                    var $noresultAtALL = $('<h3></h3>').addClass("cente error")
+                                        .text("No results found in ANY base you've selected. Please change your SimplePARQL query, or choose another bases.");
+                    $($query_div).append($noresultAtALL);
+                }
             }
             callback (allBases); // save in JSON or XML format
             mySocket.close ();
@@ -277,7 +280,7 @@ function informationToInterface(msg, currentBase){
 //send query results to the interface
 function queryResultToInterface(result,msg,currentBase, counter){
     if(result.results.length != 0){ // no result ==> no table
-       addQuery($query_div,result.query,counter.value,currentBase.base);
+        addQuery($query_div,result.query,counter.value,currentBase.base);
        // two tables are created to handle the table's toogle
        var $div_title = $('<div></div>').addClass('title');// table containing the titles (ths)
        addTitle($div_title,result);

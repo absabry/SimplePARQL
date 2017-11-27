@@ -110,40 +110,20 @@ public class SparqlQueries {
             logger.debug(oldGenereatedTree);
             Collection<ParseTree> trucs = XPath.findAll(oldGenereatedTree.getQuery(), "//trucSujet", parser);
             if (trucs.size() > 0) {
-                logger.debug("We're in trucSujet");
-                Truc truc = createTruc(Iterables.get(trucs, 0));
-                if (truc.isOptionnal() && !optional) {
-                    simpleARQLTrucs.remove(truc);
-                    removeOptionnalTrucFromTree(oldGenereatedTree, truc);
-                } else {
-                    generateCartesianProductTrees(oldGenereatedTree, truc);
-                }
+                addTrucToProductTress(trucs,oldGenereatedTree);
             } else {
                 logger.debug("We're not in trucSujet");
                 trucs = XPath.findAll(oldGenereatedTree.getQuery(), "//trucPredicat", parser);
                 if (trucs.size() > 0) {
                     logger.debug("We're in trucPredicat");
-                    Truc truc = createTruc(Iterables.get(trucs, 0));
-                    if (truc.isOptionnal() && !optional) {
-                        simpleARQLTrucs.remove(truc);
-                        removeOptionnalTrucFromTree(oldGenereatedTree, truc);
-                    } else {
-                        generateCartesianProductTrees(oldGenereatedTree, truc);
-                    }
+                    addTrucToProductTress(trucs, oldGenereatedTree);
                 } else {
                     logger.debug("We're not in trucPredicat");
                     trucs = XPath.findAll(oldGenereatedTree.getQuery(), "//trucObject", parser);
                     if (trucs.size() > 0) {
                         logger.debug("We're in trucObject");
-                        Truc truc = createTruc(Iterables.get(trucs, 0));
-                        if (truc.isOptionnal() && !optional) {
-                            simpleARQLTrucs.remove(truc);
-                            removeOptionnalTrucFromTree(oldGenereatedTree, truc);
-                        } else {
-                            generateCartesianProductTrees(oldGenereatedTree, truc);
-                        }
-                    }
-                    else{
+                        addTrucToProductTress(trucs, oldGenereatedTree);
+                    } else {
                         logger.debug("We're not in trucObject");
                     }
                 }
@@ -157,25 +137,50 @@ public class SparqlQueries {
     }
 
     /**
+     * Just for more readabilty
+     *
+     * @param trucs
+     * @param oldGenereatedTree
+     * @throws IOException
+     */
+    private void addTrucToProductTress(Collection<ParseTree> trucs, SPARQLQueryGenerated oldGenereatedTree) throws IOException {
+        Truc truc = createTruc(Iterables.get(trucs, 0));
+        if (truc.isOptionnal() && !optional) {
+            simpleARQLTrucs.remove(truc);
+            removeOptionnalTrucFromTree(oldGenereatedTree, truc);
+        } else {
+            generateCartesianProductTrees(oldGenereatedTree, truc);
+        }
+    }
+
+
+    /**
      * Check if the truc exists in the oldest list of truc.<br>
      * If so we get it, otherwise we create a new one and add it in the simpleARQLTrucs list. <br>
      *
-     * @param trucInTree truc found
+     * @param trucInOriginalTree truc found
      * @return new Truc if it dosent exist
      */
-    private Truc createTruc(ParseTree trucInTree) {
+    private Truc createTruc(ParseTree trucInOriginalTree) {
+        logger.debug("Should we create a new truc? ");
+        logger.debug(simpleARQLTrucs);
+        logger.debug(trucInOriginalTree.getText());
         Truc trucFound = null;
+        logger.debug("Begin");
         // if the truc already exists in the generated queries
         for (Truc simpleARQLTruc : simpleARQLTrucs) {
-            if (simpleARQLTruc.getText().equals(trucInTree.getText())) {
-                trucFound = new Truc(trucInTree, simpleARQLTruc.getCounter());
+            logger.debug(simpleARQLTruc.getText());
+            if (simpleARQLTruc.getText().equals(trucInOriginalTree.getText())) {
+                logger.debug("No need! already exists!");
+                trucFound = new Truc(trucInOriginalTree, simpleARQLTruc.getCounter());
                 break;
             }
         }
         // if the truc never exists, we can create a new one
         if (trucFound == null) {
+            logger.debug("Oh yes we need another one!");
             counter++;
-            trucFound = new Truc(trucInTree, counter);
+            trucFound = new Truc(trucInOriginalTree, counter);
             simpleARQLTrucs.add(trucFound);
         }
         return trucFound;
@@ -382,6 +387,8 @@ public class SparqlQueries {
             // replace closed bracket with the new graph pattern
             groupGraphPattern.getKey().children.set(groupGraphPattern.getKey().getChildCount() - 1, graphPatternNotTriplesContext);
             groupGraphPattern.getKey().addChild((TerminalNodeImpl) closedBrackets);
+            logger.debug("regarde mon filtre vite fait");
+            logger.debug(filterText);
             graphPatternNotTriplesContext.addChild(Constants.getTreeOfText(filterText).filter());
             return true;
         }

@@ -26,10 +26,11 @@ filter
     : Filter constraint
     ;
 constraint
-    : '(' expression ')' // (expression)
+    : '(' expression ')'  // (expression)
     | builtInCall // expressions STR,SAMETERM, etc..
     | functionCall // URI or namespace (genre rdf:name)
     ;
+
 functionCall
     : iriRef argList
     ;
@@ -355,7 +356,7 @@ STRING_LITERAL2
     : '"'  ( ~('\u0022' | '\u005C' | '\u000A' | '\u000D' ) | ECHAR )* '"'
     ;
 TRUC_SEVERALWORDS
-    : '/' ('A'..'Z' | 'a'..'z' | ' ' | ECHAR)+ '/'
+    : '/' ('A'..'Z' | 'a'..'z' | ' ' | '@' | ECHAR)+ '/'
     ;
 
 ECHAR

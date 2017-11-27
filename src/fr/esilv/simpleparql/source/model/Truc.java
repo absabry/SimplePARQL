@@ -22,6 +22,7 @@ public class Truc {
     private ArrayList<Pair<ParserRuleContext, Integer>> parents;
     private String name;
     private String language;
+    private String internalLanguage;
     private POSITION position;
     private int counter;
     private Triple currentTriple;
@@ -39,6 +40,7 @@ public class Truc {
         parents = new ArrayList<>();
         this.counter = counter;
         language = null;
+        internalLanguage = null;
         intializeLanguageAndName(node);
         createParentTree(node);
         computePosition();
@@ -50,15 +52,29 @@ public class Truc {
     /**
      * Get the text (the name) of the truc and it's language if there is one.
      *
-     * @param node truc's node
+     * @param node truc's node in text format
      */
     private void intializeLanguageAndName(ParseTree node) {
+
         String composant[] = node.getText().split("@");
-        name = composant[0];
-        if (composant.length == 2) {
-            language = composant[1];
+        name = "";
+        if (composant.length == 1) {
+            name = composant[0]; // no filter language (or internal language) is added
+        } else {
+            for (int i = 0; i < composant.length - 1; i++) {
+                name += composant[i];
+            }
+            String lastPart = composant[composant.length - 1];
+            String lastChar = lastPart.substring(lastPart.length() - 1, lastPart.length());
+            language = lastPart;
+            if (lastChar.equals("/") || lastChar.equals("\"")) { // it's an intern lanuage, and not a explicit one!
+                internalLanguage = language.substring(0, language.length() - 1);
+                language = null;
+                name += lastChar;
+            }
         }
     }
+
 
     public int getCounter() {
         return counter;
@@ -80,6 +96,11 @@ public class Truc {
         return language;
     }
 
+    public String getInternalLanguage() {
+        return internalLanguage;
+    }
+
+
     /**
      * Get truc's name without the quotes and the slash.
      *
@@ -95,7 +116,11 @@ public class Truc {
      * @return the name without delimter
      */
     public String getText() {
-        return name + (language == null ? "" : "@" + language);
+        String tempName = name;
+        if (internalLanguage != null) {
+            tempName = name.substring(0, name.length() - 1) + "@" + internalLanguage + name.substring(name.length() - 1, name.length());
+        }
+        return tempName + (language == null ? "" : "@" + language);
     }
 
     public TRUC_TYPE getType() {
@@ -137,12 +162,13 @@ public class Truc {
      */
     private void computePosition() {
         position = POSITION.SUBJECT;
-        if (find(SimplePARQLParser.RULE_verb) != null) {
+        if (find(SimplePARQLParser.RULE_trucPredicat) != null) {
             position = POSITION.PREDICATE;
-        } else if (find(SimplePARQLParser.RULE_object) != null) {
+        } else if (find(SimplePARQLParser.RULE_trucObject) != null) {
             position = POSITION.OBJECT;
         }
     }
+
     /**
      * Compute the type of the "truc".
      */
@@ -154,6 +180,7 @@ public class Truc {
             type = TRUC_TYPE.STRING;
         }
     }
+
 
     /**
      * Find the closest item in the parents of "truc" having the rule context we're looking for <br>
@@ -215,15 +242,6 @@ public class Truc {
      * @return true if it's it, false if it's not
      */
     public boolean isExact() {
-        // using the TREE, more accurate
-        /*ParserRuleContext truc = parents.get(0).getKey();
-        if (truc.getChild(0) instanceof ParserRuleContext) {
-            if (((ParserRuleContext) truc.getChild(0)).getRuleIndex() == SimplePARQLParser.RULE_string) {
-                return true;
-            }
-        }
-        return false;
-        */
         return type == TRUC_TYPE.STRING;
     }
 
